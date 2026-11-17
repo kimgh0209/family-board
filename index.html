@@ -65,6 +65,16 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 .egg{background:var(--blue)!important;color:#fff!important}
 .acts{justify-content:center;margin-top:10px}
 .stack>*+*{margin-top:14px}
+/* 진화 계보 */
+.evw{overflow-x:auto;padding:8px 0;margin:6px 0;border-bottom:1px dashed var(--line);text-align:left}
+.evt{display:flex;align-items:center}
+.evk{display:flex;flex-direction:column}
+.evn{text-align:center;padding:4px 6px;border-radius:12px;min-width:84px}
+.evn img{width:72px;height:72px;object-fit:contain}
+.evn div{font-size:13px;font-weight:700}
+.evn.cur{background:#ffebee;outline:3px solid var(--red)}
+.arr{font-size:22px;margin:0 4px;color:var(--red)}
+.row input[type=checkbox]{width:28px;height:28px;flex:none}
 /* overlay / toast */
 #ov{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);display:none;place-items:center;z-index:9}
 #ov.show{display:grid}
@@ -121,7 +131,7 @@ function defaults(){
   const base=()=>[['세수하기',10],['양치하기',10],['책 읽기',30],['장난감 정리',20]];
   return {pin:'0000',lat:37.5665,lon:126.978,
     notices:'오늘도 화이팅! 💪',events:'',
-    eggCost:100,evoCost:80,                       // 알 가격 / 진화 가격 (포켓코인)
+    eggCost:100,evoCost:80,legend:false,                       // 알 가격 / 진화 가격 (포켓코인)
     kids:[newKid('한율',base()),newKid('이현',base()),newKid('서비',base())]};
 }
 function load(){
@@ -129,7 +139,7 @@ function load(){
   try{s=JSON.parse(localStorage.getItem('pkfam3'))}catch(e){}
   s=s||defaults();
   const d=defaults();
-  ['pin','lat','lon','notices','events','eggCost','evoCost'].forEach(k=>{if(s[k]===undefined)s[k]=d[k]});
+  ['pin','lat','lon','notices','events','eggCost','evoCost','legend'].forEach(k=>{if(s[k]===undefined)s[k]=d[k]});
   const t=today();s.kids.forEach(k=>{Object.keys(k.done||{}).forEach(x=>{if(x!==t)delete k.done[x]});k.done=k.done||{}});
   return s;
 }
@@ -139,14 +149,47 @@ const K=()=>S.kids[kid]||S.kids[0];
 const leadOf=k=>k.mons[k.sel];
 
 /* ---------- 포켓몬 API ---------- */
-async function rollEgg(){
-  for(let i=0;i<8;i++){
-    let sp=await jget(API+'pokemon-species/'+(1+Math.floor(Math.random()*386)));
-    if(sp.is_legendary||sp.is_mythical)continue;
-    while(sp.evolves_from_species)sp=await jget(sp.evolves_from_species.url);
-    return {id:sp.id,sp:sp.name,name:koName(sp)};
+let dexTotal=0,chainTotal=0;                      // 도감 전체 종 수 / 진화 계보 수 (PokeAPI에서 실시간 조회)
+async function speciesCount(){
+  if(dexTotal)return dexTotal;
+  try{dexTotal=(await jget(API+'pokemon-species?limit=1')).count}catch(e){dexTotal=1025}
+  return dexTotal;
+}
+async function chainCount(){
+  if(chainTotal)return chainTotal;
+  try{chainTotal=(await jget(API+'evolution-chain?limit=1')).count}catch(e){chainTotal=500}
+  return chainTotal;
+}
+async function rollEgg(){                         // 현존하는 전체 포켓몬 중에서 뽑고, 항상 진화 전 모습으로 부화
+  const total=await speciesCount();
+  for(let i=0;i<12;i++){
+    try{
+      let sp=await jget(API+'pokemon-species/'+(1+Math.floor(Math.random()*total)));
+      if(!S.legend&&(sp.is_legendary||sp.is_mythical))continue;
+      while(sp.evolves_from_species)sp=await jget(sp.evolves_from_species.url);
+      return {id:sp.id,sp:sp.name,name:koName(sp)};
+    }catch(e){}
   }
   throw new Error('roll');
+}
+/* ---- 진화 계보(트리) ---- */
+const cache={};
+async function speciesKo(id){if(cache['n'+id])return cache['n'+id];const sp=await jget(API+'pokemon-species/'+id);return cache['n'+id]=koName(sp)}
+async function buildTree(n){const id=idFrom(n.species.url);const ko=await speciesKo(id);const kids=await Promise.all(n.evolves_to.map(buildTree));return {id,ko,kids}}
+async function chainTreeByUrl(u){if(cache[u])return cache[u];const c=await jget(u);return cache[u]=await buildTree(c.chain)}
+async function chainTreeOf(id){const sp=await jget(API+'pokemon-species/'+id);return chainTreeByUrl(sp.evolution_chain.url)}
+async function randomChain(){
+  const n=await chainCount();
+  for(let i=0;i<15;i++){
+    try{const c=await jget(API+'evolution-chain/'+(1+Math.floor(Math.random()*n)));
+      if(c.chain.evolves_to.length)return await buildTree(c.chain)}catch(e){}
+  }
+  throw new Error('chain');
+}
+function treeHtml(n,cur){
+  const me=`<div class="evn ${n.id===cur?'cur':''}"><img src="${ART(n.id)}" loading="lazy"><div>${esc(n.ko)}</div></div>`;
+  if(!n.kids.length)return `<div class="evt">${me}</div>`;
+  return `<div class="evt">${me}<div class="arr">➜</div><div class="evk">${n.kids.map(k=>treeHtml(k,cur)).join('')}</div></div>`;
 }
 async function evolve(m){            // 진화할 수 없으면 null
   const sp=await jget(API+'pokemon-species/'+m.id);
@@ -182,11 +225,12 @@ function clockHtml(){const d=new Date();return `${pad(d.getHours())}:${pad(d.get
 function dateHtml(){return new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})}
 
 function render(){
-  document.getElementById('tabs').innerHTML=[['home','🏠 홈'],['todo','📝 미션'],['town','🌳 마을'],['set','⚙️ 설정']]
+  document.getElementById('tabs').innerHTML=[['home','🏠 홈'],['todo','📝 미션'],['town','🌳 마을'],['dex','📖 도감'],['set','⚙️ 설정']]
     .map(([k,l])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${l}</button>`).join('');
-  document.getElementById('kids').innerHTML=(tab==='todo'||tab==='town')?S.kids.map((k,i)=>`<button class="${i===kid?'on':''}" data-kid="${i}">${esc(k.name)}</button>`).join(''):'';
+  document.getElementById('kids').innerHTML=(tab==='todo'||tab==='town'||tab==='dex')?S.kids.map((k,i)=>`<button class="${i===kid?'on':''}" data-kid="${i}">${esc(k.name)}</button>`).join(''):'';
   const m=document.getElementById('main');
-  m.innerHTML=tab==='home'?homeView():tab==='todo'?todoView():tab==='town'?townView():setView();
+  m.innerHTML=tab==='home'?homeView():tab==='todo'?todoView():tab==='town'?townView():tab==='dex'?dexView():setView();
+  if(tab==='dex')fillDex();
 }
 function homeView(){
   const ev=parseEvents();
@@ -224,12 +268,42 @@ function townView(){
   if(p){
     hero=`<div class="hero"><img src="${ART(p.id)}"><div class="bar" style="justify-content:center">${esc(p.name)} <span class="small">No.${p.id}</span></div>
     <div class="small">${p.final?'최종 진화! 🏆':`진화 비용 🪙${won(S.evoCost)}`}</div>
-    <div class="acts"><button class="go" data-act="evo" ${p.final||k.coins<S.evoCost?'disabled':''}>✨ 진화시키기 (🪙${won(S.evoCost)})</button></div></div>`;
+    <div class="acts"><button class="go" data-act="evo" ${p.final||k.coins<S.evoCost?'disabled':''}>✨ 진화시키기 (🪙${won(S.evoCost)})</button><button data-act="tree">🌱 진화 계보</button></div></div>`;
   }
   return `<div class="stack"><div class="card"><div class="stats"><span class="chip coin">🪙 ${won(k.coins)}</span></div>${hero}
   <div class="acts"><button class="egg" data-act="egg" ${k.coins<S.eggCost?'disabled':''}>🥚 알 뽑기 (🪙${won(S.eggCost)})</button></div></div>
   <div class="card"><h2>내 포켓몬 (${k.mons.length}마리)</h2><div class="grid">
   ${k.mons.map((q,i)=>`<div class="mon ${i===k.sel?'sel':''}" data-sel="${i}"><img src="${ART(q.id)}" loading="lazy"><div>${esc(q.name)}</div></div>`).join('')}</div></div></div>`;
+}
+let exTrees=null,exLoading=false;
+function dexView(){
+  const k=K();
+  return `<div class="stack">
+  <div class="card"><h2>📖 알과 진화 안내</h2>
+    <p>🥚 알을 뽑으면 <b>진화 전 모습</b>의 포켓몬이 나와요. 전체 도감 <b>${dexTotal||'1000'}${dexTotal?'':'+'}</b>종 중에서 뽑아요${S.legend?'':' (전설·환상 포켓몬은 빼고)'}.</p>
+    <p>✨ 코인으로 진화시키면 아래 계보처럼 다음 모습으로 바뀌어요. 갈래가 여러 개면 그중 하나가 <b>랜덤</b>으로 나와요!</p></div>
+  <div class="card"><h2>🌱 ${esc(k.name)}의 포켓몬 진화 계보</h2>
+    ${k.mons.length?k.mons.slice(-12).reverse().map(m=>`<div class="evw" data-mine="${m.id}">불러오는 중...</div>`).join(''):'<div class="small">아직 포켓몬이 없어요. 알을 뽑으면 여기에 계보가 나와요!</div>'}</div>
+  <div class="card"><h2>✨ 이런 진화도 있어요 (랜덤 예시)</h2><div id="exs">불러오는 중...</div>
+    <div class="acts"><button class="egg" data-act="exmore">🎲 다른 예시 보기</button></div></div></div>`;
+}
+function paintEx(){
+  const el=document.getElementById('exs');if(!el)return;
+  el.innerHTML=exTrees&&exTrees.length?exTrees.map(t=>`<div class="evw">${treeHtml(t,0)}</div>`).join(''):'<div class="small">불러오지 못했어요. 인터넷을 확인해 주세요</div>';
+}
+async function loadExamples(){
+  if(exLoading)return;exLoading=true;
+  try{const list=[];for(let i=0;i<3;i++)list.push(await randomChain());exTrees=list}catch(e){exTrees=[]}
+  exLoading=false;paintEx();
+}
+async function fillDex(){
+  speciesCount().then(()=>{});
+  const els=Array.prototype.slice.call(document.querySelectorAll('[data-mine]'));
+  for(const el of els){
+    try{const tr=await chainTreeOf(el.dataset.mine);if(document.body.contains(el))el.innerHTML=treeHtml(tr,+el.dataset.mine)}
+    catch(e){if(document.body.contains(el))el.textContent='불러오지 못했어요'}
+  }
+  if(exTrees)paintEx();else loadExamples();
 }
 function setView(){
   const g=(k,l,h)=>`<label class="small">${l}</label><textarea data-g="${k}" placeholder="${h||''}">${esc(S[k]||'')}</textarea>`;
@@ -238,7 +312,8 @@ function setView(){
     ${g('events','일정 · D-day (한 줄에 하나씩: 2026-12-25 크리스마스)','2026-12-25 크리스마스')}</div>
   <div class="card"><h2>🪙 포켓코인 가격</h2>
     <div class="row"><span>🥚 알 뽑기</span><input class="num" type="number" min="1" value="${S.eggCost}" data-eggcost><span>코인</span></div>
-    <div class="row"><span>✨ 진화시키기</span><input class="num" type="number" min="1" value="${S.evoCost}" data-evocost><span>코인</span></div></div>
+    <div class="row"><span>✨ 진화시키기</span><input class="num" type="number" min="1" value="${S.evoCost}" data-evocost><span>코인</span></div>
+    <div class="row"><input type="checkbox" data-legend ${S.legend?'checked':''}><span>전설·환상 포켓몬도 알에서 나오게 하기</span></div></div>
   ${S.kids.map((k,i)=>`<div class="card"><div class="row"><input value="${esc(k.name)}" data-kname="${i}" style="font-weight:700"><button data-act="delkid" data-k="${i}" style="background:#ffcdd2">삭제</button></div>
     <div class="small">미션 이름 · 받는 코인</div>
     ${k.chores.map((c,j)=>`<div class="row"><input value="${esc(c.t)}" data-ct="${i}.${j}"><input class="num" type="number" min="0" value="${c.c}" data-cc="${i}.${j}"><span>🪙</span><button data-act="delchore" data-k="${i}" data-c="${j}">✕</button></div>`).join('')}
@@ -297,6 +372,13 @@ document.addEventListener('click',async e=>{
     catch(err){overlay('<h2>인터넷 연결을 확인해주세요 😢</h2>')}
     busy=false;
   }
+  else if(t.dataset.act==='tree'){
+    const p=leadOf(k);if(!p)return;
+    overlay(`<h2>${esc(p.name)}의 진화 계보</h2><div id="ovtree" class="evw">불러오는 중...</div>`);
+    chainTreeOf(p.id).then(tr=>{const el=document.getElementById('ovtree');if(el)el.innerHTML=treeHtml(tr,p.id)})
+      .catch(()=>{const el=document.getElementById('ovtree');if(el)el.textContent='불러오지 못했어요'});
+    return}
+  else if(t.dataset.act==='exmore'){exTrees=null;const el=document.getElementById('exs');if(el)el.textContent='불러오는 중...';loadExamples();return}
   else if(t.dataset.act==='addkid'){S.kids.push(newKid('새 아이',[['양치하기',10]]))}
   else if(t.dataset.act==='delkid'){if(confirm('이 아이의 기록이 모두 지워져요. 정말요?')){S.kids.splice(+t.dataset.k,1);kid=0;if(!S.kids.length)S.kids.push(newKid('아이',[['양치하기',10]]))}}
   else if(t.dataset.act==='addchore'){S.kids[+t.dataset.k].chores.push({t:'새 미션',c:10})}
@@ -317,6 +399,7 @@ document.addEventListener('change',e=>{
   else if(D.cc){const[i,j]=D.cc.split('.');S.kids[i].chores[j].c=Math.max(0,Math.round(+t.value)||0)}
   else if(D.eggcost!==undefined)S.eggCost=Math.max(1,Math.round(+t.value)||100);
   else if(D.evocost!==undefined)S.evoCost=Math.max(1,Math.round(+t.value)||80);
+  else if(D.legend!==undefined)S.legend=t.checked;
   else if(D.lat!==undefined){S.lat=+t.value;loadWeather()}
   else if(D.lon!==undefined){S.lon=+t.value;loadWeather()}
   else if(D.pin!==undefined)S.pin=t.value.trim()||'0000';
@@ -324,6 +407,10 @@ document.addEventListener('change',e=>{
   save();
 });
 document.addEventListener('touchstart',bump,{passive:true});
+/* 이미지가 없으면(신규 포켓몬 등) 기본 스프라이트로 대체 */
+document.addEventListener('error',e=>{const i=e.target;if(!i||i.tagName!=='IMG')return;
+  const m=i.src.match(/official-artwork\/(\d+)\.png/);
+  if(m&&!i.dataset.fb){i.dataset.fb=1;i.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+m[1]+'.png'}else i.style.visibility='hidden'},true);
 
 /* 시계 갱신 + 자정 지나면 새로고침 */
 setInterval(()=>{
@@ -332,7 +419,7 @@ setInterval(()=>{
 },15000);
 setInterval(loadWeather,30*60000);
 
-render();loadWeather();bump();
+render();loadWeather();bump();speciesCount();
 </script>
 </body>
 </html>
