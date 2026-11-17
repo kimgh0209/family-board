@@ -364,6 +364,19 @@ main{padding:6px 10px 8px}
 .nbar .notice{font-size:14px;padding:5px 10px;margin:0 6px 0 0}
 header{padding:4px 10px}
 #cloud{color:#fff;font-size:18px;margin:2px 6px}
+.cd{position:relative}
+.sh1{position:absolute;right:1px;top:0;font-size:10px;line-height:1.2}
+.shrow{display:grid;grid-template-columns:1fr 1fr;grid-gap:6px;gap:6px}
+.shb{border:3px solid;border-radius:12px;text-align:center;padding:3px 2px;background:#fff}
+.shb small{display:block;font-size:11px;opacity:.7}
+.shi{font-size:26px;line-height:1.1}
+.shb b{font-size:15px}
+.subt{display:block;font-size:11px;font-weight:800;color:#c62828}
+.shstrip{display:flex;margin-top:5px}
+.ss{flex:1;text-align:center;font-size:11px;border-radius:8px;padding:2px 0}
+.ss.now{background:#fff3e0}
+.ss span{display:block;font-size:16px;line-height:1.2}
+.ss i{font-style:normal;font-size:9px}
 .sstat{font-weight:700;padding:8px 10px;border-radius:10px;background:#f1f8e9;margin:6px 0}
 .sstat.err{background:#ffebee;color:#c62828}
 .sstat.busy{background:#e3f2fd}
@@ -434,6 +447,8 @@ function defaults(){
     checklist:{title:'여행 준비물',sub:'',text:'여권\n충전기\n카메라\n간식\n세면도구\n비상약'},
     menu:`${dkey(0)} 점심 비빔밥, 계란국\n${dkey(0)} 저녁 김치찌개, 계란말이, 시금치나물\n${dkey(1)} 저녁 삼겹살, 쌈채소`,   // 예시예요. 설정에서 고쳐 쓰세요
     thanks:{},thanksTo:'',closet:[],outfit:{},
+    shift:{on:true,name:'아빠',anchor:'2026-11-17',seq:'휴 야 야 휴 휴 주 주 휴'},   // 4조 2교대: 기준일(휴)부터 휴·야·야·휴·휴·주·주·휴 를 반복
+    shiftOv:{},
     eggCost:100,evoCost:80,legend:false,          // 알 가격 / 진화 가격 (포켓코인)
     bonus:20,mute:false,                           // 하루 미션 전부 완료 보너스
     kids:TR_DEFAULT.map((t,i)=>newKid(['한율','이현','서비'][i],base(),t))};
@@ -447,6 +462,7 @@ function load(){
   s.kids.forEach(fixKid);
   Object.keys(s.thanks).forEach(x=>{if(s.thanks[x].date<dkey(-90))delete s.thanks[x]});
   Object.keys(s.outfit).forEach(x=>{if(x<dkey(-14))delete s.outfit[x]});
+  Object.keys(s.shiftOv).forEach(x=>{if(x<dkey(-60))delete s.shiftOv[x]});
   return s;
 }
 let S=load(), tab='home', kid=0, W=null, B=null, lastDay=today(), unlockUntil=0, busy=false;
@@ -696,7 +712,7 @@ function calCard(evs){
     const day=i-first+1;
     if(day<1||day>dim){cells+='<div class="cd out"></div>';continue}
     const ds=`${y}-${pad(m+1)}-${pad(day)}`,isT=ds===today(),dow=i%7,es=eventsOn(evs,ds);
-    cells+=`<div class="cd ${isT?'tod':''}"><span class="dn ${dow===0?'sun':dow===6?'sat':''}">${day}</span>${es.slice(0,2).map(e=>`<div class="ce" style="background:${colorOf(e.who)}22;border-left:3px solid ${colorOf(e.who)}">${esc(e.title)}</div>`).join('')}${es.length>2?`<div class="cm">+${es.length-2}개 더</div>`:''}</div>`;
+    cells+=`<div class="cd ${isT?'tod':''}"><span class="dn ${dow===0?'sun':dow===6?'sat':''}">${day}</span>${shMark(ds)}${es.slice(0,2).map(e=>`<div class="ce" style="background:${colorOf(e.who)}22;border-left:3px solid ${colorOf(e.who)}">${esc(e.title)}</div>`).join('')}${es.length>2?`<div class="cm">+${es.length-2}개 더</div>`:''}</div>`;
   }
   return `<div class="sec"><div class="calh"><button class="mini" data-act="cal" data-d="-1">◀</button><b class="ct">${y}년 ${m+1}월</b><button class="mini" data-act="cal" data-d="1">▶</button>${calOff?'<button class="mini" data-act="cal" data-d="0">오늘</button>':''}
     <span class="legend">${allPeople().map(p=>`<span><i style="background:${p.c}"></i>${esc(p.n)}</span>`).join('')}</span></div><div class="cal">${cells}</div></div>`;
@@ -916,13 +932,13 @@ const b64d=s=>decodeURIComponent(escape(atob(String(s).replace(/\s/g,''))));
 // 부모가 정하는 설정만 동기화해요 (아이들이 모은 코인·포켓몬 기록은 각 기기에 남아요)
 function cfgOf(){
   return {pin:S.pin,lat:S.lat,lon:S.lon,notices:S.notices,events:S.events,menu:S.menu,todoText:S.todoText,shopping:S.shopping,checklist:S.checklist,
-    people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,
+    people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,
     kids:S.kids.map(k=>({name:k.name,chores:k.chores,birthday:k.birthday,color:k.color})),closet:S.closet,outfit:S.outfit};
 }
 const cfgHash=()=>JSON.stringify(cfgOf());
 lastCfgHash=cfgHash();
 function applyCfg(c){
-  ['pin','lat','lon','notices','events','menu','todoText','shopping','checklist','people','eggCost','evoCost','bonus','legend','closet','outfit'].forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});
+  ['pin','lat','lon','notices','events','menu','todoText','shopping','checklist','people','eggCost','evoCost','bonus','legend','closet','outfit','shift','shiftOv'].forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});
   if(Array.isArray(c.kids)){
     c.kids.forEach((kc,i)=>{
       let k=S.kids[i];
@@ -1016,6 +1032,57 @@ async function connectSync(repo,token){
   if(syncState.st==='ok')toast('☁️ 연결됐어요! 이제 자동으로 맞춰져요',3000);
 }
 
+/* ---- 교대 근무표 (예: 4조 2교대) ---- */
+const SH={D:['☀️','주간 근무','#fb8c00'],N:['🌙','야간 근무','#3949ab'],O:['🏠','쉬는 날','#2e7d32']};
+function shNorm(tok){
+  const t=String(tok).trim().toLowerCase();
+  if(/^(d|day|주|주간|데이)$/.test(t))return 'D';
+  if(/^(n|night|야|야간|나이트)$/.test(t))return 'N';
+  if(/^(o|off|휴|휴무|쉼|쉬는날)$/.test(t))return 'O';
+  return null;
+}
+const shSeq=()=>String((S.shift||{}).seq||'').split(/[\s,/·]+/).map(shNorm).filter(Boolean);
+// 그날의 근무: {t:'D'|'N'|'O', base(원래 근무), sub(대근), vac(연차)}
+function shiftOf(ds){
+  const sh=S.shift;if(!sh||!sh.on||!sh.anchor)return null;
+  const seq=shSeq();if(!seq.length)return null;
+  const [y,m,d]=ds.split('-').map(Number),[ay,am,ad]=sh.anchor.split('-').map(Number);
+  if(!ay)return null;
+  const n=dayNum(y,m,d)-dayNum(ay,am,ad),L=seq.length,base=seq[((n%L)+L)%L],ov=(S.shiftOv||{})[ds];
+  if(ov)return {t:ov.t,base,sub:!!ov.sub,vac:!!ov.vac};
+  return {t:base,base,sub:false,vac:false};
+}
+function shView(x){                                  // 화면에 보일 모양 [이모지, 글자, 색]
+  if(x.vac)return ['🏖','연차 · 쉬는 날','#00838f'];
+  if(x.sub)return [SH[x.t][0],'대근 · '+(x.t==='D'?'주간':'야간'),SH[x.t][2]];
+  return SH[x.t];
+}
+const shOff=x=>x.t==='O';
+function shMark(ds){
+  const x=shiftOf(ds);if(!x||x.t==='O')return '';
+  return `<span class="sh1">${SH[x.t][0]}${x.sub?'🔄':''}</span>`;
+}
+function shiftCard(){
+  const sh=S.shift;if(!sh||!sh.on||!shSeq().length)return '';
+  const box=(n,lab)=>{
+    const d=addDays(n),x=shiftOf(dstr(d));if(!x)return '';
+    const v=shView(x);
+    return `<div class="shb" style="border-color:${v[2]}"><small>${lab} ${d.getMonth()+1}/${d.getDate()} (${WD[d.getDay()]})</small><div class="shi">${v[0]}</div><b style="color:${v[2]}">${v[1]}</b>${x.sub?'<span class="subt">🔄 대근이에요</span>':''}</div>`;
+  };
+  let strip='',nextOff=null;
+  for(let i=0;i<7;i++){const d=addDays(i),x=shiftOf(dstr(d));
+    strip+=`<div class="ss ${i===0?'now':''}"><small>${WD[d.getDay()]}</small><span>${x.vac?'🏖':SH[x.t][0]}${x.sub?'<i>🔄</i>':''}</span></div>`}
+  for(let i=0;i<40&&!nextOff;i++){const d=addDays(i),x=shiftOf(dstr(d));if(x&&shOff(x))nextOff={i,d}}
+  const off=nextOff?(nextOff.i===0?'오늘은 쉬는 날이에요! 🎉':nextOff.i===1?'내일은 쉬는 날이에요! 🎉':`다음 쉬는 날은 ${nextOff.d.getMonth()+1}/${nextOff.d.getDate()} (${WD[nextOff.d.getDay()]})`):'';
+  return `<div class="sec"><div class="sh" style="--c:#3949ab;color:#283593">👨 ${esc(sh.name||'아빠')} 근무</div>
+    <div class="shrow">${box(0,'오늘')}${box(1,'내일')}</div>
+    <div class="shstrip">${strip}</div>${off?`<div class="small" style="margin-top:3px;font-weight:700">${off}</div>`:''}</div>`;
+}
+function shPreview(n){
+  let s='';for(let i=0;i<n;i++){const d=addDays(i),x=shiftOf(dstr(d));if(!x)return '';s+=`${d.getMonth()+1}/${d.getDate()} ${x.vac?'🏖':SH[x.t][0]}${x.sub?'🔄':''} · `}
+  return s.replace(/ · $/,'');
+}
+
 function homeView(){
   const now=new Date(),evs=parseEv();
   const rn=B?lines(B.notices):[],notices=rn.length?rn:lines(S.notices);
@@ -1023,7 +1090,7 @@ function homeView(){
   ${notices.length?`<div class="nbar">${notices.map(n=>`<span class="notice">📢 ${esc(n)}</span>`).join('')}</div>`:''}
   <div class="tri">
     <div class="col">${clockCard(now)}${calCard(evs)}${schedCard(evs)}</div>
-    <div class="col">${weatherCard(now)}${outfitCard()}${menuCard()}</div>
+    <div class="col">${weatherCard(now)}${shiftCard()}${outfitCard()}${menuCard()}</div>
     <div class="col">${todoCard()}${kidsCard()}${upCard(evs)}</div>
   </div></div>`;
 }
@@ -1149,6 +1216,16 @@ function setView(){
   const ck=S.checklist||{};
   return `<div class="stack">
   <div class="card"><h2>📢 가족 공지</h2>${ta('data-g="notices"',S.notices,'한 줄에 하나씩')}</div>
+  <div class="card"><h2>👨 근무표 (교대근무)</h2>
+    <div class="row"><input type="checkbox" data-shon ${S.shift&&S.shift.on?'checked':''}><span>대시보드에 근무표 보이기</span></div>
+    <div class="row"><span>이름</span><input value="${esc((S.shift||{}).name||'')}" data-sh="name" placeholder="아빠"></div>
+    <label class="small">기준일과, 그날부터의 근무 순서 (이 순서를 계속 반복해요)</label>
+    <div class="row"><input type="date" data-sh="anchor" value="${esc((S.shift||{}).anchor||'')}" style="width:170px;flex:none"><input data-sh="seq" value="${esc((S.shift||{}).seq||'')}" placeholder="휴 야 야 휴 휴 주 주 휴"></div>
+    <p class="small">주=주간, 야=야간, 휴=휴무 · 4조 2교대 예: 휴 야 야 휴 휴 주 주 휴 (기준일이 첫 번째 글자예요)</p>
+    <div class="small">미리보기: ${esc(shPreview(10))||'순서를 확인해 주세요'}</div>
+    <label class="small">🔄 대근 · 근무 변경 표시 (선택한 날만 바뀌어요)</label>
+    <div class="row"><input type="date" id="shd" value="${today()}" style="width:170px;flex:none"><select id="shs"><option value="DS">🔄 대근 (주간)</option><option value="NS">🔄 대근 (야간)</option><option value="V">🏖 연차 · 쉬는 날로 변경</option><option value="X">원래 근무로 되돌리기</option></select><button class="go" data-act="addshift">적용</button></div>
+    ${Object.keys(S.shiftOv||{}).filter(d=>d>=dkey(-1)).sort().map(d=>{const o=S.shiftOv[d],v=shView({t:o.t,sub:o.sub,vac:o.vac});return `<div class="row"><span>${+d.slice(5,7)}/${+d.slice(8)}</span><span>${v[0]} ${v[1]}</span><button data-act="delshift" data-d="${d}">✕</button></div>`}).join('')}</div>
   <div class="card"><h2>📅 일정 추가</h2>
     <div class="row"><input type="date" id="evd" value="${today()}"><input type="time" id="evt" style="width:130px;flex:none"></div>
     <div class="row"><input id="evn" placeholder="일정 이름 (예: 치과 예약)"><select id="evw" style="width:110px"><option value="">누구?</option>${who}</select></div>
@@ -1331,6 +1408,15 @@ document.addEventListener('click',async e=>{
     S.checklist.text=lines(S.checklist.text).filter(x=>!S.todoDone['__ck|'+x]).join('\n');
     S.todoDone={};toast('완료한 항목을 지웠어요 🧹');
   }
+  else if(t.dataset.act==='addshift'){
+    const ds=(document.getElementById('shd')||{}).value,ty=(document.getElementById('shs')||{}).value;
+    if(!ds){toast('날짜를 골라 주세요');return}
+    S.shiftOv=S.shiftOv||{};
+    if(ty==='X')delete S.shiftOv[ds];
+    else S.shiftOv[ds]=ty==='DS'?{t:'D',sub:true}:ty==='NS'?{t:'N',sub:true}:{t:'O',vac:true};
+    toast(ty==='X'?'원래 근무로 되돌렸어요':'표시했어요 ✅');
+  }
+  else if(t.dataset.act==='delshift'){delete S.shiftOv[t.dataset.d]}
   else if(t.dataset.act==='syncon'){
     const repo=(document.getElementById('syrepo').value||'').trim(),token=(document.getElementById('sytok').value||'').trim();
     if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||token.length<20){toast('저장소 이름과 접속 키를 확인해 주세요',3000);return}
@@ -1370,6 +1456,8 @@ document.addEventListener('change',e=>{
   else if(D.evocost!==undefined)S.evoCost=Math.max(1,Math.round(+t.value)||80);
   else if(D.bonus!==undefined)S.bonus=Math.max(0,Math.round(+t.value)||0);
   else if(D.legend!==undefined)S.legend=t.checked;
+  else if(D.shon!==undefined){S.shift.on=t.checked}
+  else if(D.sh!==undefined){S.shift[D.sh]=t.value;render()}
   else if(D.todo!==undefined)S.todoText[D.todo]=t.value;
   else if(D.cl!==undefined)S.checklist[D.cl]=t.value;
   else if(D.pn!==undefined){const p=S.people[+D.pn];if(S.todoText[p.n]!==undefined&&t.value&&t.value!==p.n){S.todoText[t.value]=S.todoText[p.n];delete S.todoText[p.n]}p.n=t.value}
