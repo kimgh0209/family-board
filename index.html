@@ -301,11 +301,11 @@ main{padding-top:8px}
 .cg{margin:10px 0}
 .cg b{display:block;margin-bottom:4px}
 .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));grid-gap:8px;gap:8px}
-.ct{position:relative;border:4px solid transparent;border-radius:12px;background:#f1f1f1;cursor:pointer;padding-top:100%;overflow:hidden}
-.ct img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain}
-.ct.on{border-color:var(--green)}
+.cti{position:relative;border:4px solid transparent;border-radius:12px;background:#f1f1f1;cursor:pointer;padding-top:100%;overflow:hidden}
+.cti img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain}
+.cti.on{border-color:var(--green)}
 .ck{display:none;position:absolute;right:4px;top:4px;background:var(--green);color:#fff;border-radius:50%;width:26px;height:26px;text-align:center;line-height:26px;font-weight:800}
-.ct.on .ck{display:block}
+.cti.on .ck{display:block}
 .delc{position:absolute;left:2px;bottom:2px;padding:2px 8px;font-size:12px;border-radius:8px;background:rgba(255,255,255,.9)}
 .filebtn{display:inline-block;background:var(--blue);color:#fff;border-radius:14px;padding:12px 18px;font-weight:700;cursor:pointer}
 /* 구형 iOS(12) 호환: flex gap 대체 */
@@ -369,7 +369,7 @@ function defaults(){
     notices:'오늘도 화이팅! 💪',
     events:`${dkey(0)} 10:30 도서관 그림책 시간 #이현\n${dkey(1)} 18:30 태권도 #한율\n${dkey(3)} 가족 외식 #가족\n${dkey(6)} 병원 예약 #엄마`,   // 예시예요. 설정에서 지우고 고쳐 쓰세요
     people:[{n:'엄마',c:'#ec407a'},{n:'아빠',c:'#1e88e5'},{n:'가족',c:'#8e24aa'}],
-    todoText:{'엄마':'주말 나들이 준비\n분리수거','아빠':'공과금 확인\n차 점검','가족':'가족 사진 고르기'},
+    todoText:{'한율':'책가방 챙기기\n숙제하기','이현':'알림장 확인\n준비물 챙기기','서비':'장난감 정리하기','가족':'가족 사진 고르기'},
     todoDone:{},shopping:'우유\n사과\n식빵\n요거트',
     checklist:{title:'여행 준비물',sub:'',text:'여권\n충전기\n카메라\n간식\n세면도구\n비상약'},
     menu:`${dkey(0)} 점심 비빔밥, 계란국\n${dkey(0)} 저녁 김치찌개, 계란말이, 시금치나물\n${dkey(1)} 저녁 삼겹살, 쌈채소`,   // 예시예요. 설정에서 고쳐 쓰세요
@@ -658,11 +658,11 @@ function schedCard(evs){
     ${nx?`<div class="small" style="margin-top:6px">다음 ${nd.getMonth()+1}/${nd.getDate()} · ${esc(nx.e.title)}</div>`:''}</div>`;
 }
 function todoCard(){
-  const cols=S.people.filter(p=>p.n!=='가족').map(p=>({p,items:listLines(p.n)})).filter(x=>x.items.length);
+  const cols=S.kids.map(k=>({p:{n:k.name,c:k.color},items:listLines(k.name)}));
   const common=listLines('가족'),shop=shopLines();
-  if(!cols.length&&!common.length&&!shop.length)return `<div class="sec"><div class="small">설정에서 할 일과 장보기 목록을 넣어 보세요</div></div>`;
-  return `<div class="sec">${cols.length?`<div class="tcols">${cols.map(({p,items})=>{const left=items.filter(t=>!S.todoDone[p.n+'|'+t]).length;
-      return `<div class="tcol"><div class="sh" style="--c:${p.c};color:${p.c}">${esc(p.n)} 할 일 <span class="cnt">${left}</span></div>${items.map(t=>tiBtn(p.n+'|'+t,t)).join('')}</div>`}).join('')}</div>`:''}
+  if(!cols.some(x=>x.items.length)&&!common.length&&!shop.length)return `<div class="sec"><div class="small">설정에서 할 일과 장보기 목록을 넣어 보세요</div></div>`;
+  return `<div class="sec">${cols.length?`<div class="tcols" style="grid-template-columns:repeat(${cols.length},1fr)">${cols.map(({p,items})=>{const left=items.filter(t=>!S.todoDone[p.n+'|'+t]).length;
+      return `<div class="tcol"><div class="sh" style="--c:${p.c};color:${p.c}">${esc(p.n)} 할 일 <span class="cnt">${left}</span></div>${items.length?items.map(t=>tiBtn(p.n+'|'+t,t)).join(''):'<div class="small">없어요 🎉</div>'}</div>`}).join('')}</div>`:''}
     ${common.length?`<div class="cm2"><b>공통 할 일 · ${common.filter(t=>!S.todoDone['가족|'+t]).length}</b><div class="inl">${common.map(t=>tiBtn('가족|'+t,t)).join('')}</div></div>`:''}
     ${shop.length?`<div class="shop"><b>🛒 장보기 ${shop.length}</b> <span>${shop.map(esc).join(' · ')}</span></div>`:''}</div>`;
 }
@@ -839,7 +839,7 @@ function editView(k,ds,label,dayBtns){
   const sel=outfitIds(ds,k),mine=closetOf(k);
   const kb=Math.round(mine.reduce((a,c)=>a+(IMG.mem[c.id]||'').length,0)/1024);
   const groups=CATS.map(([c,l])=>{const list=mine.filter(x=>x.cat===c);
-    return list.length?`<div class="cg"><b>${l}</b><div class="cgrid">${list.map(x=>`<div class="ct ${sel.indexOf(x.id)>=0?'on':''}" data-pick="${x.id}"><img src="${IMG.mem[x.id]||''}"><span class="ck">✓</span><button class="delc" data-act="delcloth" data-id="${x.id}">✕</button></div>`).join('')}</div></div>`:''}).join('');
+    return list.length?`<div class="cg"><b>${l}</b><div class="cgrid">${list.map(x=>`<div class="cti ${sel.indexOf(x.id)>=0?'on':''}" data-pick="${x.id}"><img src="${IMG.mem[x.id]||''}"><span class="ck">✓</span><button class="delc" data-act="delcloth" data-id="${x.id}">✕</button></div>`).join('')}</div></div>`:''}).join('');
   return `<div class="stack"><div class="card"><div class="bar"><b style="color:${k.color}">${esc(k.name)}</b>의 ${label} 옷 고르기 ✏️</div>${dayBtns}
     <p class="small">입을 옷을 눌러 ✓ 표시하세요. 상의·하의처럼 한 종류는 하나만 선택돼요. 위의 아이 이름 버튼으로 다른 아이 옷도 고를 수 있어요. 내일 옷도 미리 골라 둘 수 있어요.</p>
     ${groups||'<p class="small">아직 등록된 옷이 없어요. 아래에서 사진을 추가해 주세요.</p>'}</div>
@@ -1010,7 +1010,8 @@ function setView(){
     ${ta('data-g="menu"',S.menu,'2026-12-01 저녁 김치찌개, 계란말이&#10;2026-12-02 점심 비빔밥',150)}
     <p class="small">형식: 날짜 점심|저녁|아침|간식 메뉴 · 같은 날 같은 끼니를 또 쓰면 아래 줄이 우선이에요 · 폰의 board.json에도 menu로 적을 수 있어요</p></div>
   <div class="card"><h2>✅ 할 일 · 장보기 · 체크리스트</h2>
-    ${S.people.map(p=>`<label class="small">${esc(p.n)}${p.n==='가족'?' (공통 할 일)':' 할 일'} (한 줄에 하나씩)</label>${ta(`data-todo="${esc(p.n)}"`,(S.todoText||{})[p.n],'')}`).join('')}
+    ${S.kids.map(k=>`<label class="small">${esc(k.name)} 할 일 (한 줄에 하나씩)</label>${ta(`data-todo="${esc(k.name)}"`,(S.todoText||{})[k.name],'')}`).join('')}
+    <label class="small">공통 할 일 (한 줄에 하나씩)</label>${ta('data-todo="가족"',(S.todoText||{})['가족'],'')}
     <label class="small">🛒 장보기 (한 줄에 하나씩)</label>${ta('data-g="shopping"',S.shopping,'')}
     <label class="small">체크리스트 이름 · 설명 (예: 여행 준비물 · 내일 출발)</label>
     <div class="row"><input value="${esc(ck.title||'')}" data-cl="title" placeholder="여행 준비물"><input value="${esc(ck.sub||'')}" data-cl="sub" placeholder="설명"></div>
@@ -1214,6 +1215,7 @@ document.addEventListener('change',e=>{
   if(D.g)S[D.g]=t.value;
   else if(D.kname!==undefined){const old=S.kids[+D.kname].name;S.kids[+D.kname].name=t.value;S.requests.forEach(r=>{if(r.kid===old)r.kid=t.value});
     S.closet.forEach(c=>{if(c.kid===old)c.kid=t.value});
+    if(S.todoText[old]!==undefined&&t.value&&t.value!==old){S.todoText[t.value]=S.todoText[old];delete S.todoText[old]}
     Object.keys(S.outfit).forEach(d=>{if(S.outfit[d][old]){S.outfit[d][t.value]=S.outfit[d][old];delete S.outfit[d][old]}})}
   else if(D.ct){const[i,j]=D.ct.split('.');S.kids[i].chores[j].t=t.value}
   else if(D.cc){const[i,j]=D.cc.split('.');S.kids[i].chores[j].c=Math.max(0,Math.round(+t.value)||0)}
