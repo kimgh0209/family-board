@@ -628,7 +628,7 @@ async function rollLegend(){                         // 7번째 알: 전설·환
 async function hatchEgg(k,btn){
   busy=true;
   if(btn){btn.disabled=true;btn.innerHTML='<span class="shake" style="display:inline-block">🥚</span> 부화 중...'}
-  const legend=k.hatched===6;
+  const n=k.hatched+1,legend=n===7||n%20===0;   // 7번째, 그리고 20번째마다 (화면에는 알리지 않음)
   try{
     const p=legend?await rollLegend():await rollEgg();
     k.coins-=S.eggCost;k.mons.push(p);k.dex[p.id]=1;k.hatched++;k.sel=k.mons.length-1;
@@ -1360,8 +1360,8 @@ function townView(){
   }
   return `<div class="stack">${sceneHtml(k)}
   <div class="card"><div class="stats"><span class="chip coin">💰 ${won(k.coins)}</span><button data-act="pickTrainer" style="padding:6px 12px">🧢 트레이너 바꾸기</button></div>${hero}
-  <div class="acts"><button class="egg" data-act="egg" ${k.coins<S.eggCost?'disabled':''}>${k.hatched===0?'🥚 첫 알 뽑기 · 친구 고르기':k.hatched===6?'🌟 알 뽑기 (전설!)':'🥚 알 뽑기'} (💰${won(S.eggCost)})</button></div>
-  <div class="small" style="text-align:center;margin-top:4px">${k.hatched===0?'첫 알은 피카츄·꼬부기·파이리·이상해씨 중에서 골라요':k.hatched===6?'🌟 이번 알은 전설·환상의 포켓몬이 나와요!':`지금까지 알 ${k.hatched}개 · 7번째 알에는 전설·환상의 포켓몬이 나와요 ✨`}</div></div>
+  <div class="acts"><button class="egg" data-act="egg" ${k.coins<S.eggCost?'disabled':''}>${k.hatched===0?'🥚 첫 알 뽑기 · 친구 고르기':'🥚 알 뽑기'} (💰${won(S.eggCost)})</button></div>
+  <div class="small" style="text-align:center;margin-top:4px">${k.hatched===0?'첫 알은 피카츄·꼬부기·파이리·이상해씨 중에서 골라요':`지금까지 알 ${k.hatched}개`}</div></div>
   <div class="card"><h2>내 포켓몬 (${k.mons.length}마리)</h2><div class="grid">
   ${k.mons.map((q,i)=>`<div class="mon ${i===k.sel?'sel':''}" data-sel="${i}"><img src="${ART(q.id)}" loading="lazy"><div>${esc(q.name)}</div></div>`).join('')}</div></div></div>`;
 }
@@ -1383,7 +1383,7 @@ function dexView(){
   const k=K();
   return `<div class="stack">
   <div class="card"><h2>📖 알과 진화 안내</h2>
-    <p>🥚 <b>첫 알</b>은 피카츄·꼬부기·파이리·이상해씨 중에서 골라요. 그 다음부터는 전체 도감 <b>${dexTotal||'1000'}${dexTotal?'':'+'}</b>종 중에서 <b>진화 전 모습</b>의 든든한 포켓몬이 랜덤으로 나오고, 형제끼리 <b>같은 포켓몬은 나오지 않아요</b>. <b>7번째 알</b>에는 전설·환상의 포켓몬이 나와요 🌟</p>
+    <p>🥚 <b>첫 알</b>은 피카츄·꼬부기·파이리·이상해씨 중에서 골라요. 그 다음부터는 전체 도감 <b>${dexTotal||'1000'}${dexTotal?'':'+'}</b>종 중에서 <b>진화 전 모습</b>의 든든한 포켓몬이 랜덤으로 나오고, 형제끼리 <b>같은 포켓몬은 나오지 않아요</b>.</p>
     <p>✨ 코인으로 진화시키면 아래 계보처럼 다음 모습으로 바뀌어요. 갈래가 여러 개면 그중 하나가 <b>랜덤</b>으로 나와요!</p></div>
   ${dexProgress(k)}
   <div class="card"><h2>🌱 ${esc(k.name)}의 포켓몬 진화 계보</h2>
