@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="우리집보드">
 <title>우리집 포켓몬 보드</title>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#e8f5e9;--card:#fff;--ink:#2b3a2f;--red:#e53935;--yellow:#fbc02d;--green:#43a047;--blue:#1e88e5;--line:#cfe3d1}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -127,6 +128,102 @@ textarea{height:110px}
 .row input[type=checkbox]{width:28px;height:28px;flex:none}
 .row button{padding:8px 12px}
 label.small{display:block;margin:10px 0 4px}
+/* 대시보드(홈) */
+.dash{max-width:1200px;margin:auto;font-size:15px}
+main{max-width:1200px}
+.skyrow{display:flex;flex-wrap:wrap;margin:-5px}
+.skyrow>*{margin:5px}
+.sky{position:relative;border-radius:18px;border:3px solid #fff;background:linear-gradient(#7ec8f5,#cdeeff 75%);padding:10px 16px 26px;overflow:hidden;min-height:150px}
+.sky:after{content:"";position:absolute;left:0;right:0;bottom:0;height:14px;background:repeating-linear-gradient(90deg,#66bb6a 0,#66bb6a 14px,#7cc47f 14px,#7cc47f 28px)}
+.brand{display:flex;align-items:center;font-size:12px;font-weight:800;color:#1565c0;line-height:1.2}
+.ball{display:inline-block;width:34px;height:34px;border-radius:50%;border:3px solid #222;margin-right:8px;position:relative;background:linear-gradient(#e53935 45%,#222 45%,#222 55%,#fff 55%)}
+.ball:after{content:"";position:absolute;left:8px;top:8px;width:12px;height:12px;border-radius:50%;background:#fff;border:3px solid #222}
+.dt2{text-align:right;font-size:22px;font-weight:800;color:#1565c0;margin-top:-18px}
+.clk-row{display:flex;align-items:flex-end;justify-content:center;margin-top:2px}
+.apm{font-size:20px;font-weight:800;color:#1565c0;margin-right:8px;margin-bottom:10px}
+.clk2{font-family:"DotGothic16","Courier New",monospace;font-size:84px;line-height:1;color:#fff;text-shadow:3px 3px 0 #1565c0,-2px -2px 0 #1565c0,2px -2px 0 #1565c0,-2px 2px 0 #1565c0;letter-spacing:2px}
+.wcard{background:#fff;border:3px solid var(--line);border-radius:18px;padding:10px;display:flex;align-items:center;flex-wrap:wrap}
+.wcard>*{margin:4px}
+.aqbox{color:#fff;border-radius:14px;padding:8px 12px;text-align:center;min-width:76px;display:flex;flex-direction:column}
+.aqbox b{font-size:30px;line-height:1.1}.aqbox span{font-weight:800}
+.wnow{flex:1 1 200px}
+.wbig{display:flex;align-items:center}
+.wbig .wi{font-size:46px;margin-right:6px}
+.wbig b{font-size:46px;line-height:1;margin-right:10px}
+.wtx{font-size:15px;font-weight:700}
+.wcm{font-weight:700;color:#1565c0;margin-top:4px}
+.muted{opacity:.6}
+.whs{display:flex}
+.wh{text-align:center;background:#f1f8ff;border-radius:12px;padding:6px 8px;margin-left:6px;min-width:56px;display:flex;flex-direction:column}
+.wh .wi{font-size:22px}
+.wh.past{opacity:.4}
+.nbar{display:flex;flex-wrap:wrap;margin:6px -4px 0}
+.nbar .notice{margin:4px;font-size:16px;padding:8px 12px}
+.cols{display:grid;grid-template-columns:1.1fr 1fr;grid-gap:10px;gap:10px;margin-top:10px}
+@media(max-width:899px){.cols{grid-template-columns:1fr}}
+.col>*+*{margin-top:10px}
+.pair{display:grid;grid-template-columns:1.2fr 1fr;grid-gap:10px;gap:10px}
+.pair>*{margin-top:0!important}
+@media(max-width:620px){.pair{grid-template-columns:1fr}}
+.sec{background:#fff;border:3px solid var(--line);border-radius:16px;padding:10px 12px}
+.sh{font-weight:800;font-size:16px;border-left:5px solid var(--c,#43a047);padding-left:8px;margin-bottom:6px;display:flex;align-items:center;flex-wrap:wrap}
+.sh>*{margin-right:8px}
+.cnt{background:#f5f5f5;color:#555;border-radius:99px;padding:0 8px;font-size:13px}
+.cnt2{margin-left:auto;font-size:13px;color:#2e7d32}
+.calh{display:flex;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.calh>*{margin-right:6px}
+.ct{font-size:22px}
+.mini{padding:4px 10px;font-size:14px;border-radius:10px}
+.legend{margin-left:auto;font-size:12px;font-weight:700;display:flex;flex-wrap:wrap;justify-content:flex-end}
+.legend span{margin-left:8px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);border-top:1px solid #e3e8e3;border-left:1px solid #e3e8e3}
+.cal>div{border-right:1px solid #e3e8e3;border-bottom:1px solid #e3e8e3;min-width:0}
+.cw{text-align:center;font-weight:800;padding:3px 0;font-size:13px}
+.cw.sun,.dn.sun{color:#e53935}.cw.sat,.dn.sat{color:#1e88e5}
+.cd{min-height:58px;padding:2px;overflow:hidden}
+.cd.out{background:#fafafa}
+.cd.tod{background:#fff3e0}
+.dn{display:inline-block;min-width:22px;height:22px;line-height:22px;text-align:center;border-radius:50%;font-weight:800;font-size:13px}
+.cd.tod .dn{background:#e53935;color:#fff}
+.ce{margin-top:2px;padding:1px 3px;border-radius:3px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.cm{font-size:10px;opacity:.6;margin-top:2px}
+.ckgrid{display:grid;grid-template-columns:repeat(3,1fr);grid-gap:0 8px;gap:0 8px}
+.ti{display:flex;align-items:center;width:100%;background:none;box-shadow:none;padding:4px 0;font-weight:600;font-size:14px;text-align:left;border-radius:6px}
+.ti:active{transform:none}
+.ti .cb{width:17px;height:17px;border:2px solid #9aa;border-radius:4px;margin-right:6px;flex:none;display:grid;place-items:center;font-size:11px;color:#fff;font-weight:800}
+.ti.d .cb{background:var(--green);border-color:var(--green)}
+.ti.d .t{text-decoration:line-through;opacity:.5}
+.two{display:grid;grid-template-columns:1fr 1fr;grid-gap:10px;gap:10px}
+.sdh{margin-bottom:4px}
+.sev{display:flex;align-items:center;padding:3px 0 3px 8px;margin:3px 0;font-weight:700;font-size:14px;background:#fafafa;border-radius:4px}
+.stm{font-size:12px;opacity:.7;width:68px;flex:none}
+.tcols{display:grid;grid-template-columns:1fr 1fr;grid-gap:10px;gap:10px}
+.cm2{margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}
+.inl{display:flex;flex-wrap:wrap}
+.inl .ti{width:auto;margin-right:12px}
+.shop{margin-top:6px;border-top:1px dashed var(--line);padding-top:6px;color:#2e7d32;font-weight:600}
+.krow{display:flex;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line);cursor:pointer}
+.krow:last-child{border-bottom:0}
+.krow img{width:56px;height:56px;object-fit:contain;margin-right:8px}
+.egg0{font-size:40px;width:56px;text-align:center;margin-right:8px}
+.kinfo{flex:1;min-width:0}
+.kinfo .chip{font-size:12px;padding:1px 8px}
+.up{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--line);font-size:14px;font-weight:600}
+.up:last-child{border-bottom:0}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:6px 4px}
+.mus{background:#1e88e5;color:#fff}
+/* 한 화면에 최대한 들어오도록 간격 줄이기 */
+header{padding:6px 12px}
+header h1{font-size:16px}
+.tabs button{padding:8px 10px;font-size:14px}
+header>button{padding:8px 12px}
+.clk2{font-size:68px}
+.sky{min-height:126px;padding:8px 14px 24px}
+.dt2{font-size:19px}
+.cd{min-height:50px}
+main{padding-top:8px}
 /* 구형 iOS(12) 호환: flex gap 대체 */
 header>*,.tabs>*,.kids>*,.acts>*,.stats>*{margin:4px}
 .bar>*{margin-right:10px}
@@ -154,6 +251,7 @@ const API='https://pokeapi.co/api/v2/';
 const ART=id=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
 const TRAINERS=['red','blue','ethan','lyra','brendan','may','lucas','dawn','hilbert','hilda','nate','rosa','calem','serena','elio','selene','victor','gloria','ash'];
 const TR_DEFAULT=['red','ethan','lyra'];
+const KID_COLORS=['#e53935','#fb8c00','#43a047','#00acc1','#8d6e63'];
 const TRAINER=n=>`https://play.pokemonshowdown.com/sprites/trainers/${n}.png`;
 const IDLE_MS=90000;                              // 90초 동안 터치가 없으면 홈으로
 const pad=n=>String(n).padStart(2,'0');
@@ -175,6 +273,8 @@ function fixKid(k,i){
   k.done=k.done||{};Object.keys(k.done).forEach(x=>{if(x!==t)delete k.done[x]});
   k.dex=k.dex||{};k.mons=k.mons||[];k.mons.forEach(m=>{k.dex[m.id]=1});
   if(!k.trainer)k.trainer=TR_DEFAULT[i%3];
+  if(!k.color)k.color=KID_COLORS[i%KID_COLORS.length];
+  k.birthday=k.birthday||'';
   ['evos','earned','streak','best','perfect','bought','bonusAmt','coins','sel'].forEach(f=>{if(typeof k[f]!=='number')k[f]=0});
   k.hist=k.hist||{};k.badges=k.badges||{};k.lastPerfect=k.lastPerfect||'';k.bonusDate=k.bonusDate||'';
   const keys=Object.keys(k.hist).sort();while(keys.length>45)delete k.hist[keys.shift()];
@@ -182,7 +282,12 @@ function fixKid(k,i){
 function defaults(){
   const base=()=>[['세수하기',10],['양치하기',10],['책 읽기',30],['장난감 정리',20]];
   return {pin:'0000',lat:37.5665,lon:126.978,
-    notices:'오늘도 화이팅! 💪',events:'',
+    notices:'오늘도 화이팅! 💪',
+    events:`${dkey(0)} 10:30 도서관 그림책 시간 #이현\n${dkey(1)} 18:30 태권도 #한율\n${dkey(3)} 가족 외식 #가족\n${dkey(6)} 병원 예약 #엄마`,   // 예시예요. 설정에서 지우고 고쳐 쓰세요
+    people:[{n:'엄마',c:'#ec407a'},{n:'아빠',c:'#1e88e5'},{n:'가족',c:'#8e24aa'}],
+    todoText:{'엄마':'주말 나들이 준비\n분리수거','아빠':'공과금 확인\n차 점검','가족':'가족 사진 고르기'},
+    todoDone:{},shopping:'우유\n사과\n식빵\n요거트',
+    checklist:{title:'여행 준비물',sub:'',text:'여권\n충전기\n카메라\n간식\n세면도구\n비상약'},
     eggCost:100,evoCost:80,legend:false,          // 알 가격 / 진화 가격 (포켓코인)
     bonus:20,mute:false,                           // 하루 미션 전부 완료 보너스
     shop:[{n:'🍦 아이스크림',c:150},{n:'🎮 게임 30분',c:200},{n:'🎬 가족 영화 고르기',c:250},{n:'🛏 늦잠 허용권',c:300}],
@@ -309,11 +414,15 @@ function treeHtml(n,cur){
 }
 
 /* ---------- 날씨 · 공지판 ---------- */
-const WX=c=>c===0?'☀️ 맑음':c<=3?'⛅ 구름':c<=48?'🌫 안개':c<=57?'🌦 이슬비':c<=67?'🌧 비':c<=77?'❄️ 눈':c<=82?'🌧 소나기':c<=86?'❄️ 눈':'⛈ 천둥번개';
+const WX=c=>c===0?['☀️','맑음']:c<=3?['⛅','구름']:c<=48?['🌫','안개']:c<=57?['🌦','이슬비']:c<=67?['🌧','비']:c<=77?['❄️','눈']:c<=82?['🌧','소나기']:c<=86?['❄️','눈']:['⛈','천둥번개'];
 async function loadWeather(){
-  try{const j=await jget(`https://api.open-meteo.com/v1/forecast?latitude=${S.lat}&longitude=${S.lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=auto`);
-    W={t:Math.round(j.current.temperature_2m),c:j.current.weather_code,hi:Math.round(j.daily.temperature_2m_max[0]),lo:Math.round(j.daily.temperature_2m_min[0])};
-  }catch(e){W=null}
+  try{
+    const j=await jget(`https://api.open-meteo.com/v1/forecast?latitude=${S.lat}&longitude=${S.lon}&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code,precipitation_probability&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1`);
+    const w={t:Math.round(j.current.temperature_2m),c:j.current.weather_code,hi:Math.round(j.daily.temperature_2m_max[0]),lo:Math.round(j.daily.temperature_2m_min[0]),
+      hours:j.hourly.time.map((x,i)=>({t:j.hourly.temperature_2m[i],c:j.hourly.weather_code[i],p:j.hourly.precipitation_probability[i]})),pm10:null,pm25:null};
+    try{const a=await jget(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${S.lat}&longitude=${S.lon}&current=pm10,pm2_5&timezone=auto`);w.pm10=a.current.pm10;w.pm25=a.current.pm2_5}catch(e){}
+    W=w;lastSync=new Date();
+  }catch(e){}
   if(tab==='home'&&!busy)render();
 }
 // 폰에서 GitHub의 board.json 파일을 고치면 패드에 자동 반영돼요
@@ -322,14 +431,6 @@ async function loadBoard(){
   if(tab==='home'&&!busy)render();
 }
 const lines=v=>(Array.isArray(v)?v:String(v||'').split('\n')).map(s=>String(s).trim()).filter(Boolean);
-
-/* ---------- 일정 ---------- */
-function parseEvents(){
-  const base=new Date(today()+'T00:00:00'),out=[];
-  lines(S.events).concat(B?lines(B.events):[]).forEach(l=>{const m=l.match(/^(\d{4}-\d{2}-\d{2})\s+(.+)$/);
-    if(m)out.push({d:Math.round((new Date(m[1]+'T00:00:00')-base)/864e5),text:m[2]})});
-  return {today:out.filter(e=>e.d===0),next:out.filter(e=>e.d>0&&e.d<=60).sort((a,b)=>a.d-b.d).slice(0,4)};
-}
 
 /* ---------- 화면 ---------- */
 function overlay(html){document.getElementById('ovbox').innerHTML=html+'<p><button style="background:#eee" onclick="document.getElementById(\'ov\').classList.remove(\'show\')">확인!</button></p>';document.getElementById('ov').classList.add('show')}
@@ -340,7 +441,7 @@ function dateHtml(){return new Date().toLocaleDateString('ko-KR',{month:'long',d
 const KIDTABS=['todo','town','dex','shop','rec'];
 
 function render(){
-  document.getElementById('tabs').innerHTML=[['home','🏠 홈'],['todo','📝 미션'],['town','🌳 마을'],['dex','📖 도감'],['shop','🎁 상점'],['rec','📊 기록'],['set','⚙️ 설정']]
+  document.getElementById('tabs').innerHTML=[['home','🏠 대시보드'],['todo','📝 미션'],['town','🌳 마을'],['dex','📖 도감'],['shop','🎁 상점'],['rec','📊 기록'],['set','⚙️ 설정']]
     .map(([k,l])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${l}</button>`).join('');
   document.getElementById('mute').textContent=S.mute?'🔇':'🔊';
   document.getElementById('kids').innerHTML=KIDTABS.indexOf(tab)>=0?S.kids.map((k,i)=>`<button class="${i===kid?'on':''}" data-kid="${i}">${esc(k.name)}</button>`).join(''):'';
@@ -349,27 +450,177 @@ function render(){
   if(tab==='dex')fillDex();
 }
 
-function homeView(){
-  const ev=parseEvents();
-  const rn=B?lines(B.notices):[];
-  const notices=rn.length?rn:lines(S.notices);
-  return `<div class="home">
-  <div class="card"><div class="clock" id="clk">${clockHtml()}</div><div class="date" id="dt">${dateHtml()}</div>
-    <div class="wx">${W?`${WX(W.c)} ${W.t}° <span class="small">(${W.lo}° / ${W.hi}°)</span>`:'<span class="small">날씨를 불러오는 중...</span>'}</div></div>
-  <div class="card"><h2>📢 가족 공지</h2>${notices.length?notices.map(n=>`<div class="notice">${esc(n)}</div>`).join(''):'<div class="small">공지가 없어요</div>'}</div>
-  <div class="card"><h2>📅 일정</h2>
-    ${ev.today.map(e=>`<div class="ev"><b>오늘 · ${esc(e.text)}</b></div>`).join('')}
-    ${ev.next.map(e=>`<div class="ev"><span>${esc(e.text)}</span><span class="chip">D-${e.d}</span></div>`).join('')}
-    ${!ev.today.length&&!ev.next.length?'<div class="small">예정된 일정이 없어요</div>':''}</div>
-  ${S.kids.map((k,i)=>{const d=(k.done[today()]||[]).length,t=k.chores.length,p=leadOf(k),st=curStreak(k);
-    return `<div class="card kidcard" data-gokid="${i}"><div class="bar" style="justify-content:center"><img class="tp1" src="${TRAINER(k.trainer)}">${esc(k.name)}</div>
-      ${p?`<img class="mon-img" src="${ART(p.id)}">`:'<div style="font-size:70px;height:110px">🥚</div>'}
-      <div class="small">${p?esc(p.name):'아직 포켓몬이 없어요'}</div>
-      <div class="prog" style="margin:8px 0"><i style="width:${t?d/t*100:0}%"></i></div>
-      <div class="bar" style="justify-content:center;font-size:18px">오늘 미션 ${d}/${t} ${d===t&&t?'🎉':''}</div>
-      <div class="stats" style="justify-content:center"><span class="chip coin">🪙 ${won(k.coins)}</span><span class="chip">포켓몬 ${k.mons.length}</span>${st?`<span class="chip">🔥 ${st}일</span>`:''}</div></div>`}).join('')}
-  </div>`;
+/* ---- 대시보드(홈) ---- */
+const WD=['일','월','화','수','목','금','토'];
+const PALETTE=[['빨강','#e53935'],['주황','#fb8c00'],['초록','#43a047'],['파랑','#1e88e5'],['보라','#8e24aa'],['분홍','#ec407a'],['청록','#00acc1'],['갈색','#8d6e63']];
+const h12=d=>(d.getHours()%12)||12;
+const clockText=d=>`${h12(d)}:${pad(d.getMinutes())}`;
+const apText=d=>d.getHours()<12?'오전':'오후';
+const evTime=t=>{const [h,m]=t.split(':').map(Number);return `${(h%12)||12}:${pad(m)} ${h<12?'오전':'오후'}`};
+function allPeople(){return S.kids.map(k=>({n:k.name,c:k.color})).concat(S.people)}
+function colorOf(n){const p=allPeople().find(x=>x.n===n);return p&&p.c?p.c:'#8e24aa'}
+const dayNum=(y,m,d)=>Math.round(new Date(y,m-1,d,12).getTime()/864e5);
+const todayNum=()=>{const n=new Date();return dayNum(n.getFullYear(),n.getMonth()+1,n.getDate())};
+
+// 일정 한 줄: [YYYY-]MM-DD [HH:MM] 제목 [#사람]   (연도를 빼면 매년 반복)
+function parseEv(){
+  const out=[];
+  lines(S.events).concat(B?lines(B.events):[]).forEach(l=>{
+    const m=l.match(/^(?:(\d{4})-)?(\d{1,2})-(\d{1,2})\s+(?:(\d{1,2}:\d{2})\s+)?(.+)$/);
+    if(!m)return;
+    let title=m[5],who='';const w=title.match(/\s+#(\S+)\s*$/);
+    if(w){who=w[1];title=title.replace(/\s+#(\S+)\s*$/,'')}
+    out.push({y:m[1]?+m[1]:0,mo:+m[2],d:+m[3],time:m[4]?m[4].replace(/^(\d):/,'0$1:'):'',title,who});
+  });
+  S.kids.forEach(k=>{if(k.birthday){const b=k.birthday.split('-');out.push({y:0,mo:+b[1],d:+b[2],time:'',title:`${k.name} 생일 🎂`,who:k.name})}});
+  return out;
 }
+function eventsOn(evs,ds){
+  const [y,mo,d]=ds.split('-').map(Number);
+  return evs.filter(e=>e.mo===mo&&e.d===d&&(!e.y||e.y===y)).sort((a,b)=>a.time<b.time?-1:a.time>b.time?1:0);
+}
+function nextOcc(e){
+  const n=new Date(),y=n.getFullYear(),t=todayNum();
+  if(e.y){const v=dayNum(e.y,e.mo,e.d)-t;return v>=0?v:null}
+  let v=dayNum(y,e.mo,e.d)-t;if(v<0)v=dayNum(y+1,e.mo,e.d)-t;return v;
+}
+const addDays=(n)=>{const d=new Date();d.setDate(d.getDate()+n);return d};
+const dstr=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+
+function listLines(who){return B&&B.todos&&B.todos[who]!==undefined?lines(B.todos[who]):lines((S.todoText||{})[who])}
+function shopLines(){return B&&B.shopping!==undefined?lines(B.shopping):lines(S.shopping)}
+function checkData(){
+  const c=S.checklist||{},r=B&&B.checklist?B.checklist:null;
+  return {title:r&&r.title!==undefined?r.title:c.title,sub:r&&r.sub!==undefined?r.sub:c.sub,items:lines(r&&r.items!==undefined?r.items:c.text)};
+}
+function tiBtn(key,text){
+  const d=!!S.todoDone[key];
+  return `<button class="ti ${d?'d':''}" data-act="tg" data-k="${esc(key)}"><span class="cb">${d?'✓':''}</span><span class="t">${esc(text)}</span></button>`;
+}
+
+/* 날씨 · 미세먼지 */
+function aq(){
+  if(!W||W.pm10==null||W.pm25==null)return null;
+  const g10=W.pm10<=30?0:W.pm10<=80?1:W.pm10<=150?2:3,g25=W.pm25<=15?0:W.pm25<=35?1:W.pm25<=75?2:3,g=Math.max(g10,g25);
+  return {g,n:['좋음','보통','나쁨','매우 나쁨'][g],e:['😊','😐','😷','🤢'][g],c:['#1e88e5','#43a047','#fb8c00','#e53935'][g]};
+}
+function wxComment(){
+  if(!W)return '';
+  const maxP=Math.max.apply(null,W.hours.slice(new Date().getHours()).map(h=>h.p||0).concat([0])),a=aq();
+  if(maxP>=60)return '☔ 비 소식이 있어요. 우산을 챙기세요';
+  if(a&&a.g>=2)return '😷 미세먼지가 나빠요. 마스크를 챙기세요';
+  if(W.t<=3)return '🧥 많이 추워요. 따뜻하게 입어요';
+  if(W.t>=28)return '🥵 더워요. 물을 자주 마셔요';
+  return '😊 나들이하기 좋은 날씨예요';
+}
+function clockCard(now){
+  return `<div class="sky" style="flex:1 1 340px"><div class="brand"><i class="ball"></i><span>우리집<br>포켓몬 월드</span></div>
+    <div class="dt2" id="dt">${now.getMonth()+1}월 ${now.getDate()}일 ${WD[now.getDay()]}요일</div>
+    <div class="clk-row"><span class="apm" id="apm">${apText(now)}</span><span class="clk2" id="clk">${clockText(now)}</span></div></div>`;
+}
+function weatherCard(now){
+  if(!W)return `<div class="wcard" style="flex:1.4 1 420px"><span class="small">날씨를 불러오는 중...</span></div>`;
+  const a=aq(),wl=WX(W.c),curH=now.getHours();
+  return `<div class="wcard" style="flex:1.4 1 420px">
+    ${a?`<div class="aqbox" style="background:${a.c}"><small>미세먼지</small><b>${a.e}</b><span>${a.n}</span></div>`:''}
+    <div class="wnow"><div class="wbig"><span class="wi">${wl[0]}</span><b>${W.t}°</b><span class="wtx">${wl[1]}<br><small>최고 ${W.hi}° · 최저 ${W.lo}°</small></span></div>
+      ${a?`<small class="muted">미세 ${Math.round(W.pm10)} · 초미세 ${Math.round(W.pm25)} µg/m³</small>`:''}
+      <div class="wcm">${wxComment()}</div></div>
+    <div class="whs">${[8,12,16,20].map(h=>{const x=W.hours[h];if(!x)return '';return `<div class="wh ${h<curH?'past':''}"><small>${h}시</small><span class="wi">${WX(x.c)[0]}</span><b>${Math.round(x.t)}°</b><small>비 ${x.p||0}%</small></div>`}).join('')}</div></div>`;
+}
+function calCard(evs){
+  const now=new Date(),base=new Date(now.getFullYear(),now.getMonth()+calOff,1);
+  const y=base.getFullYear(),m=base.getMonth(),first=base.getDay(),dim=new Date(y,m+1,0).getDate(),rows=Math.ceil((first+dim)/7);
+  let cells=WD.map((w,i)=>`<div class="cw ${i===0?'sun':i===6?'sat':''}">${w}</div>`).join('');
+  for(let i=0;i<rows*7;i++){
+    const day=i-first+1;
+    if(day<1||day>dim){cells+='<div class="cd out"></div>';continue}
+    const ds=`${y}-${pad(m+1)}-${pad(day)}`,isT=ds===today(),dow=i%7,es=eventsOn(evs,ds);
+    cells+=`<div class="cd ${isT?'tod':''}"><span class="dn ${dow===0?'sun':dow===6?'sat':''}">${day}</span>${es.slice(0,2).map(e=>`<div class="ce" style="background:${colorOf(e.who)}22;border-left:3px solid ${colorOf(e.who)}">${esc(e.title)}</div>`).join('')}${es.length>2?`<div class="cm">+${es.length-2}개 더</div>`:''}</div>`;
+  }
+  return `<div class="sec"><div class="calh"><button class="mini" data-act="cal" data-d="-1">◀</button><b class="ct">${y}년 ${m+1}월</b><button class="mini" data-act="cal" data-d="1">▶</button>${calOff?'<button class="mini" data-act="cal" data-d="0">오늘</button>':''}
+    <span class="legend">${allPeople().map(p=>`<span><i style="background:${p.c}"></i>${esc(p.n)}</span>`).join('')}</span></div><div class="cal">${cells}</div></div>`;
+}
+function checkCard(){
+  const c=checkData();if(!c.items.length)return '';
+  const got=c.items.filter(t=>S.todoDone['__ck|'+t]).length;
+  return `<div class="sec"><div class="sh" style="--c:#43a047;color:#2e7d32">${esc(c.title||'체크리스트')} <span class="small">${esc(c.sub||'')}</span><span class="cnt2">챙김 ${got}/${c.items.length}</span></div>
+    <div class="ckgrid">${c.items.map(t=>tiBtn('__ck|'+t,t)).join('')}</div></div>`;
+}
+function schedCard(evs){
+  const day=(n,label)=>{const d=addDays(n),es=eventsOn(evs,dstr(d));
+    return `<div class="sd"><div class="sdh"><b>${label}</b> <span class="small">${d.getMonth()+1}/${d.getDate()} (${WD[d.getDay()]})</span></div>${es.length?es.map(e=>`<div class="sev" style="border-left:4px solid ${colorOf(e.who)}"><span class="stm">${e.time?evTime(e.time):'종일'}</span><span>${esc(e.title)}</span></div>`).join(''):'<div class="small">일정이 없어요</div>'}</div>`};
+  const ups=evs.map(e=>({e,left:nextOcc(e)})).filter(x=>x.left!==null&&x.left>=2).sort((a,b)=>a.left-b.left||(a.e.time<b.e.time?-1:1));
+  const nx=ups[0],nd=nx?addDays(nx.left):null;
+  return `<div class="sec"><div class="two">${day(0,'오늘')}${day(1,'내일')}</div>
+    ${nx?`<div class="small" style="margin-top:6px">다음 ${nd.getMonth()+1}/${nd.getDate()} · ${esc(nx.e.title)}</div>`:''}</div>`;
+}
+function todoCard(){
+  const cols=S.people.filter(p=>p.n!=='가족').map(p=>({p,items:listLines(p.n)})).filter(x=>x.items.length);
+  const common=listLines('가족'),shop=shopLines();
+  if(!cols.length&&!common.length&&!shop.length)return `<div class="sec"><div class="small">설정에서 할 일과 장보기 목록을 넣어 보세요</div></div>`;
+  return `<div class="sec">${cols.length?`<div class="tcols">${cols.map(({p,items})=>{const left=items.filter(t=>!S.todoDone[p.n+'|'+t]).length;
+      return `<div class="tcol"><div class="sh" style="--c:${p.c};color:${p.c}">${esc(p.n)} 할 일 <span class="cnt">${left}</span></div>${items.map(t=>tiBtn(p.n+'|'+t,t)).join('')}</div>`}).join('')}</div>`:''}
+    ${common.length?`<div class="cm2"><b>공통 할 일 · ${common.filter(t=>!S.todoDone['가족|'+t]).length}</b><div class="inl">${common.map(t=>tiBtn('가족|'+t,t)).join('')}</div></div>`:''}
+    ${shop.length?`<div class="shop"><b>🛒 장보기 ${shop.length}</b> <span>${shop.map(esc).join(' · ')}</span></div>`:''}</div>`;
+}
+function bdayInfo(k){
+  if(!k.birthday)return null;
+  const [y,m,d]=k.birthday.split('-').map(Number);if(!y)return null;
+  const n=new Date(),mm=(n.getFullYear()-y)*12+(n.getMonth()+1-m)-(n.getDate()<d?1:0);
+  const age=mm<12?`${Math.max(0,mm)}개월`:`${Math.floor(mm/12)}세 ${mm%12}개월`;
+  let left=dayNum(n.getFullYear(),m,d)-todayNum();if(left<0)left=dayNum(n.getFullYear()+1,m,d)-todayNum();
+  return {age,left,pct:Math.max(0,Math.min(100,(1-left/365)*100))};
+}
+function kidsCard(){
+  return `<div class="sec"><div class="sh" style="--c:#fb8c00;color:#ef6c00">우리 아이들</div>${S.kids.map((k,i)=>{
+    const d=(k.done[today()]||[]).length,t=k.chores.length,p=leadOf(k),st=curStreak(k),b=bdayInfo(k);
+    return `<div class="krow" data-gokid="${i}" style="--c:${k.color}">
+      ${p?`<img src="${ART(p.id)}">`:'<span class="egg0">🥚</span>'}
+      <div class="kinfo"><div><b style="color:${k.color}">${esc(k.name)}</b> <span class="chip">포켓몬 ${k.mons.length}</span> <span class="chip coin">🪙${won(k.coins)}</span>${st?` <span class="chip">🔥${st}</span>`:''}</div>
+      <div class="prog" style="margin:4px 0"><i style="width:${t?d/t*100:0}%;background:${k.color}"></i></div>
+      <small>오늘 미션 ${d}/${t} ${d===t&&t?'🎉':''}${b?` · ${b.age} · 🎂 D-${b.left||'DAY'}`:''}</small></div></div>`}).join('')}</div>`;
+}
+function upCard(evs){
+  const ups=evs.map(e=>({e,left:nextOcc(e)})).filter(x=>x.left!==null).sort((a,b)=>a.left-b.left).slice(0,6);
+  return `<div class="sec"><div class="sh" style="--c:#8e24aa;color:#6a1b9a">다가오는 날</div>${ups.length?ups.map(({e,left})=>{const d=addDays(left);
+    return `<div class="up"><span><i class="dot" style="background:${colorOf(e.who)}"></i>${esc(e.title)}</span><span><b>${left?'D-'+left:'D-DAY'}</b> <small>${d.getMonth()+1}/${d.getDate()}</small></span></div>`}).join(''):'<div class="small">예정된 날이 없어요</div>'}</div>`;
+}
+
+/* 음악 (반짝반짝 작은 별 등) */
+const SONGS=[
+  {n:'반짝반짝 작은 별',t:.42,s:'C4 C4 G4 G4 A4 A4 G4:2 F4 F4 E4 E4 D4 D4 C4:2 G4 G4 F4 F4 E4 E4 D4:2 G4 G4 F4 F4 E4 E4 D4:2 C4 C4 G4 G4 A4 A4 G4:2 F4 F4 E4 E4 D4 D4 C4:2'},
+  {n:'학교종이 땡땡땡',t:.4,s:'G4 G4 A4 A4 G4 G4 E4:2 G4 G4 E4 E4 D4:3 G4 G4 A4 A4 G4 G4 E4:2 G4 E4 D4 E4 C4:3'}];
+const NOTE={C4:261.63,D4:293.66,E4:329.63,F4:349.23,G4:392,A4:440};
+let calOff=0,lastSync=new Date(),songIdx=0,music=null;
+const musicLabel=()=>music?'⏹ 멈추기 (눌러서 다음 곡)':`🎵 ${SONGS[songIdx].n}`;
+function stopMusic(){if(music){clearTimeout(music.t);try{music.g.disconnect()}catch(e){}music=null}}
+function toggleMusic(){
+  if(music){stopMusic();songIdx=(songIdx+1)%SONGS.length;return}
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended')AC.resume();
+    const sg=SONGS[songIdx],g=AC.createGain();g.connect(AC.destination);
+    let t=AC.currentTime+.05,total=0;
+    sg.s.split(' ').forEach(tok=>{const p=tok.split(':'),d=(+p[1]||1)*sg.t,o=AC.createOscillator(),e=AC.createGain();
+      o.type='triangle';o.frequency.value=NOTE[p[0]];
+      e.gain.setValueAtTime(.0001,t);e.gain.exponentialRampToValueAtTime(.25,t+.03);e.gain.exponentialRampToValueAtTime(.0001,t+d*.95);
+      o.connect(e);e.connect(g);o.start(t);o.stop(t+d);t+=d;total+=d});
+    music={g,t:setTimeout(()=>{music=null;if(tab==='home'&&!busy)render()},total*1000+300)};
+  }catch(e){}
+}
+
+function homeView(){
+  const now=new Date(),evs=parseEv();
+  const rn=B?lines(B.notices):[],notices=rn.length?rn:lines(S.notices);
+  return `<div class="dash">
+  <div class="skyrow">${clockCard(now)}${weatherCard(now)}</div>
+  ${notices.length?`<div class="nbar">${notices.map(n=>`<span class="notice">📢 ${esc(n)}</span>`).join('')}</div>`:''}
+  <div class="cols"><div class="col">${calCard(evs)}${checkCard()}${schedCard(evs)}</div>
+    <div class="col">${todoCard()}<div class="pair">${kidsCard()}${upCard(evs)}</div></div></div>
+  <div class="foot"><span class="small">🔄 ${apText(lastSync)} ${clockText(lastSync)} 갱신</span><button data-act="music" class="mus">${musicLabel()}</button></div></div>`;
+}
+
 function todoView(){
   const k=K(),d=k.done[today()]||[],n=d.length,t=k.chores.length,p=leadOf(k),st=curStreak(k);
   const gain=d.reduce((a,i)=>a+(k.chores[i]?k.chores[i].c:0),0),total=k.chores.reduce((a,c)=>a+c.c,0);
@@ -500,11 +751,30 @@ function recView(){
 
 /* ---- 설정 ---- */
 function setView(){
-  const g=(k,l,h)=>`<label class="small">${l}</label><textarea data-g="${k}" placeholder="${h||''}">${esc(S[k]||'')}</textarea>`;
+  const ta=(attr,val,ph,h)=>`<textarea ${attr} placeholder="${ph||''}" ${h?`style="height:${h}px"`:''}>${esc(val||'')}</textarea>`;
+  const pal=sel=>PALETTE.map(([n,c])=>`<option value="${c}" ${sel===c?'selected':''}>${n}</option>`).join('');
+  const who=allPeople().map(p=>`<option>${esc(p.n)}</option>`).join('');
+  const ck=S.checklist||{};
   return `<div class="stack">
-  <div class="card"><h2>📢 공지 · 📅 일정</h2>${g('notices','공지사항 (한 줄에 하나씩)')}
-    ${g('events','일정 · D-day (한 줄에 하나씩: 2026-12-25 크리스마스)','2026-12-25 크리스마스')}
-    <p class="small">📱 폰에서 올리기: GitHub의 <b>board.json</b> 파일을 고치면 패드에 5분 안에 반영돼요. (board.json에 공지가 있으면 그것을 우선 보여줘요)</p></div>
+  <div class="card"><h2>📢 가족 공지</h2>${ta('data-g="notices"',S.notices,'한 줄에 하나씩')}</div>
+  <div class="card"><h2>📅 일정 추가</h2>
+    <div class="row"><input type="date" id="evd" value="${today()}"><input type="time" id="evt" style="width:130px;flex:none"></div>
+    <div class="row"><input id="evn" placeholder="일정 이름 (예: 치과 예약)"><select id="evw" style="width:110px"><option value="">누구?</option>${who}</select></div>
+    <div class="row"><input type="checkbox" id="eva"><span>매년 반복 (생일·기념일)</span><button class="go" data-act="addev">추가</button></div>
+    <label class="small">전체 일정 목록 (한 줄에 하나씩, 직접 고치거나 지울 수 있어요)</label>
+    ${ta('data-g="events"',S.events,'2026-12-25 크리스마스 #가족&#10;2026-11-08 10:30 건강 검진 #한율&#10;11-20 결혼기념일 #가족',170)}
+    <p class="small">형식: 날짜 [시간] 이름 #사람 · 날짜를 11-20 처럼 연도 없이 쓰면 매년 반복돼요 · 아이 생일은 아래 아이 카드에 넣으면 자동으로 들어가요</p></div>
+  <div class="card"><h2>✅ 할 일 · 장보기 · 체크리스트</h2>
+    ${S.people.map(p=>`<label class="small">${esc(p.n)}${p.n==='가족'?' (공통 할 일)':' 할 일'} (한 줄에 하나씩)</label>${ta(`data-todo="${esc(p.n)}"`,(S.todoText||{})[p.n],'')}`).join('')}
+    <label class="small">🛒 장보기 (한 줄에 하나씩)</label>${ta('data-g="shopping"',S.shopping,'')}
+    <label class="small">체크리스트 이름 · 설명 (예: 여행 준비물 · 내일 출발)</label>
+    <div class="row"><input value="${esc(ck.title||'')}" data-cl="title" placeholder="여행 준비물"><input value="${esc(ck.sub||'')}" data-cl="sub" placeholder="설명"></div>
+    ${ta('data-cl="text"',ck.text,'준비물을 한 줄에 하나씩',120)}
+    <div class="acts" style="justify-content:flex-start"><button data-act="cleardone">🧹 완료한 항목 모두 지우기</button></div></div>
+  <div class="card"><h2>👪 가족 구성원 (어른 · 공통)</h2>
+    ${S.people.map((p,j)=>`<div class="row"><input value="${esc(p.n)}" data-pn="${j}"><select data-pc="${j}" style="width:100px">${pal(p.c)}</select><button data-act="delperson" data-j="${j}">✕</button></div>`).join('')}
+    <div class="acts" style="justify-content:flex-start"><button data-act="addperson">➕ 구성원 추가</button></div>
+    <p class="small">이름과 색깔은 달력과 할 일에 쓰여요. '가족'은 공통 일정·할 일용이에요.</p></div>
   <div class="card"><h2>🪙 포켓코인 설정</h2>
     <div class="row"><span>🥚 알 뽑기</span><input class="num" type="number" min="1" value="${S.eggCost}" data-eggcost><span>코인</span></div>
     <div class="row"><span>✨ 진화시키기</span><input class="num" type="number" min="1" value="${S.evoCost}" data-evocost><span>코인</span></div>
@@ -514,11 +784,13 @@ function setView(){
     ${S.shop.map((it,j)=>`<div class="row"><input value="${esc(it.n)}" data-sn="${j}"><input class="num" type="number" min="1" value="${it.c}" data-sc="${j}"><span>🪙</span><button data-act="delshop" data-j="${j}">✕</button></div>`).join('')}
     <div class="acts" style="justify-content:flex-start"><button data-act="addshop">➕ 보상 추가</button></div></div>
   ${S.kids.map((k,i)=>`<div class="card"><div class="row"><input value="${esc(k.name)}" data-kname="${i}" style="font-weight:700"><button data-act="delkid" data-k="${i}" style="background:#ffcdd2">삭제</button></div>
+    <div class="row"><span>🎂 생일</span><input type="date" data-bday="${i}" value="${esc(k.birthday||'')}"><select data-kcol="${i}" style="width:100px">${pal(k.color)}</select></div>
     <div class="small">미션 이름 · 받는 코인</div>
     ${k.chores.map((c,j)=>`<div class="row"><input value="${esc(c.t)}" data-ct="${i}.${j}"><input class="num" type="number" min="0" value="${c.c}" data-cc="${i}.${j}"><span>🪙</span><button data-act="delchore" data-k="${i}" data-c="${j}">✕</button></div>`).join('')}
     <div class="acts" style="justify-content:flex-start"><button data-act="addchore" data-k="${i}">➕ 미션 추가</button></div>
     <div class="row"><span class="chip coin">보유 🪙 ${won(k.coins)}</span><button data-act="adj" data-k="${i}" data-v="10">+10</button><button data-act="adj" data-k="${i}" data-v="50">+50</button><button data-act="adj" data-k="${i}" data-v="-10">-10</button><button data-act="adj" data-k="${i}" data-v="-50">-50</button></div></div>`).join('')}
   <div class="card"><h2>기타</h2>
+    <p class="small">📱 폰에서 올리기: GitHub의 <b>board.json</b> 파일을 고치면 패드에 5분 안에 반영돼요. (공지·일정·할 일·장보기·체크리스트 지원)</p>
     <div class="row"><input type="number" step="any" value="${S.lat}" data-lat> <input type="number" step="any" value="${S.lon}" data-lon><button data-act="geo">📍 내 위치</button></div>
     <div class="small">날씨 위치(위도·경도)</div>
     <label class="small">부모 PIN (숫자 4자리)</label><input value="${esc(S.pin)}" data-pin maxlength="8" inputmode="numeric">
@@ -543,7 +815,7 @@ function recordDay(k){
   if(k.bonusDate===today())c+=k.bonusAmt;
   k.hist[today()]={n:d.length,t:k.chores.length,c,m:d.map(i=>k.chores[i]?k.chores[i].t:'')};
 }
-let idle;function bump(){clearTimeout(idle);idle=setTimeout(()=>{if(tab!=='home'&&!busy&&!document.getElementById('ov').classList.contains('show')&&!(tab==='set'&&document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))){tab='home';render()}},IDLE_MS)}
+let idle;function bump(){clearTimeout(idle);idle=setTimeout(()=>{if(tab==='home'&&calOff&&!busy){calOff=0;render()}if(tab!=='home'&&!busy&&!document.getElementById('ov').classList.contains('show')&&!(tab==='set'&&document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))){tab='home';render()}},IDLE_MS)}
 async function wake(){try{if('wakeLock' in navigator)await navigator.wakeLock.request('screen')}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
 (function(){const b=document.getElementById('fs'),d=document.documentElement;
@@ -622,6 +894,24 @@ document.addEventListener('click',async e=>{
     const q=S.kids.find(x=>x.name===r.kid);if(q)q.coins+=r.cost;
     S.requests=S.requests.filter(x=>x!==r);toast('취소하고 코인을 돌려줬어요');
   }
+  else if(t.dataset.act==='music'){toggleMusic();render();return}
+  else if(t.dataset.act==='cal'){const d=+t.dataset.d;calOff=d===0?0:calOff+d}
+  else if(t.dataset.act==='tg'){const key=t.dataset.k;if(S.todoDone[key])delete S.todoDone[key];else S.todoDone[key]=1}
+  else if(t.dataset.act==='addev'){
+    const v=id=>{const el=document.getElementById(id);return el?el.value:''};
+    const ds=v('evd'),tm=v('evt'),ti=v('evn').trim(),wh=v('evw'),an=document.getElementById('eva').checked;
+    if(!ds||!ti){toast('날짜와 일정 이름을 넣어주세요');return}
+    const p=ds.split('-');
+    S.events=(S.events?S.events.replace(/\s+$/,'')+'\n':'')+`${an?p[1]+'-'+p[2]:ds}${tm?' '+tm:''} ${ti}${wh?' #'+wh:''}`;
+    toast('일정을 추가했어요 ✅');
+  }
+  else if(t.dataset.act==='cleardone'){
+    Object.keys(S.todoText).forEach(w=>{S.todoText[w]=lines(S.todoText[w]).filter(x=>!S.todoDone[w+'|'+x]).join('\n')});
+    S.checklist.text=lines(S.checklist.text).filter(x=>!S.todoDone['__ck|'+x]).join('\n');
+    S.todoDone={};toast('완료한 항목을 지웠어요 🧹');
+  }
+  else if(t.dataset.act==='addperson'){S.people.push({n:'새 구성원',c:'#00acc1'})}
+  else if(t.dataset.act==='delperson'){S.people.splice(+t.dataset.j,1)}
   else if(t.dataset.act==='addshop'){S.shop.push({n:'🎁 새 보상',c:100})}
   else if(t.dataset.act==='delshop'){S.shop.splice(+t.dataset.j,1)}
   else if(t.dataset.act==='addkid'){S.kids.push(fixAdd(newKid('새 아이',[['양치하기',10]],TRAINERS[S.kids.length%TRAINERS.length])))}
@@ -651,6 +941,12 @@ document.addEventListener('change',e=>{
   else if(D.evocost!==undefined)S.evoCost=Math.max(1,Math.round(+t.value)||80);
   else if(D.bonus!==undefined)S.bonus=Math.max(0,Math.round(+t.value)||0);
   else if(D.legend!==undefined)S.legend=t.checked;
+  else if(D.todo!==undefined)S.todoText[D.todo]=t.value;
+  else if(D.cl!==undefined)S.checklist[D.cl]=t.value;
+  else if(D.pn!==undefined){const p=S.people[+D.pn];if(S.todoText[p.n]!==undefined&&t.value&&t.value!==p.n){S.todoText[t.value]=S.todoText[p.n];delete S.todoText[p.n]}p.n=t.value}
+  else if(D.pc!==undefined)S.people[+D.pc].c=t.value;
+  else if(D.bday!==undefined)S.kids[+D.bday].birthday=t.value;
+  else if(D.kcol!==undefined)S.kids[+D.kcol].color=t.value;
   else if(D.lat!==undefined){S.lat=+t.value;loadWeather()}
   else if(D.lon!==undefined){S.lon=+t.value;loadWeather()}
   else if(D.pin!==undefined)S.pin=t.value.trim()||'0000';
@@ -665,7 +961,8 @@ document.addEventListener('error',e=>{const i=e.target;if(!i||i.tagName!=='IMG')
 
 /* 시계 갱신 + 자정 지나면 새로고침 */
 setInterval(()=>{
-  const c=document.getElementById('clk');if(c){c.textContent=clockHtml();document.getElementById('dt').textContent=dateHtml()}
+  const c=document.getElementById('clk');
+  if(c){const n=new Date();c.textContent=clockText(n);document.getElementById('apm').textContent=apText(n);document.getElementById('dt').textContent=`${n.getMonth()+1}월 ${n.getDate()}일 ${WD[n.getDay()]}요일`}
   if(today()!==lastDay){lastDay=today();S.kids.forEach(k=>{k.done={}});save();if(!busy)render()}
 },15000);
 setInterval(loadWeather,30*60000);
