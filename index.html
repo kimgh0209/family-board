@@ -427,6 +427,7 @@ body{padding-top:env(safe-area-inset-top)}
 </header>
 <div class="kids" id="kids"></div>
 <main id="main"></main>
+<button id="gohome" style="display:none;position:fixed;left:14px;bottom:14px;z-index:25;padding:12px 18px;font-size:17px;font-weight:800;border-radius:28px;background:#ffd54f;border:2px solid #ffb300;box-shadow:0 3px 8px rgba(0,0,0,.3)">🏠 홈으로</button>
 <div id="ov"><div class="box" id="ovbox"></div></div>
 <div id="toast"></div>
 
@@ -547,6 +548,58 @@ function sfx(type){
       g.gain.setValueAtTime(.07,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d);t+=d*.9});
   }catch(e){}
 }
+/* ---------- 아침 배경음악 (파일 없이 코드로 만든 잔잔한 오르골 멜로디) ---------- */
+const BGM_DEF={on:true,from:'08:00',to:'09:00',vol:.1};          // 월~금 아침 8시~9시
+function bgmCfg(){return Object.assign({},BGM_DEF,S.bgm||{})}
+function bgmShould(n){
+  const c=bgmCfg();if(!c.on||S.mute)return false;
+  const d=n.getDay();if(d<1||d>5)return false;                   // 월~금만
+  const m=n.getHours()*60+n.getMinutes(),p=s=>{const a=String(s).split(':');return (+a[0]||0)*60+(+a[1]||0)};
+  return m>=p(c.from)&&m<p(c.to);
+}
+const BGM_TUNE=[[659,1],[784,1],[880,1],[784,1],[659,1],[587,1],[523,2],[587,1],[659,1],[784,1],[659,1],[587,1],[523,1],[587,2],
+  [659,1],[784,1],[880,1],[1047,1],[880,1],[784,1],[659,2],[587,1],[659,1],[587,1],[523,1],[523,3],[0,1]];
+const BGM_BASS=[262,262,196,196,220,262,196,262];
+let bgmI=0,bgmBeat=0,bgmNext=0,audioOk=false,bgmHint=null;
+function unlockAudio(){
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended')AC.resume();
+    const b=AC.createBuffer(1,1,22050),s=AC.createBufferSource();s.buffer=b;s.connect(AC.destination);s.start(0);   // iOS: 첫 터치에서 소리 잠금 해제
+    audioOk=true;
+  }catch(e){}
+  bgmTick();
+}
+function bgmNote(f,t,dur,vol){
+  [[f,1],[f*2,.25]].forEach(([fr,a])=>{const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=fr;
+    g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol*a,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+dur+.05)});
+}
+function bgmTick(){
+  try{
+    const on=bgmShould(new Date());
+    if(!bgmHint){bgmHint=document.createElement('div');bgmHint.id='bgmhint';
+      bgmHint.style.cssText='position:fixed;right:12px;bottom:12px;z-index:30;background:#fff8e1;border:2px solid #ffb300;border-radius:20px;padding:8px 14px;font-size:14px;font-weight:700;display:none';
+      bgmHint.textContent='🎵 화면을 한 번 눌러 주세요 (음악 켜짐)';document.body.appendChild(bgmHint)}
+    bgmHint.style.display=(on&&!audioOk)?'block':'none';
+    if(!on||!audioOk||!AC){bgmNext=0;return}
+    if(AC.state==='suspended')AC.resume();
+    if(AC.state!=='running')return;
+    const vol=Math.max(.02,Math.min(.5,+bgmCfg().vol||.1)),beat=.62;
+    if(bgmNext<AC.currentTime+.1)bgmNext=AC.currentTime+.3;
+    while(bgmNext<AC.currentTime+2.5){                              // 2초 정도 앞서서 예약해요
+      const [f,b]=BGM_TUNE[bgmI];
+      if(f)bgmNote(f,bgmNext,b*beat*1.4+.4,vol);
+      if(bgmBeat%4===0)bgmNote(BGM_BASS[(bgmBeat/4)%BGM_BASS.length],bgmNext,beat*3,vol*.7);
+      bgmNext+=b*beat;bgmBeat+=b;bgmI++;
+      if(bgmI>=BGM_TUNE.length){bgmI=0;bgmBeat=0;bgmNext+=beat*3}   // 한 곡이 끝나면 잠깐 쉬고 다시
+    }
+  }catch(e){}
+}
+document.addEventListener('touchend',()=>{if(!audioOk)unlockAudio()},{passive:true});
+document.addEventListener('click',()=>{if(!audioOk)unlockAudio()});
+setInterval(bgmTick,1000);
+
 function confetti(){
   const c=document.createElement('div');c.style.cssText='position:fixed;left:0;right:0;top:0;height:0;z-index:20;pointer-events:none';
   const em=['🎉','⭐','✨','💰','🎊','💛'];
@@ -738,6 +791,7 @@ function render(){
   document.getElementById('mute').textContent=S.mute?'🔇':'🔊';  document.getElementById('kids').innerHTML=KIDTABS.indexOf(tab)>=0?S.kids.map((k,i)=>`<button class="${i===kid?'on':''}" data-kid="${i}">${esc(k.name)}</button>`).join(''):'';
   const m=document.getElementById('main');
   m.innerHTML=tab==='home'?homeView():tab==='menu'?menuView():tab==='outfit'?outfitView():tab==='todo'?todoView():tab==='town'?townView():tab==='dex'?dexView():tab==='rec'?recView():setView();
+  const gh=document.getElementById('gohome');if(gh)gh.style.display=tab==='home'?'none':'block';
   if(tab==='dex')fillDex();
   paintCloud();
 }
@@ -1149,13 +1203,13 @@ const b64d=s=>decodeURIComponent(escape(atob(String(s).replace(/\s/g,''))));
 // 부모가 정하는 설정만 동기화해요 (아이들이 모은 코인·포켓몬 기록은 각 기기에 남아요)
 function cfgOf(){
   return {pin:S.pin,lat:S.lat,lon:S.lon,notices:S.notices,events:S.events,menu:S.menu,todoText:S.todoText,shopping:S.shopping,checklist:S.checklist,
-    people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,autoPurge:S.autoPurge,
+    people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,autoPurge:S.autoPurge,bgm:S.bgm,
     kids:S.kids.map(k=>({name:k.name,chores:k.chores,birthday:k.birthday,color:k.color,face:k.face||'',gift:k.gift||0})),closet:S.closet,outfit:S.outfit};
 }
 const cfgHash=()=>JSON.stringify(cfgOf());
 lastCfgHash=cfgHash();
 function applyCfg(c){
-  ['pin','lat','lon','notices','events','menu','todoText','shopping','checklist','people','eggCost','evoCost','bonus','legend','closet','outfit','shift','shiftOv','autoPurge'].forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});
+  ['pin','lat','lon','notices','events','menu','todoText','shopping','checklist','people','eggCost','evoCost','bonus','legend','closet','outfit','shift','shiftOv','autoPurge','bgm'].forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});
   if(Array.isArray(c.kids)){
     c.kids.forEach((kc,i)=>{
       let k=S.kids[i];
@@ -1480,6 +1534,11 @@ function setView(){
     <div class="row"><span>🥚 알 뽑기</span><input class="num" type="number" min="1" value="${S.eggCost}" data-eggcost><span>코인</span></div>
     <div class="row"><span>✨ 진화시키기</span><input class="num" type="number" min="1" value="${S.evoCost}" data-evocost><span>코인</span></div>
     <div class="row"><span>🎉 전부 완료 보너스</span><input class="num" type="number" min="0" value="${S.bonus}" data-bonus><span>코인~</span></div></div>
+  <div class="card"><h2>🎵 아침 배경음악</h2>
+    <div class="row"><input type="checkbox" data-bgm="on" ${bgmCfg().on?'checked':''}><span>월~금, 정해진 시간에 잔잔한 멜로디를 틀어요</span></div>
+    <div class="row"><input type="time" data-bgm="from" value="${bgmCfg().from}"><span>부터</span><input type="time" data-bgm="to" value="${bgmCfg().to}"><span>까지</span></div>
+    <div class="row"><span>🔉 볼륨</span><select data-bgm="vol" style="width:120px">${[[.05,'아주 작게'],[.1,'작게'],[.2,'보통'],[.35,'크게']].map(([v,l])=>`<option value="${v}" ${+bgmCfg().vol===v?'selected':''}>${l}</option>`).join('')}</select></div>
+    <p class="small">아이패드는 앱을 켠 뒤 화면을 한 번 눌러야 소리가 나요. 우측 위 🔊/🔇 버튼으로 끄면 음악도 꺼져요.</p></div>
   ${S.kids.map((k,i)=>`<div class="card"><div class="row"><input value="${esc(k.name)}" data-kname="${i}" style="font-weight:700"><button data-act="delkid" data-k="${i}" style="background:#ffcdd2">삭제</button></div>
     <div class="row"><span>🎂 생일</span><input type="date" data-bday="${i}" value="${esc(k.birthday||'')}"><select data-kcol="${i}" style="width:100px">${pal(k.color)}</select></div>
     <div class="small">미션 이름 · 받는 코인</div>
@@ -1540,6 +1599,7 @@ document.addEventListener('click',async e=>{
   if(e.target.id==='ov'){closeOv();return}
   const t=e.target.closest('button,[data-sel],[data-gokid],[data-gotab],[data-pick],[data-zoom]');if(!t||t.id==='fs')return;
   if(t.id==='mute'){S.mute=!S.mute;save();render();return}
+  if(t.id==='gohome'){tab='home';editMode=false;render();window.scrollTo(0,0);return}   // 어디서든 한 번에 홈으로
   const k=K();
   if(t.dataset.tab){const n=t.dataset.tab;if(n==='set'&&!askPin())return;tab=n;editMode=false}
   else if(t.dataset.gokid!==undefined){kid=+t.dataset.gokid;tab='todo'}
@@ -1710,6 +1770,7 @@ document.addEventListener('change',e=>{
   else if(D.bonus!==undefined)S.bonus=Math.max(0,Math.round(+t.value)||0);
   else if(D.legend!==undefined)S.legend=t.checked;
   else if(D.autopurge!==undefined)S.autoPurge=t.checked;
+  else if(D.bgm!==undefined){S.bgm=Object.assign(bgmCfg(),{[D.bgm]:D.bgm==='on'?t.checked:D.bgm==='vol'?+t.value:t.value});bgmNext=0}
   else if(D.shon!==undefined){S.shift.on=t.checked}
   else if(D.sh!==undefined){S.shift[D.sh]=t.value;render()}
   else if(D.todo!==undefined)S.todoText[D.todo]=t.value;
