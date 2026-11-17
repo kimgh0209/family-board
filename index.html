@@ -28,9 +28,10 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 .bar{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700;flex-wrap:wrap}
 .small{font-size:14px;opacity:.7}
 .chip{background:var(--yellow);padding:3px 11px;border-radius:99px;font-weight:700;white-space:nowrap}
+.coin{background:#fff3c4;border:2px solid #f0b400}
 /* home */
 .home{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(min-width:900px){.home{grid-template-columns:1.1fr 1fr 1fr}}
+@media(min-width:900px){.home{grid-template-columns:1fr 1fr 1fr}}
 @media(max-width:560px){.home{grid-template-columns:1fr}}
 .clock{font-size:64px;font-weight:800;line-height:1}
 .date{font-size:22px;margin-top:6px}
@@ -39,7 +40,6 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 .ev{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);font-size:18px;gap:8px}
 .kidcard{text-align:center;cursor:pointer}
 .kidcard img{width:110px;height:110px;object-fit:contain}
-.span2{grid-column:1/-1}
 /* mission */
 .chore{display:flex;align-items:center;gap:14px;width:100%;margin:8px 0;padding:18px;font-size:22px;text-align:left;background:#fffde7;border:3px solid var(--yellow)}
 .chore .box{width:36px;height:36px;border-radius:50%;border:3px solid var(--yellow);background:#fff;display:grid;place-items:center;font-size:24px;color:#fff;flex:none}
@@ -77,7 +77,8 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 textarea,input,select{font:inherit;width:100%;padding:10px;border:2px solid var(--line);border-radius:10px;user-select:text;-webkit-user-select:text}
 textarea{height:110px}
 .row{display:flex;gap:8px;margin:6px 0;align-items:center}
-.row input{flex:1}.row select{width:130px}
+.row input{flex:1}
+.row input.num{width:96px;flex:none;text-align:right}
 .row button{padding:8px 12px}
 label.small{display:block;margin:10px 0 4px}
 /* 구형 iOS(12) 호환: flex gap 대체 */
@@ -104,8 +105,6 @@ body{padding-top:env(safe-area-inset-top)}
 <script>
 const API='https://pokeapi.co/api/v2/';
 const ART=id=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
-const STK_PER_EGG=3, EVO_NEED=[2,4];            // 알 1개 = 스티커 3개 / 사탕 2개(1단계), 4개(2단계)
-const REWARD={sticker:['⭐','스티커'],egg:['🥚','알'],evo:['🍬','진화사탕']};
 const IDLE_MS=90000;                              // 90초 동안 터치가 없으면 홈으로
 const pad=n=>String(n).padStart(2,'0');
 const today=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
@@ -113,45 +112,31 @@ const idFrom=u=>+u.split('/').filter(Boolean).pop();
 const jget=async u=>{const r=await fetch(u);if(!r.ok)throw new Error(u);return r.json()};
 const koName=s=>(s.names.find(n=>n.language.name==='ko')||{name:s.name}).name;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const won=n=>Number(n).toLocaleString('ko-KR');
 
 /* ---------- 데이터 ---------- */
-const newKid=(name,chores)=>({name,chores:chores.map(t=>typeof t==='string'?{t,r:'sticker'}:t),done:{},stickers:0,eggs:0,candy:0,mons:[],sel:0});
-function defaults(){return {
-  pin:'0000',lat:37.5665,lon:126.978,
-  notices:'오늘도 화이팅! 💪',
-  events:'',
-  kids:[newKid('첫째',['세수하기','양치하기',{t:'책 읽기',r:'egg'},{t:'줄넘기 50번',r:'evo'}]),newKid('둘째',['양치하기','신발 정리','옷 갈아입기'])]
-}}
+// 미션: t=이름, c=포켓코인
+const newKid=(name,chores)=>({name,chores:chores.map(([t,c])=>({t,c})),done:{},coins:0,mons:[],sel:0});
+function defaults(){
+  const base=()=>[['세수하기',10],['양치하기',10],['책 읽기',30],['장난감 정리',20]];
+  return {pin:'0000',lat:37.5665,lon:126.978,
+    notices:'오늘도 화이팅! 💪',events:'',
+    eggCost:100,evoCost:80,                       // 알 가격 / 진화 가격 (포켓코인)
+    kids:[newKid('한율',base()),newKid('이현',base()),newKid('서비',base())]};
+}
 function load(){
   let s=null;
-  try{s=JSON.parse(localStorage.getItem('pkfam2'))}catch(e){}
-  if(!s){ // v1 데이터가 있으면 이어받기
-    try{const o=JSON.parse(localStorage.getItem('pkchore'));
-      if(o){s=defaults();s.kids=o.kids.map(k=>{const n=newKid(k.name,k.chores);n.mons=k.mons||[];n.sel=k.sel||0;
-        n.eggs=Math.floor((k.stickers||0)/STK_PER_EGG);n.stickers=(k.stickers||0)%STK_PER_EGG;return n})}}catch(e){}
-  }
+  try{s=JSON.parse(localStorage.getItem('pkfam3'))}catch(e){}
   s=s||defaults();
-  const t=today();s.kids.forEach(k=>{Object.keys(k.done).forEach(d=>{if(d!==t)delete k.done[d]})});
+  const d=defaults();
+  ['pin','lat','lon','notices','events','eggCost','evoCost'].forEach(k=>{if(s[k]===undefined)s[k]=d[k]});
+  const t=today();s.kids.forEach(k=>{Object.keys(k.done||{}).forEach(x=>{if(x!==t)delete k.done[x]});k.done=k.done||{}});
   return s;
 }
 let S=load(), tab='home', kid=0, W=null, lastDay=today(), unlockUntil=0, busy=false;
-const save=()=>localStorage.setItem('pkfam2',JSON.stringify(S));
+const save=()=>{try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}};
 const K=()=>S.kids[kid]||S.kids[0];
 const leadOf=k=>k.mons[k.sel];
-
-/* ---------- 보상 ---------- */
-function give(k,r,dir){
-  if(dir>0){
-    if(r==='sticker'){k.stickers++;if(k.stickers>=STK_PER_EGG){k.stickers-=STK_PER_EGG;k.eggs++;toast('🥚 알을 받았어요!');return}}
-    if(r==='egg')k.eggs++;
-    if(r==='evo')k.candy++;
-    toast(`${REWARD[r][0]} ${REWARD[r][1]} +1`);
-  }else{
-    if(r==='sticker'){if(k.stickers>0)k.stickers--;else if(k.eggs>0){k.eggs--;k.stickers=STK_PER_EGG-1}}
-    if(r==='egg')k.eggs=Math.max(0,k.eggs-1);
-    if(r==='evo')k.candy=Math.max(0,k.candy-1);
-  }
-}
 
 /* ---------- 포켓몬 API ---------- */
 async function rollEgg(){
@@ -159,11 +144,11 @@ async function rollEgg(){
     let sp=await jget(API+'pokemon-species/'+(1+Math.floor(Math.random()*386)));
     if(sp.is_legendary||sp.is_mythical)continue;
     while(sp.evolves_from_species)sp=await jget(sp.evolves_from_species.url);
-    return {id:sp.id,sp:sp.name,name:koName(sp),stage:0,xp:0};
+    return {id:sp.id,sp:sp.name,name:koName(sp)};
   }
   throw new Error('roll');
 }
-async function evolve(m){
+async function evolve(m){            // 진화할 수 없으면 null
   const sp=await jget(API+'pokemon-species/'+m.id);
   const chain=await jget(sp.evolution_chain.url);
   let found=null;(function walk(n){if(n.species.name===m.sp)found=n;n.evolves_to.forEach(walk)})(chain.chain);
@@ -220,30 +205,29 @@ function homeView(){
       <div class="small">${p?esc(p.name):'아직 포켓몬이 없어요'}</div>
       <div class="prog" style="margin:8px 0"><i style="width:${t?d/t*100:0}%"></i></div>
       <div class="bar" style="justify-content:center;font-size:18px">오늘 미션 ${d}/${t} ${d===t&&t?'🎉':''}</div>
-      <div class="stats" style="justify-content:center"><span class="chip">⭐${k.stickers}/${STK_PER_EGG}</span><span class="chip">🥚${k.eggs}</span><span class="chip">🍬${k.candy}</span></div></div>`}).join('')}
+      <div class="stats" style="justify-content:center"><span class="chip coin">🪙 ${won(k.coins)}</span><span class="chip">포켓몬 ${k.mons.length}마리</span></div></div>`}).join('')}
   </div>`;
 }
 function todoView(){
   const k=K(),d=k.done[today()]||[],n=d.length,t=k.chores.length;
   const p=leadOf(k);
-  return `<div class="stack"><div class="card"><div class="bar">오늘 미션 ${n}/${t} ${n===t&&t?'🎉 모두 완료!':''}</div>
+  const gain=d.reduce((a,i)=>a+(k.chores[i]?k.chores[i].c:0),0),total=k.chores.reduce((a,c)=>a+c.c,0);
+  return `<div class="stack"><div class="card"><div class="bar">오늘 미션 ${n}/${t} ${n===t&&t?'🎉 모두 완료!':''}<span class="chip coin">🪙 ${won(k.coins)}</span></div>
   <div class="prog" style="margin:8px 0"><i style="width:${t?n/t*100:0}%"></i></div>
-  ${k.chores.map((c,i)=>`<button class="chore ${d.includes(i)?'done':''}" data-chore="${i}"><span class="box">${d.includes(i)?'✓':''}</span><span class="txt">${esc(c.t)}</span><span class="chip">${REWARD[c.r][0]} +1</span></button>`).join('')}
-  <p class="small">⭐스티커 ${STK_PER_EGG}개 = 🥚알 1개 · 🥚알 미션은 알을 바로 · 🍬미션은 진화사탕을 줘요</p></div>
+  ${k.chores.map((c,i)=>`<button class="chore ${d.includes(i)?'done':''}" data-chore="${i}"><span class="box">${d.includes(i)?'✓':''}</span><span class="txt">${esc(c.t)}</span><span class="chip coin">🪙 +${won(c.c)}</span></button>`).join('')}
+  <p class="small">오늘 번 코인 🪙${won(gain)} / 최대 🪙${won(total)} · 코인으로 마을에서 알을 뽑거나 진화시킬 수 있어요</p></div>
   ${p?`<div class="card hero"><img src="${ART(p.id)}"><div class="bar" style="justify-content:center">${esc(p.name)}</div></div>`:''}</div>`;
 }
 function townView(){
   const k=K(),p=leadOf(k);
-  let hero='<p class="hero">아직 포켓몬이 없어요. 미션을 하고 알을 받아 보세요! 🥚</p>';
+  let hero='<p class="hero">아직 포켓몬이 없어요. 포켓코인으로 알을 뽑아 보세요! 🥚</p>';
   if(p){
-    const need=EVO_NEED[p.stage],pct=need?Math.min(100,p.xp/need*100):100;
     hero=`<div class="hero"><img src="${ART(p.id)}"><div class="bar" style="justify-content:center">${esc(p.name)} <span class="small">No.${p.id}</span></div>
-    <div class="prog" style="max-width:300px;margin:8px auto"><i style="width:${pct}%"></i></div>
-    <div class="small">${need?`진화까지 🍬${p.xp}/${need}`:'최종 진화! 🏆'}</div>
-    <div class="acts"><button class="go" data-act="feed" ${k.candy<1||!need?'disabled':''}>🍬 사탕 주기</button></div></div>`;
+    <div class="small">${p.final?'최종 진화! 🏆':`진화 비용 🪙${won(S.evoCost)}`}</div>
+    <div class="acts"><button class="go" data-act="evo" ${p.final||k.coins<S.evoCost?'disabled':''}>✨ 진화시키기 (🪙${won(S.evoCost)})</button></div></div>`;
   }
-  return `<div class="stack"><div class="card"><div class="stats"><span class="chip">⭐ ${k.stickers}/${STK_PER_EGG}</span><span class="chip">🥚 ${k.eggs}</span><span class="chip">🍬 ${k.candy}</span></div>${hero}
-  <div class="acts"><button class="egg" data-act="egg" ${k.eggs<1?'disabled':''}>🥚 알 부화시키기 (${k.eggs})</button></div></div>
+  return `<div class="stack"><div class="card"><div class="stats"><span class="chip coin">🪙 ${won(k.coins)}</span></div>${hero}
+  <div class="acts"><button class="egg" data-act="egg" ${k.coins<S.eggCost?'disabled':''}>🥚 알 뽑기 (🪙${won(S.eggCost)})</button></div></div>
   <div class="card"><h2>내 포켓몬 (${k.mons.length}마리)</h2><div class="grid">
   ${k.mons.map((q,i)=>`<div class="mon ${i===k.sel?'sel':''}" data-sel="${i}"><img src="${ART(q.id)}" loading="lazy"><div>${esc(q.name)}</div></div>`).join('')}</div></div></div>`;
 }
@@ -252,9 +236,14 @@ function setView(){
   return `<div class="stack">
   <div class="card"><h2>📢 공지 · 📅 일정</h2>${g('notices','공지사항 (한 줄에 하나씩)')}
     ${g('events','일정 · D-day (한 줄에 하나씩: 2026-12-25 크리스마스)','2026-12-25 크리스마스')}</div>
+  <div class="card"><h2>🪙 포켓코인 가격</h2>
+    <div class="row"><span>🥚 알 뽑기</span><input class="num" type="number" min="1" value="${S.eggCost}" data-eggcost><span>코인</span></div>
+    <div class="row"><span>✨ 진화시키기</span><input class="num" type="number" min="1" value="${S.evoCost}" data-evocost><span>코인</span></div></div>
   ${S.kids.map((k,i)=>`<div class="card"><div class="row"><input value="${esc(k.name)}" data-kname="${i}" style="font-weight:700"><button data-act="delkid" data-k="${i}" style="background:#ffcdd2">삭제</button></div>
-    ${k.chores.map((c,j)=>`<div class="row"><input value="${esc(c.t)}" data-ct="${i}.${j}"><select data-cr="${i}.${j}">${Object.entries(REWARD).map(([r,v])=>`<option value="${r}" ${c.r===r?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select><button data-act="delchore" data-k="${i}" data-c="${j}">✕</button></div>`).join('')}
-    <button data-act="addchore" data-k="${i}">➕ 미션 추가</button></div>`).join('')}
+    <div class="small">미션 이름 · 받는 코인</div>
+    ${k.chores.map((c,j)=>`<div class="row"><input value="${esc(c.t)}" data-ct="${i}.${j}"><input class="num" type="number" min="0" value="${c.c}" data-cc="${i}.${j}"><span>🪙</span><button data-act="delchore" data-k="${i}" data-c="${j}">✕</button></div>`).join('')}
+    <div class="acts" style="justify-content:flex-start"><button data-act="addchore" data-k="${i}">➕ 미션 추가</button></div>
+    <div class="row"><span class="chip coin">보유 🪙 ${won(k.coins)}</span><button data-act="adj" data-k="${i}" data-v="10">+10</button><button data-act="adj" data-k="${i}" data-v="50">+50</button><button data-act="adj" data-k="${i}" data-v="-10">-10</button><button data-act="adj" data-k="${i}" data-v="-50">-50</button></div></div>`).join('')}
   <div class="card"><h2>기타</h2>
     <div class="row"><input type="number" step="any" value="${S.lat}" data-lat> <input type="number" step="any" value="${S.lon}" data-lon><button data-act="geo">📍 내 위치</button></div>
     <div class="small">날씨 위치(위도·경도)</div>
@@ -289,32 +278,34 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.gokid!==undefined){kid=+t.dataset.gokid;tab='todo'}
   else if(t.dataset.kid!==undefined){kid=+t.dataset.kid}
   else if(t.dataset.chore!==undefined){
-    const i=+t.dataset.chore,d=k.done[today()]=k.done[today()]||[],at=d.indexOf(i),r=k.chores[i].r;
-    if(at<0){d.push(i);give(k,r,1)}else{d.splice(at,1);give(k,r,-1)}
+    const i=+t.dataset.chore,d=k.done[today()]=k.done[today()]||[],at=d.indexOf(i),c=k.chores[i].c;
+    if(at<0){d.push(i);k.coins+=c;toast(`🪙 +${won(c)}`)}else{d.splice(at,1);k.coins=Math.max(0,k.coins-c)}
   }
   else if(t.dataset.sel!==undefined){k.sel=+t.dataset.sel}
-  else if(t.dataset.act==='egg'&&k.eggs>0&&!busy){
+  else if(t.dataset.act==='egg'&&k.coins>=S.eggCost&&!busy){
     busy=true;t.disabled=true;t.innerHTML='<span class="shake" style="display:inline-block">🥚</span> 부화 중...';
-    try{const p=await rollEgg();k.eggs--;k.mons.push(p);k.sel=k.mons.length-1;overlay(`<h2>🎉 ${esc(p.name)} 등장!</h2><img src="${ART(p.id)}">`)}
+    try{const p=await rollEgg();k.coins-=S.eggCost;k.mons.push(p);k.sel=k.mons.length-1;overlay(`<h2>🎉 ${esc(p.name)} 등장!</h2><img src="${ART(p.id)}">`)}
     catch(err){overlay('<h2>인터넷 연결을 확인해주세요 😢</h2>')}
     busy=false;
   }
-  else if(t.dataset.act==='feed'&&!busy){
-    const p=leadOf(k);if(!p||k.candy<1)return;
-    k.candy--;p.xp++;const need=EVO_NEED[p.stage];
-    if(need&&p.xp>=need){busy=true;
-      try{const n=await evolve(p);if(n){const old=p.name;Object.assign(p,n,{stage:p.stage+1,xp:0});overlay(`<h2>✨ ${esc(old)} → ${esc(p.name)} 진화!</h2><img src="${ART(p.id)}">`)}else p.stage=9}
-      catch(err){p.xp=need-1;k.candy++;overlay('<h2>인터넷 연결을 확인해주세요 😢</h2>')}
-      busy=false}
+  else if(t.dataset.act==='evo'&&!busy){
+    const p=leadOf(k);if(!p||p.final||k.coins<S.evoCost)return;
+    busy=true;t.disabled=true;t.textContent='진화 중...';
+    try{const n=await evolve(p);
+      if(n){const old=p.name;k.coins-=S.evoCost;Object.assign(p,n);overlay(`<h2>✨ ${esc(old)} → ${esc(p.name)} 진화!</h2><img src="${ART(p.id)}">`)}
+      else{p.final=true;toast('더 이상 진화하지 않아요 (코인은 그대로예요)')}}
+    catch(err){overlay('<h2>인터넷 연결을 확인해주세요 😢</h2>')}
+    busy=false;
   }
-  else if(t.dataset.act==='addkid'){S.kids.push(newKid('새 아이',['양치하기']))}
-  else if(t.dataset.act==='delkid'){if(confirm('이 아이의 기록이 모두 지워져요. 정말요?')){S.kids.splice(+t.dataset.k,1);kid=0;if(!S.kids.length)S.kids.push(newKid('아이',['양치하기']))}}
-  else if(t.dataset.act==='addchore'){S.kids[+t.dataset.k].chores.push({t:'새 미션',r:'sticker'})}
+  else if(t.dataset.act==='addkid'){S.kids.push(newKid('새 아이',[['양치하기',10]]))}
+  else if(t.dataset.act==='delkid'){if(confirm('이 아이의 기록이 모두 지워져요. 정말요?')){S.kids.splice(+t.dataset.k,1);kid=0;if(!S.kids.length)S.kids.push(newKid('아이',[['양치하기',10]]))}}
+  else if(t.dataset.act==='addchore'){S.kids[+t.dataset.k].chores.push({t:'새 미션',c:10})}
   else if(t.dataset.act==='delchore'){S.kids[+t.dataset.k].chores.splice(+t.dataset.c,1);S.kids[+t.dataset.k].done={}}
+  else if(t.dataset.act==='adj'){const q=S.kids[+t.dataset.k];q.coins=Math.max(0,q.coins+(+t.dataset.v))}
   else if(t.dataset.act==='geo'){navigator.geolocation.getCurrentPosition(p=>{S.lat=+p.coords.latitude.toFixed(3);S.lon=+p.coords.longitude.toFixed(3);save();loadWeather();render()},()=>toast('위치를 가져오지 못했어요'));return}
   else if(t.dataset.act==='export'){overlay('<h2>💾 백업</h2><p class="small">아래 글자를 전부 복사해서 메모 앱에 저장해 두세요</p><textarea id="bk" readonly style="width:70vw;height:30vh">'+esc(JSON.stringify(S))+'</textarea>');const b=document.getElementById('bk');b.focus();b.select();return}
   else if(t.dataset.act==='import'){const v=prompt('백업 내용을 붙여넣으세요');if(v){try{const o=JSON.parse(v);if(!o.kids)throw 0;S=o;kid=0;save();render();toast('불러왔어요')}catch(err){toast('올바른 백업이 아니에요')}}return}
-  else if(t.dataset.act==='reset'){if(confirm('모든 기록이 지워져요. 정말요?')){localStorage.removeItem('pkfam2');S=defaults();kid=0}}
+  else if(t.dataset.act==='reset'){if(confirm('모든 기록이 지워져요. 정말요?')){try{localStorage.removeItem('pkfam3')}catch(err){}S=defaults();kid=0}}
   else return;
   save();render();
 });
@@ -323,7 +314,9 @@ document.addEventListener('change',e=>{
   if(D.g)S[D.g]=t.value;
   else if(D.kname!==undefined)S.kids[+D.kname].name=t.value;
   else if(D.ct){const[i,j]=D.ct.split('.');S.kids[i].chores[j].t=t.value}
-  else if(D.cr){const[i,j]=D.cr.split('.');S.kids[i].chores[j].r=t.value}
+  else if(D.cc){const[i,j]=D.cc.split('.');S.kids[i].chores[j].c=Math.max(0,Math.round(+t.value)||0)}
+  else if(D.eggcost!==undefined)S.eggCost=Math.max(1,Math.round(+t.value)||100);
+  else if(D.evocost!==undefined)S.evoCost=Math.max(1,Math.round(+t.value)||80);
   else if(D.lat!==undefined){S.lat=+t.value;loadWeather()}
   else if(D.lon!==undefined){S.lon=+t.value;loadWeather()}
   else if(D.pin!==undefined)S.pin=t.value.trim()||'0000';
