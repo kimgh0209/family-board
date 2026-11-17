@@ -1150,7 +1150,7 @@ const b64d=s=>decodeURIComponent(escape(atob(String(s).replace(/\s/g,''))));
 function cfgOf(){
   return {pin:S.pin,lat:S.lat,lon:S.lon,notices:S.notices,events:S.events,menu:S.menu,todoText:S.todoText,shopping:S.shopping,checklist:S.checklist,
     people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,autoPurge:S.autoPurge,
-    kids:S.kids.map(k=>({name:k.name,chores:k.chores,birthday:k.birthday,color:k.color,face:k.face||''})),closet:S.closet,outfit:S.outfit};
+    kids:S.kids.map(k=>({name:k.name,chores:k.chores,birthday:k.birthday,color:k.color,face:k.face||'',gift:k.gift||0})),closet:S.closet,outfit:S.outfit};
 }
 const cfgHash=()=>JSON.stringify(cfgOf());
 lastCfgHash=cfgHash();
@@ -1161,6 +1161,9 @@ function applyCfg(c){
       let k=S.kids[i];
       if(!k){k=newKid(kc.name,[],TR_DEFAULT[i%3]);S.kids.push(k);fixKid(k,i)}
       k.name=kc.name;k.chores=kc.chores||[];k.birthday=kc.birthday||'';if(kc.color)k.color=kc.color;if(kc.face!==undefined)k.face=kc.face;
+      // 부모가 준 선물 코인: 이 기기가 아직 못 받은 만큼만 한 번 더해요
+      const g=+kc.gift||0;k.gift=g;k.giftSeen=k.giftSeen||0;
+      if(g>k.giftSeen){k.coins+=g-k.giftSeen;k.giftSeen=g}
     });
     if(S.kids.length>c.kids.length)S.kids.length=c.kids.length;
     if(kid>=S.kids.length)kid=0;
@@ -1678,7 +1681,8 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.act==='delkid'){if(confirm('이 아이의 기록이 모두 지워져요. 정말요?')){S.kids.splice(+t.dataset.k,1);kid=0;if(!S.kids.length)S.kids.push(newKid('아이',[['양치하기',10]],'red'))}}
   else if(t.dataset.act==='addchore'){S.kids[+t.dataset.k].chores.push({t:'새 미션',c:10})}
   else if(t.dataset.act==='delchore'){S.kids[+t.dataset.k].chores.splice(+t.dataset.c,1);S.kids[+t.dataset.k].done={}}
-  else if(t.dataset.act==='adj'){const q=S.kids[+t.dataset.k];q.coins=Math.max(0,q.coins+(+t.dataset.v))}
+  else if(t.dataset.act==='adj'){const q=S.kids[+t.dataset.k],v=+t.dataset.v;q.coins=Math.max(0,q.coins+v);
+    if(v>0&&!(S.sync&&S.sync.on&&S.sync.ro)){q.gift=(q.gift||0)+v;q.giftSeen=(q.giftSeen||0)+v}}   // 폰에서 준 코인(+)은 다른 기기에도 전해져요
   else if(t.dataset.act==='geo'){navigator.geolocation.getCurrentPosition(p=>{S.lat=+p.coords.latitude.toFixed(3);S.lon=+p.coords.longitude.toFixed(3);save();loadWeather();render()},()=>toast('위치를 가져오지 못했어요'));return}
   else if(t.dataset.act==='export'){overlay('<h2>💾 백업</h2><p class="small">아래 글자를 전부 복사해서 메모 앱에 저장해 두세요</p><textarea id="bk" readonly style="width:70vw;height:30vh">'+esc(JSON.stringify(Object.assign({},S,{sync:null})))+'</textarea>');const b=document.getElementById('bk');b.focus();b.select();return}
   else if(t.dataset.act==='import'){const v=prompt('백업 내용을 붙여넣으세요');if(v){try{const o=JSON.parse(v);if(!o.kids)throw 0;saveSnap('백업 불러오기 전');const keepSync=S.sync;S=o;S.sync=keepSync;const d=defaults();Object.keys(d).forEach(x=>{if(x!=='kids'&&S[x]===undefined)S[x]=d[x]});S.kids.forEach(fixKid);kid=0;save();render();toast('불러왔어요')}catch(err){toast('올바른 백업이 아니에요')}}return}
