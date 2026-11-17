@@ -380,6 +380,11 @@ header{padding:4px 10px}
 .sstat{font-weight:700;padding:8px 10px;border-radius:10px;background:#f1f8e9;margin:6px 0}
 .sstat.err{background:#ffebee;color:#c62828}
 .sstat.busy{background:#e3f2fd}
+.zface{position:absolute;left:34%;top:3.5%;width:32%;height:16%;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);background:#fff}
+.avatar{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);margin-right:8px}
+.avatar.sm{width:26px;height:26px;margin:0 5px 0 0}
+.onm{display:flex;align-items:center;justify-content:center}
+.okid .thumbs img{width:24px;height:24px}
 /* 구형 iOS(12) 호환: flex gap 대체 */
 header>*,.tabs>*,.kids>*,.acts>*,.stats>*{margin:4px}
 .bar>*{margin-right:10px}
@@ -431,7 +436,7 @@ function fixKid(k,i){
   k.dex=k.dex||{};k.mons=k.mons||[];k.mons.forEach(m=>{k.dex[m.id]=1});
   if(!k.trainer)k.trainer=TR_DEFAULT[i%3];
   if(!k.color)k.color=KID_COLORS[i%KID_COLORS.length];
-  k.birthday=k.birthday||'';
+  k.birthday=k.birthday||'';k.face=k.face||'';
   ['evos','earned','streak','best','perfect','bought','bonusAmt','coins','sel'].forEach(f=>{if(typeof k[f]!=='number')k[f]=0});
   k.hist=k.hist||{};k.badges=k.badges||{};k.lastPerfect=k.lastPerfect||'';k.bonusDate=k.bonusDate||'';
   const keys=Object.keys(k.hist).sort();while(keys.length>45)delete k.hist[keys.shift()];
@@ -871,33 +876,60 @@ function togglePick(id){
   }
   o[k.name]=list;
 }
-const DOLL=`<svg viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
+// 인형(몸) 그림. 아이 얼굴 사진이 있으면 머리 그림 대신 사진이 올라가요
+function dollSvg(k){
+  const face=k&&k.face&&IMG.mem[k.face];
+  return `<svg viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
 <rect x="90" y="74" width="20" height="18" rx="6" fill="#f5cba7"/>
-<circle cx="100" cy="46" r="30" fill="#ffe0bd" stroke="#e0b88f" stroke-width="2"/>
+${face?'':`<circle cx="100" cy="46" r="30" fill="#ffe0bd" stroke="#e0b88f" stroke-width="2"/>
 <path d="M69 44 Q70 10 100 12 Q130 10 131 44 Q120 26 100 28 Q80 26 69 44Z" fill="#6d4c41"/>
 <circle cx="89" cy="50" r="3.5" fill="#333"/><circle cx="111" cy="50" r="3.5" fill="#333"/>
 <path d="M90 62 Q100 71 110 62" fill="none" stroke="#c0675b" stroke-width="3" stroke-linecap="round"/>
-<circle cx="80" cy="60" r="5" fill="#ffb4a2" opacity=".6"/><circle cx="120" cy="60" r="5" fill="#ffb4a2" opacity=".6"/>
+<circle cx="80" cy="60" r="5" fill="#ffb4a2" opacity=".6"/><circle cx="120" cy="60" r="5" fill="#ffb4a2" opacity=".6"/>`}
 <rect x="54" y="90" width="92" height="100" rx="14" fill="#cfd8dc"/>
 <rect x="30" y="96" width="22" height="92" rx="11" fill="#ffe0bd"/><rect x="148" y="96" width="22" height="92" rx="11" fill="#ffe0bd"/>
 <rect x="62" y="188" width="35" height="165" rx="12" fill="#b0bec5"/><rect x="103" y="188" width="35" height="165" rx="12" fill="#b0bec5"/>
 <ellipse cx="79" cy="368" rx="24" ry="12" fill="#90a4ae"/><ellipse cx="121" cy="368" rx="24" ry="12" fill="#90a4ae"/>
 </svg>`;
+}
+const faceEl=k=>k&&k.face&&IMG.mem[k.face]?`<img class="zface" src="${IMG.mem[k.face]}">`:'';
+const dollFull=k=>dollSvg(k)+faceEl(k);
+const avatar=(k,cls)=>k&&k.face&&IMG.mem[k.face]?`<img class="avatar ${cls||''}" src="${IMG.mem[k.face]}">`:'';
+// 얼굴 사진: 가운데(세로 사진은 위쪽 가운데)를 정사각형으로 잘라 작게 저장해요
+function cropFace(file){
+  return new Promise((res,rej)=>{
+    const u=URL.createObjectURL(file),im=new Image();
+    im.onload=()=>{const sz=Math.min(im.width,im.height),sx=(im.width-sz)/2,sy=im.height>im.width?(im.height-sz)*0.25:(im.height-sz)/2;
+      const c=document.createElement('canvas');c.width=c.height=240;
+      const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,240,240);x.drawImage(im,sx,sy,sz,sz,0,0,240,240);
+      URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',0.85))};
+    im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('img'))};
+    im.src=u;
+  });
+}
+async function setFace(file){
+  const k=K();
+  try{const d=await cropFace(file),id='f'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+    await IMG.put(id,d);if(k.face)IMG.del(k.face);k.face=id;save();render();toast('🙂 얼굴 사진을 넣었어요',2500)}
+  catch(e){toast('사진을 불러오지 못했어요')}
+}
+const photoIds=()=>S.closet.map(c=>({id:c.id})).concat(S.kids.filter(k=>k.face).map(k=>({id:k.face})));
+
 const tile=(x,label)=>`<div class="tl" data-zoom="${x.id}"><img src="${IMG.mem[x.id]||''}">${label?`<small>${label}</small>`:''}</div>`;
-function stageHtml(items){
+function stageHtml(items,k){
   const body=['hat','top','bottom','shoes'],first={},extra=[];
   items.forEach(x=>{if(body.indexOf(x.cat)>=0&&!first[x.cat])first[x.cat]=x;else if(x.cat!=='outer'&&x.cat!=='socks')extra.push(x)});
   const side=c=>items.filter(x=>x.cat===c).map(x=>tile(x,catName(c))).join('');
   const z=(c,cls)=>first[c]?`<div class="z ${cls}">${tile(first[c],'')}</div>`:'';
   return `<div class="stagewrap"><div class="stage"><div class="sc">${side('outer')}${side('socks')}</div>
-    <div class="dollcol"><div class="dollbox">${DOLL}${z('hat','zhat')}${z('top','ztop')}${z('bottom','zbot')}${z('shoes','zshoe')}</div></div>
+    <div class="dollcol"><div class="dollbox">${dollFull(k)}${z('hat','zhat')}${z('top','ztop')}${z('bottom','zbot')}${z('shoes','zshoe')}</div></div>
     <div class="sc">${extra.map(x=>tile(x,catName(x.cat))).join('')}</div></div></div>`;
 }
 function outfitCard(){
   const ds=today();
   return `<div class="sec"><div class="sh" style="--c:#00acc1;color:#00838f">👕 오늘 입을 옷<span class="small" style="margin-left:auto">내 이름을 눌러 보세요</span></div>
     <div class="okids">${S.kids.map((k,i)=>{const its=itemsOf(ds,k);
-      return `<button class="okid" data-act="gooutfit" data-i="${i}" style="border-color:${k.color}"><b style="color:${k.color}">${esc(k.name)}</b><span class="thumbs">${its.length?its.slice(0,4).map(x=>`<img src="${IMG.mem[x.id]||''}">`).join(''):'<small>아직 안 골랐어요</small>'}</span></button>`}).join('')}</div></div>`;
+      return `<button class="okid" data-act="gooutfit" data-i="${i}" style="border-color:${k.color}"><span class="onm">${avatar(k,'sm')}<b style="color:${k.color}">${esc(k.name)}</b></span><span class="thumbs">${its.length?its.slice(0,3).map(x=>`<img src="${IMG.mem[x.id]||''}">`).join(''):'<small>아직 안 골랐어요</small>'}</span></button>`}).join('')}</div></div>`;
 }
 function outfitView(){
   const k=K(),ds=dstr(addDays(outDay)),label=outDay?'내일':'오늘',d0=addDays(0),d1=addDays(1);
@@ -905,7 +937,7 @@ function outfitView(){
   if(editMode)return editView(k,ds,label,dayBtns);
   const items=itemsOf(ds,k);
   return `<div class="stack"><div class="card"><div class="bar" style="justify-content:center;font-size:24px"><b style="color:${k.color}">${esc(k.name)}</b>의 ${label} 옷 👕</div>${dayBtns}
-    ${items.length?stageHtml(items):`<div class="hero" style="padding:20px 0"><div class="stagewrap"><div class="stage" style="max-width:260px"><div class="dollcol" style="flex:1"><div class="dollbox">${DOLL}</div></div></div></div><p style="font-size:20px;font-weight:700">🤔 아직 옷을 안 골랐어요.<br>엄마·아빠에게 부탁해요!</p></div>`}
+    ${items.length?stageHtml(items,k):`<div class="hero" style="padding:20px 0"><div class="stagewrap"><div class="stage" style="max-width:260px"><div class="dollcol" style="flex:1"><div class="dollbox">${dollFull(k)}</div></div></div></div><p style="font-size:20px;font-weight:700">🤔 아직 옷을 안 골랐어요.<br>엄마·아빠에게 부탁해요!</p></div>`}
     ${items.length?'<p class="small" style="text-align:center">사진을 누르면 크게 볼 수 있어요 🔍</p>':''}
     <div class="acts"><button data-act="editout">✏️ 부모: 옷 골라주기 · 사진 관리</button></div></div></div>`;
 }
@@ -917,6 +949,9 @@ function editView(k,ds,label,dayBtns){
   return `<div class="stack"><div class="card"><div class="bar"><b style="color:${k.color}">${esc(k.name)}</b>의 ${label} 옷 고르기 ✏️</div>${dayBtns}
     <p class="small">입을 옷을 눌러 ✓ 표시하세요. 상의·하의처럼 한 종류는 하나만 선택돼요. 위의 아이 이름 버튼으로 다른 아이 옷도 고를 수 있어요. 내일 옷도 미리 골라 둘 수 있어요.</p>
     ${groups||'<p class="small">아직 등록된 옷이 없어요. 아래에서 사진을 추가해 주세요.</p>'}</div>
+  <div class="card"><h2>🙂 ${esc(k.name)}의 얼굴 사진</h2>
+    <div class="row">${avatar(k)||'<span class="small">아직 없어요</span>'}<label class="filebtn">🙂 얼굴 사진 고르기<input type="file" id="facefile" accept="image/*" style="display:none"></label>${k.face?'<button data-act="delface">삭제</button>':''}</div>
+    <p class="small">얼굴이 잘 보이는 사진을 고르세요. 가운데 부분이 동그랗게 잘려서 인형 얼굴이 돼요. 사진은 이 기기와 비공개 클라우드 저장소에만 저장돼요.</p></div>
   <div class="card"><h2>📷 ${esc(k.name)}의 옷 사진 추가</h2>
     <div class="row"><select id="catsel" style="width:200px;flex:none">${CATS.map(([c,l])=>`<option value="${c}" ${c===lastCat?'selected':''}>${l}</option>`).join('')}</select>
       <label class="filebtn">📷 사진 고르기<input type="file" id="clothfile" accept="image/*" multiple style="display:none"></label></div>
@@ -933,7 +968,7 @@ const b64d=s=>decodeURIComponent(escape(atob(String(s).replace(/\s/g,''))));
 function cfgOf(){
   return {pin:S.pin,lat:S.lat,lon:S.lon,notices:S.notices,events:S.events,menu:S.menu,todoText:S.todoText,shopping:S.shopping,checklist:S.checklist,
     people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,
-    kids:S.kids.map(k=>({name:k.name,chores:k.chores,birthday:k.birthday,color:k.color})),closet:S.closet,outfit:S.outfit};
+    kids:S.kids.map(k=>({name:k.name,chores:k.chores,birthday:k.birthday,color:k.color,face:k.face||''})),closet:S.closet,outfit:S.outfit};
 }
 const cfgHash=()=>JSON.stringify(cfgOf());
 lastCfgHash=cfgHash();
@@ -943,7 +978,7 @@ function applyCfg(c){
     c.kids.forEach((kc,i)=>{
       let k=S.kids[i];
       if(!k){k=newKid(kc.name,[],TR_DEFAULT[i%3]);S.kids.push(k);fixKid(k,i)}
-      k.name=kc.name;k.chores=kc.chores||[];k.birthday=kc.birthday||'';if(kc.color)k.color=kc.color;
+      k.name=kc.name;k.chores=kc.chores||[];k.birthday=kc.birthday||'';if(kc.color)k.color=kc.color;if(kc.face!==undefined)k.face=kc.face;
     });
     if(S.kids.length>c.kids.length)S.kids.length=c.kids.length;
     if(kid>=S.kids.length)kid=0;
@@ -972,7 +1007,7 @@ function ghMsg(status){
 }
 async function pushPhotos(){
   const sc=S.sync;sc.sent=sc.sent||{};
-  for(const c of S.closet){
+  for(const c of photoIds()){
     if(sc.sent[c.id]||!IMG.mem[c.id])continue;
     const r=await ghReq('PUT',`photos/${c.id}.jpg`,{message:'photo',content:IMG.mem[c.id].split(',')[1]});
     if(r.ok||r.status===422)sc.sent[c.id]=true;else throw new Error(ghMsg(r.status));
@@ -980,7 +1015,7 @@ async function pushPhotos(){
 }
 async function pullPhotos(){
   const sc=S.sync;sc.sent=sc.sent||{};let n=0,got=0;
-  for(const c of S.closet){
+  for(const c of photoIds()){
     if(IMG.mem[c.id])continue;
     if(n++>=12)break;                                   // 한 번에 너무 많이 받지 않고 나눠서 받아요
     try{const r=await ghReq('GET',`photos/${c.id}.jpg`);
@@ -1378,6 +1413,7 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.act==='oday'){outDay=+t.dataset.d}
   else if(t.dataset.act==='editout'){if(!askPin())return;editMode=true}
   else if(t.dataset.act==='editdone'){editMode=false}
+  else if(t.dataset.act==='delface'){if(k.face){IMG.del(k.face);k.face=''}}
   else if(t.dataset.pick){togglePick(t.dataset.pick)}
   else if(t.dataset.act==='delcloth'){
     if(!confirm('이 옷 사진을 지울까요?'))return;
@@ -1464,6 +1500,7 @@ document.addEventListener('click',async e=>{
 function fixAdd(k){fixKid(k,S.kids.length);return k}
 document.addEventListener('change',e=>{
   bump();const t=e.target,D=t.dataset;
+  if(t.id==='facefile'){const f=t.files&&t.files[0];if(f)setFace(f);return}
   if(t.id==='clothfile'){const fs=t.files;if(fs&&fs.length)addPhotos(fs);return}
   if(t.id==='catsel'){lastCat=t.value;return}
   if(D.g)S[D.g]=t.value;
