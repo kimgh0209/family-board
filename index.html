@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="우리집보드">
 <title>우리집 포켓몬 보드</title>
+<link rel="apple-touch-icon" href="icon.png">
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#e8f5e9;--card:#fff;--ink:#2b3a2f;--red:#e53935;--yellow:#fbc02d;--green:#43a047;--blue:#1e88e5;--line:#cfe3d1}
@@ -521,7 +522,7 @@ const BADGES=[
   {id:'st7',i:'🔥',n:'7일 연속',d:'일주일 연속 전체 완료',f:k=>k.best>=7},
   {id:'st14',i:'☄️',n:'14일 연속',d:'2주 연속 전체 완료',f:k=>k.best>=14},
   {id:'st30',i:'🌋',n:'30일 연속',d:'한 달 연속 전체 완료',f:k=>k.best>=30},
-  {id:'earn100',i:'🪙',n:'누적 100코인',d:'코인을 100개 벌었어요',f:k=>k.earned>=100},
+  {id:'earn100',i:'💰',n:'누적 100코인',d:'코인을 100개 벌었어요',f:k=>k.earned>=100},
   {id:'earn1000',i:'💰',n:'누적 1000코인',d:'코인을 1000개 벌었어요',f:k=>k.earned>=1000},
   {id:'earn5000',i:'👑',n:'누적 5000코인',d:'코인 부자!',f:k=>k.earned>=5000}
 ];
@@ -548,7 +549,7 @@ function sfx(type){
 }
 function confetti(){
   const c=document.createElement('div');c.style.cssText='position:fixed;left:0;right:0;top:0;height:0;z-index:20;pointer-events:none';
-  const em=['🎉','⭐','✨','🪙','🎊','💛'];
+  const em=['🎉','⭐','✨','💰','🎊','💛'];
   for(let i=0;i<30;i++){const s=document.createElement('span');s.textContent=em[i%em.length];s.className='cf';
     s.style.left=Math.random()*100+'%';s.style.animationDuration=(1.6+Math.random()*1.6)+'s';s.style.animationDelay=(Math.random()*.5)+'s';s.style.fontSize=(18+Math.random()*20)+'px';c.appendChild(s)}
   document.body.appendChild(c);setTimeout(()=>{if(c.parentNode)c.parentNode.removeChild(c)},3800);
@@ -855,7 +856,7 @@ function kidsCard(){
     const d=(k.done[today()]||[]).length,t=k.chores.length,p=leadOf(k),st=curStreak(k),b=bdayInfo(k);
     return `<div class="krow" data-gokid="${i}" style="--c:${k.color}">
       ${p?`<img src="${ART(p.id)}">`:'<span class="egg0">🥚</span>'}
-      <div class="kinfo"><div class="kl"><b style="color:${k.color}">${esc(k.name)}</b> <span class="chip coin">🪙${won(k.coins)}</span> <span class="chip">🐾${k.mons.length}</span>${st?` <span class="chip">🔥${st}</span>`:''}</div>
+      <div class="kinfo"><div class="kl"><b style="color:${k.color}">${esc(k.name)}</b> <span class="chip coin">💰${won(k.coins)}</span> <span class="chip">🐾${k.mons.length}</span>${st?` <span class="chip">🔥${st}</span>`:''}</div>
       <div class="prog" style="margin:3px 0"><i style="width:${t?d/t*100:0}%;background:${k.color}"></i></div>
       <small>미션 ${d}/${t} ${d===t&&t?'🎉':''}${b?` · ${b.age} · 🎂D-${b.left||'DAY'}`:''}</small></div></div>`}).join('')}</div>`;
 }
@@ -1293,17 +1294,17 @@ function homeView(){
 function todoView(){
   const k=K(),d=k.done[today()]||[],n=d.length,t=k.chores.length,p=leadOf(k),st=curStreak(k);
   const gain=d.reduce((a,i)=>a+(k.chores[i]?k.chores[i].c:0),0),total=k.chores.reduce((a,c)=>a+c.c,0);
-  return `<div class="stack"><div class="card"><div class="bar"><img src="${TRAINER(k.trainer)}" style="height:48px">오늘 미션 ${n}/${t} ${n===t&&t?'🎉 모두 완료!':''}<span class="chip coin">🪙 ${won(k.coins)}</span>${st?`<span class="chip">🔥 ${st}일 연속</span>`:''}</div>
+  return `<div class="stack"><div class="card"><div class="bar"><img src="${TRAINER(k.trainer)}" style="height:48px">오늘 미션 ${n}/${t} ${n===t&&t?'🎉 모두 완료!':''}<span class="chip coin">💰 ${won(k.coins)}</span>${st?`<span class="chip">🔥 ${st}일 연속</span>`:''}</div>
   <div class="prog" style="margin:8px 0"><i style="width:${t?n/t*100:0}%"></i></div>
-  ${k.chores.map((c,i)=>`<button class="chore ${d.includes(i)?'done':''}" data-chore="${i}"><span class="box">${d.includes(i)?'✓':''}</span><span class="txt">${esc(c.t)}</span><span class="chip coin">🪙 +${won(c.c)}</span></button>`).join('')}
-  <p class="small">오늘 번 코인 🪙${won(gain)} / 최대 🪙${won(total)} · 전부 끝내면 보너스 🪙${S.bonus}+ (연속일수가 늘수록 더 많이!)</p></div>
+  ${k.chores.map((c,i)=>`<button class="chore ${d.includes(i)?'done':''}" data-chore="${i}"><span class="box">${d.includes(i)?'✓':''}</span><span class="txt">${esc(c.t)}</span><span class="chip coin">💰 +${won(c.c)}</span></button>`).join('')}
+  <p class="small">오늘 번 코인 💰${won(gain)} / 최대 💰${won(total)} · 전부 끝내면 보너스 💰${S.bonus}+ (연속일수가 늘수록 더 많이!)</p></div>
   ${p?`<div class="card hero"><img src="${ART(p.id)}"><div class="bar" style="justify-content:center">${esc(p.name)}</div></div>`:''}</div>`;
 }
 
 /* ---- 마을 ---- */
 const DECOR=[
   {e:'🌳',min:0,x:27,b:22,s:46,n:'나무'},{e:'🌲',min:0,x:94,b:26,s:52,n:'소나무'},{e:'🌼',min:0,x:60,b:6,s:22,n:'꽃밭'},
-  {e:'⛲',min:2,x:50,b:22,s:50,n:'분수'},{e:'🌸',min:3,x:37,b:8,s:30,n:'벚나무'},{e:'🛝',min:4,x:80,b:20,s:46,n:'놀이터'},
+  {e:'⛲',min:2,x:50,b:22,s:50,n:'분수'},{e:'🌸',min:3,x:37,b:8,s:30,n:'벚나무'},{e:'🎠',min:4,x:80,b:20,s:46,n:'놀이터'},
   {e:'⛺',min:6,x:70,b:8,s:44,n:'캠핑장'},{e:'🏫',min:8,x:20,b:38,s:62,n:'학교'},{e:'🎡',min:12,x:87,b:40,s:70,n:'관람차'},
   {e:'🏰',min:18,x:42,b:46,s:80,n:'성'},{e:'🌈',min:25,x:58,b:70,s:90,n:'무지개'}];
 function sceneHtml(k){
@@ -1329,12 +1330,12 @@ function townView(){
   let hero='<p class="hero">아직 포켓몬이 없어요. 포켓코인으로 알을 뽑아 보세요! 🥚</p>';
   if(p){
     hero=`<div class="hero"><img src="${ART(p.id)}"><div class="bar" style="justify-content:center">${esc(p.name)} <span class="small">No.${p.id}</span></div>
-    <div class="small">${p.final?'최종 진화! 🏆':`진화 비용 🪙${won(S.evoCost)}`}</div>
-    <div class="acts"><button class="go" data-act="evo" ${p.final||k.coins<S.evoCost?'disabled':''}>✨ 진화시키기 (🪙${won(S.evoCost)})</button><button data-act="tree">🌱 진화 계보</button></div></div>`;
+    <div class="small">${p.final?'최종 진화! 🏆':`진화 비용 💰${won(S.evoCost)}`}</div>
+    <div class="acts"><button class="go" data-act="evo" ${p.final||k.coins<S.evoCost?'disabled':''}>✨ 진화시키기 (💰${won(S.evoCost)})</button><button data-act="tree">🌱 진화 계보</button></div></div>`;
   }
   return `<div class="stack">${sceneHtml(k)}
-  <div class="card"><div class="stats"><span class="chip coin">🪙 ${won(k.coins)}</span><button data-act="pickTrainer" style="padding:6px 12px">🧢 트레이너 바꾸기</button></div>${hero}
-  <div class="acts"><button class="egg" data-act="egg" ${k.coins<S.eggCost?'disabled':''}>${k.hatched===0?'🥚 첫 알 뽑기 · 친구 고르기':k.hatched===6?'🌟 알 뽑기 (전설!)':'🥚 알 뽑기'} (🪙${won(S.eggCost)})</button></div>
+  <div class="card"><div class="stats"><span class="chip coin">💰 ${won(k.coins)}</span><button data-act="pickTrainer" style="padding:6px 12px">🧢 트레이너 바꾸기</button></div>${hero}
+  <div class="acts"><button class="egg" data-act="egg" ${k.coins<S.eggCost?'disabled':''}>${k.hatched===0?'🥚 첫 알 뽑기 · 친구 고르기':k.hatched===6?'🌟 알 뽑기 (전설!)':'🥚 알 뽑기'} (💰${won(S.eggCost)})</button></div>
   <div class="small" style="text-align:center;margin-top:4px">${k.hatched===0?'첫 알은 피카츄·꼬부기·파이리·이상해씨 중에서 골라요':k.hatched===6?'🌟 이번 알은 전설·환상의 포켓몬이 나와요!':`지금까지 알 ${k.hatched}개 · 7번째 알에는 전설·환상의 포켓몬이 나와요 ✨`}</div></div>
   <div class="card"><h2>내 포켓몬 (${k.mons.length}마리)</h2><div class="grid">
   ${k.mons.map((q,i)=>`<div class="mon ${i===k.sel?'sel':''}" data-sel="${i}"><img src="${ART(q.id)}" loading="lazy"><div>${esc(q.name)}</div></div>`).join('')}</div></div></div>`;
@@ -1396,10 +1397,10 @@ function recView(){
   return `<div class="stack">
   <div class="card"><h2>📊 ${esc(k.name)}의 이번 주</h2>
     <div class="wk">${days.map(x=>`<div><i style="height:${Math.max(3,x.pct*0.8)}px;${x.h&&x.h.t&&x.h.n===x.h.t?'':'background:#90caf9'}"></i>${x.w}</div>`).join('')}</div>
-    <div class="stats"><span class="chip">평균 달성 ${avg}%</span><span class="chip">전체 완료 ${perfectDays}일</span><span class="chip coin">🪙 ${won(coins)} 벌었어요</span></div>
+    <div class="stats"><span class="chip">평균 달성 ${avg}%</span><span class="chip">전체 완료 ${perfectDays}일</span><span class="chip coin">💰 ${won(coins)} 벌었어요</span></div>
     <div class="small">${best?`가장 많이 한 미션: <b>${esc(best)}</b> (${cnt[best]}번) 👏`:'아직 이번 주 기록이 없어요'} · 초록 막대는 그날 미션을 전부 끝낸 날이에요</div></div>
   <div class="card"><h2>🔥 연속 · 누적</h2><div class="stats">
-    <span class="chip">지금 연속 ${curStreak(k)}일</span><span class="chip">최고 연속 ${k.best}일</span><span class="chip">전체 완료 ${k.perfect}번</span><span class="chip coin">누적 🪙 ${won(k.earned)}</span><span class="chip">진화 ${k.evos}번</span></div></div>
+    <span class="chip">지금 연속 ${curStreak(k)}일</span><span class="chip">최고 연속 ${k.best}일</span><span class="chip">전체 완료 ${k.perfect}번</span><span class="chip coin">누적 💰 ${won(k.earned)}</span><span class="chip">진화 ${k.evos}번</span></div></div>
   <div class="card"><h2>🏅 배지 (${got}/${BADGES.length})</h2><div class="bgs">
     ${BADGES.map(b=>`<div class="bd ${k.badges[b.id]?'':'lock'}"><b>${b.i}</b><span>${b.n}</span><small>${b.d}</small></div>`).join('')}</div></div></div>`;
 }
@@ -1447,16 +1448,16 @@ function setView(){
     ${S.people.map((p,j)=>`<div class="row"><input value="${esc(p.n)}" data-pn="${j}"><select data-pc="${j}" style="width:100px">${pal(p.c)}</select><button data-act="delperson" data-j="${j}">✕</button></div>`).join('')}
     <div class="acts" style="justify-content:flex-start"><button data-act="addperson">➕ 구성원 추가</button></div>
     <p class="small">이름과 색깔은 달력과 할 일에 쓰여요. '가족'은 공통 일정·할 일용이에요.</p></div>
-  <div class="card"><h2>🪙 포켓코인 설정</h2>
+  <div class="card"><h2>💰 포켓코인 설정</h2>
     <div class="row"><span>🥚 알 뽑기</span><input class="num" type="number" min="1" value="${S.eggCost}" data-eggcost><span>코인</span></div>
     <div class="row"><span>✨ 진화시키기</span><input class="num" type="number" min="1" value="${S.evoCost}" data-evocost><span>코인</span></div>
     <div class="row"><span>🎉 전부 완료 보너스</span><input class="num" type="number" min="0" value="${S.bonus}" data-bonus><span>코인~</span></div></div>
   ${S.kids.map((k,i)=>`<div class="card"><div class="row"><input value="${esc(k.name)}" data-kname="${i}" style="font-weight:700"><button data-act="delkid" data-k="${i}" style="background:#ffcdd2">삭제</button></div>
     <div class="row"><span>🎂 생일</span><input type="date" data-bday="${i}" value="${esc(k.birthday||'')}"><select data-kcol="${i}" style="width:100px">${pal(k.color)}</select></div>
     <div class="small">미션 이름 · 받는 코인</div>
-    ${k.chores.map((c,j)=>`<div class="row"><input value="${esc(c.t)}" data-ct="${i}.${j}"><input class="num" type="number" min="0" value="${c.c}" data-cc="${i}.${j}"><span>🪙</span><button data-act="delchore" data-k="${i}" data-c="${j}">✕</button></div>`).join('')}
+    ${k.chores.map((c,j)=>`<div class="row"><input value="${esc(c.t)}" data-ct="${i}.${j}"><input class="num" type="number" min="0" value="${c.c}" data-cc="${i}.${j}"><span>💰</span><button data-act="delchore" data-k="${i}" data-c="${j}">✕</button></div>`).join('')}
     <div class="acts" style="justify-content:flex-start"><button data-act="addchore" data-k="${i}">➕ 미션 추가</button></div>
-    <div class="row"><span class="chip coin">보유 🪙 ${won(k.coins)}</span><button data-act="adj" data-k="${i}" data-v="10">+10</button><button data-act="adj" data-k="${i}" data-v="50">+50</button><button data-act="adj" data-k="${i}" data-v="-10">-10</button><button data-act="adj" data-k="${i}" data-v="-50">-50</button></div>
+    <div class="row"><span class="chip coin">보유 💰 ${won(k.coins)}</span><button data-act="adj" data-k="${i}" data-v="10">+10</button><button data-act="adj" data-k="${i}" data-v="50">+50</button><button data-act="adj" data-k="${i}" data-v="-10">-10</button><button data-act="adj" data-k="${i}" data-v="-50">-50</button></div>
     <div class="acts" style="justify-content:flex-start"><button data-act="resetkid" data-k="${i}" style="background:#fff3e0">🧹 ${esc(k.name)} 기록 초기화 (코인·포켓몬·배지)</button></div></div>`).join('')}
   <div class="card"><h2>☁️ 기기 연결 (폰 ↔ 거실 대시보드)</h2>
     <p class="small">폰에서 식단·옷·일정·미션을 고치면 거실 대시보드에 자동으로 반영돼요. 폰과 거실 대시보드 기기에서 각각 한 번씩만 연결하세요.</p>
@@ -1517,7 +1518,7 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.kid!==undefined){kid=+t.dataset.kid}
   else if(t.dataset.chore!==undefined){
     const i=+t.dataset.chore,d=k.done[today()]=k.done[today()]||[],at=d.indexOf(i),c=k.chores[i].c;
-    if(at<0){d.push(i);k.coins+=c;k.earned+=c;sfx('coin');toast(`🪙 +${won(c)}`)}
+    if(at<0){d.push(i);k.coins+=c;k.earned+=c;sfx('coin');toast(`💰 +${won(c)}`)}
     else{d.splice(at,1);k.coins=Math.max(0,k.coins-c);k.earned=Math.max(0,k.earned-c)}
     const all=k.chores.length>0&&d.length===k.chores.length;
     if(all&&k.bonusDate!==today()){                       // 오늘 미션 전부 완료 → 연속일수 + 보너스
@@ -1525,7 +1526,7 @@ document.addEventListener('click',async e=>{
       k.streak=(k.lastPerfect===dkey(-1))?k.streak+1:1;k.lastPerfect=today();k.best=Math.max(k.best,k.streak);
       const b=S.bonus+5*Math.min(k.streak-1,5);
       k.bonusAmt=b;k.bonusDate=today();k.coins+=b;k.earned+=b;k.perfect++;
-      sfx('win');confetti();toast(`🎉 전부 완료! 보너스 🪙+${b} (🔥 ${k.streak}일 연속)`,2800);
+      sfx('win');confetti();toast(`🎉 전부 완료! 보너스 💰+${b} (🔥 ${k.streak}일 연속)`,2800);
     }else if(!all&&k.bonusDate===today()){                // 체크를 취소하면 보너스도 회수
       k.coins=Math.max(0,k.coins-k.bonusAmt);k.earned=Math.max(0,k.earned-k.bonusAmt);k.perfect=Math.max(0,k.perfect-1);
       if(k.prev){k.streak=k.prev.streak;k.lastPerfect=k.prev.last}

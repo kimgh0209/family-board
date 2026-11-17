@@ -5,3 +5,4 @@
 *.heic
 *.txt
 .claude/
+!icon.png
