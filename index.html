@@ -253,6 +253,28 @@ main{padding-top:8px}
 .col>.sec:last-child,.col>.pair:last-child{flex:1}
 .nbar{margin:10px 0 0}
 .nbar .notice{margin:0 8px 0 0}
+/* 식단 · 별점 */
+.menucard{cursor:pointer}
+.mrow{display:flex;align-items:center;padding:5px 0;border-bottom:1px dashed var(--line)}
+.mrow.big{padding:10px 0}
+.mt{width:84px;flex:none;font-weight:800}
+.mv{font-weight:700;font-size:17px}
+.mrow.big .mv{font-size:22px}
+.mfoot{margin-top:6px;font-size:13px;font-weight:700;color:#ad1457}
+.wm2{font-size:14px;font-weight:600;text-align:right}
+.rate{border:3px solid var(--yellow);background:#fffde7;border-radius:14px;padding:10px;margin-top:10px}
+.rh{font-size:18px;margin-bottom:4px}
+.stars{display:flex}
+.star{font-size:42px;padding:0 6px;background:none;box-shadow:none;color:#cfcfcf;line-height:1.1}
+.star:active{transform:none}
+.star.on{color:#fbc02d}
+.emos{display:flex;flex-wrap:wrap;margin-top:6px}
+.emo{margin:3px;padding:6px 10px;font-size:28px;border:3px solid transparent;display:flex;flex-direction:column;align-items:center}
+.emo small{font-size:11px;font-weight:700}
+.emo.on{border-color:var(--red);background:#ffebee}
+.rcs{display:flex;flex-wrap:wrap}
+.rc{margin:3px 6px 3px 0;padding:8px 18px;font-size:18px}
+.rc.on{background:var(--yellow)}
 /* 구형 iOS(12) 호환: flex gap 대체 */
 header>*,.tabs>*,.kids>*,.acts>*,.stats>*{margin:4px}
 .bar>*{margin-right:10px}
@@ -267,7 +289,6 @@ body{padding-top:env(safe-area-inset-top)}
 <header>
   <h1>🏠 우리집 보드</h1>
   <div class="tabs" id="tabs"></div>
-  <button id="musbtn" data-act="music" title="음악">🎵</button>
   <button id="mute" title="소리">🔊</button>
   <button id="fs" title="전체화면">⛶</button>
 </header>
@@ -318,6 +339,8 @@ function defaults(){
     todoText:{'엄마':'주말 나들이 준비\n분리수거','아빠':'공과금 확인\n차 점검','가족':'가족 사진 고르기'},
     todoDone:{},shopping:'우유\n사과\n식빵\n요거트',
     checklist:{title:'여행 준비물',sub:'',text:'여권\n충전기\n카메라\n간식\n세면도구\n비상약'},
+    menu:`${dkey(0)} 점심 비빔밥, 계란국\n${dkey(0)} 저녁 김치찌개, 계란말이, 시금치나물\n${dkey(1)} 저녁 삼겹살, 쌈채소`,   // 예시예요. 설정에서 고쳐 쓰세요
+    thanks:{},thanksTo:'',
     eggCost:100,evoCost:80,legend:false,          // 알 가격 / 진화 가격 (포켓코인)
     bonus:20,mute:false,                           // 하루 미션 전부 완료 보너스
     shop:[{n:'🍦 아이스크림',c:150},{n:'🎮 게임 30분',c:200},{n:'🎬 가족 영화 고르기',c:250},{n:'🛏 늦잠 허용권',c:300}],
@@ -331,6 +354,7 @@ function load(){
   const d=defaults();
   Object.keys(d).forEach(k=>{if(k!=='kids'&&s[k]===undefined)s[k]=d[k]});
   s.kids.forEach(fixKid);
+  Object.keys(s.thanks).forEach(x=>{if(s.thanks[x].date<dkey(-90))delete s.thanks[x]});
   return s;
 }
 let S=load(), tab='home', kid=0, W=null, B=null, lastDay=today(), unlockUntil=0, busy=false;
@@ -468,16 +492,14 @@ function closeOv(){document.getElementById('ov').classList.remove('show')}
 let tt;function toast(m,ms){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),ms||1400)}
 function clockHtml(){const d=new Date();return `${pad(d.getHours())}:${pad(d.getMinutes())}`}
 function dateHtml(){return new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})}
-const KIDTABS=['todo','town','dex','shop','rec'];
+const KIDTABS=['menu','todo','town','dex','shop','rec'];
 
 function render(){
-  document.getElementById('tabs').innerHTML=[['home','🏠 대시보드'],['todo','📝 미션'],['town','🌳 마을'],['dex','📖 도감'],['shop','🎁 상점'],['rec','📊 기록'],['set','⚙️ 설정']]
+  document.getElementById('tabs').innerHTML=[['home','🏠 대시보드'],['menu','🍽 식단'],['todo','📝 미션'],['town','🌳 마을'],['dex','📖 도감'],['shop','🎁 상점'],['rec','📊 기록'],['set','⚙️ 설정']]
     .map(([k,l])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${l}</button>`).join('');
-  document.getElementById('mute').textContent=S.mute?'🔇':'🔊';
-  document.getElementById('musbtn').textContent=music?'⏹':'🎵';
-  document.getElementById('kids').innerHTML=KIDTABS.indexOf(tab)>=0?S.kids.map((k,i)=>`<button class="${i===kid?'on':''}" data-kid="${i}">${esc(k.name)}</button>`).join(''):'';
+  document.getElementById('mute').textContent=S.mute?'🔇':'🔊';  document.getElementById('kids').innerHTML=KIDTABS.indexOf(tab)>=0?S.kids.map((k,i)=>`<button class="${i===kid?'on':''}" data-kid="${i}">${esc(k.name)}</button>`).join(''):'';
   const m=document.getElementById('main');
-  m.innerHTML=tab==='home'?homeView():tab==='todo'?todoView():tab==='town'?townView():tab==='dex'?dexView():tab==='shop'?shopView():tab==='rec'?recView():setView();
+  m.innerHTML=tab==='home'?homeView():tab==='menu'?menuView():tab==='todo'?todoView():tab==='town'?townView():tab==='dex'?dexView():tab==='shop'?shopView():tab==='rec'?recView():setView();
   if(tab==='dex')fillDex();
 }
 
@@ -646,28 +668,57 @@ function upCard(evs){
     return `<div class="up"><span><i class="dot" style="background:${colorOf(e.who)}"></i>${esc(e.title)}</span><span><b>${left?'D-'+left:'D-DAY'}</b> <small>${d.getMonth()+1}/${d.getDate()}</small></span></div>`}).join(''):'<div class="small">예정된 날이 없어요</div>'}</div>`;
 }
 
-/* 음악 (반짝반짝 작은 별 등) */
-const SONGS=[
-  {n:'반짝반짝 작은 별',t:.42,s:'C4 C4 G4 G4 A4 A4 G4:2 F4 F4 E4 E4 D4 D4 C4:2 G4 G4 F4 F4 E4 E4 D4:2 G4 G4 F4 F4 E4 E4 D4:2 C4 C4 G4 G4 A4 A4 G4:2 F4 F4 E4 E4 D4 D4 C4:2'},
-  {n:'학교종이 땡땡땡',t:.4,s:'G4 G4 A4 A4 G4 G4 E4:2 G4 G4 E4 E4 D4:3 G4 G4 A4 A4 G4 G4 E4:2 G4 E4 D4 E4 C4:3'}];
-const NOTE={C4:261.63,D4:293.66,E4:329.63,F4:349.23,G4:392,A4:440};
-let calOff=0,lastSync=new Date(),songIdx=0,music=null;
-const musicLabel=()=>music?'⏹ 멈추기 (눌러서 다음 곡)':`🎵 ${SONGS[songIdx].n}`;
-function stopMusic(){if(music){clearTimeout(music.t);try{music.g.disconnect()}catch(e){}music=null}}
-function toggleMusic(){
-  if(music){stopMusic();songIdx=(songIdx+1)%SONGS.length;return}
-  try{
-    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
-    if(AC.state==='suspended')AC.resume();
-    const sg=SONGS[songIdx],g=AC.createGain();g.connect(AC.destination);
-    let t=AC.currentTime+.05,total=0;
-    sg.s.split(' ').forEach(tok=>{const p=tok.split(':'),d=(+p[1]||1)*sg.t,o=AC.createOscillator(),e=AC.createGain();
-      o.type='triangle';o.frequency.value=NOTE[p[0]];
-      e.gain.setValueAtTime(.0001,t);e.gain.exponentialRampToValueAtTime(.25,t+.03);e.gain.exponentialRampToValueAtTime(.0001,t+d*.95);
-      o.connect(e);e.connect(g);o.start(t);o.stop(t+d);t+=d;total+=d});
-    music={g,t:setTimeout(()=>{music=null;render()},total*1000+300)};
-    toast('🎵 '+sg.n,2500);
-  }catch(e){}
+let calOff=0,lastSync=new Date();
+
+/* ---- 식단 · 별점 · 고마워요 ---- */
+const MI={'아침':'🥣','점심':'🍱','저녁':'🍲','간식':'🍪'};
+const EMOS=[['😋','맛있어요'],['💗','고마워요'],['🙏','감사해요'],['👍','최고예요'],['🥰','사랑해요']];
+// 식단 한 줄: [YYYY-]MM-DD 점심|저녁|아침|간식 메뉴
+function parseMenu(){
+  const map={},y0=new Date().getFullYear();
+  lines(S.menu).concat(B?lines(B.menu):[]).forEach(l=>{
+    const m=l.match(/^(?:(\d{4})-)?(\d{1,2})-(\d{1,2})\s+(아침|점심|저녁|간식)\s*[:：]?\s*(.+)$/);
+    if(!m)return;
+    const ds=`${m[1]||y0}-${pad(+m[2])}-${pad(+m[3])}`;
+    (map[ds]=map[ds]||{})[m[4]]=m[5].trim();
+  });
+  return map;
+}
+function adults(){return S.people.filter(p=>p.n!=='가족')}
+function thanksTo(){const a=adults();return a.some(p=>p.n===S.thanksTo)?S.thanksTo:(a[0]?a[0].n:'엄마')}
+function thanksOn(from){                            // from 날짜 이후에 받은 마음 모아보기
+  const list=Object.keys(S.thanks).map(k=>S.thanks[k]).filter(r=>r.date>=from);
+  const st=list.filter(r=>r.stars>0);
+  return {list,n:list.length,avg:st.length?(st.reduce((a,r)=>a+r.stars,0)/st.length).toFixed(1):''};
+}
+function menuCard(){
+  const td=parseMenu()[today()]||{},g=thanksOn(today());
+  const rows=['아침','점심','저녁','간식'].filter(m=>td[m]||m==='점심'||m==='저녁').map(m=>
+    `<div class="mrow"><span class="mt">${MI[m]} ${m}</span><span class="mv">${td[m]?esc(td[m]):'<span class="small">아직 정해지지 않았어요</span>'}</span></div>`).join('');
+  return `<div class="sec menucard" data-gotab="menu"><div class="sh" style="--c:#ef6c00;color:#e65100">🍽 오늘의 메뉴<span class="small" style="margin-left:auto">눌러서 별점·고마워요 ›</span></div>${rows}
+    ${g.n?`<div class="mfoot">💌 오늘 받은 마음 ${g.n}개${g.avg?` · ⭐ ${g.avg}`:''}</div>`:''}</div>`;
+}
+function menuView(){
+  const k=K(),mp=parseMenu(),td=mp[today()]||{},to=thanksTo();
+  const rateRow=m=>{
+    const r=S.thanks[`${today()}|${m}|${k.name}`]||{stars:0,emo:[]};
+    return `<div class="rate"><div class="rh"><b>${MI[m]} ${m}</b> <span class="small">${td[m]?esc(td[m]):'메뉴 미정'}</span></div>
+      <div class="stars">${[1,2,3,4,5].map(i=>`<button class="star ${i<=r.stars?'on':''}" data-act="star" data-m="${m}" data-n="${i}">★</button>`).join('')}</div>
+      <div class="emos">${EMOS.map(([e,l])=>`<button class="emo ${r.emo.indexOf(e)>=0?'on':''}" data-act="emo" data-m="${m}" data-e="${e}">${e}<small>${l}</small></button>`).join('')}</div></div>`;
+  };
+  const week=[];
+  for(let i=0;i<7;i++){const d=addDays(i),m=mp[dstr(d)];
+    if(m)week.push(`<div class="ev"><span><b>${d.getMonth()+1}/${d.getDate()} (${WD[d.getDay()]})</b></span><span class="wm2">${['아침','점심','저녁','간식'].filter(x=>m[x]).map(x=>`${MI[x]} ${esc(m[x])}`).join(' · ')}</span></div>`)}
+  const wk=thanksOn(dkey(-6)),feed=wk.list.sort((a,b)=>b.ts-a.ts).slice(0,8);
+  return `<div class="stack">
+  <div class="card"><div class="bar">🍽 오늘의 메뉴 <span class="small">${new Date().getMonth()+1}/${new Date().getDate()} (${WD[new Date().getDay()]})</span></div>
+    ${['아침','점심','저녁','간식'].filter(m=>td[m]||m==='점심'||m==='저녁').map(m=>`<div class="mrow big"><span class="mt">${MI[m]} ${m}</span><span class="mv">${td[m]?esc(td[m]):'<span class="small">아직 정해지지 않았어요</span>'}</span></div>`).join('')}</div>
+  <div class="card"><h2>💌 ${esc(k.name)}의 마음 보내기</h2>
+    <div class="small">누구에게 보낼까요?</div><div class="rcs">${adults().map(p=>`<button class="rc ${p.n===to?'on':''}" data-act="to" data-n="${esc(p.n)}">${esc(p.n)}</button>`).join('')}</div>
+    ${rateRow('점심')}${rateRow('저녁')}
+    <p class="small">밥을 먹고 별점을 누르고, 고마운 마음을 이모지로 보내요. 다시 누르면 취소돼요.</p></div>
+  <div class="card"><h2>📅 이번 주 식단</h2>${week.length?week.join(''):'<div class="small">식단이 아직 없어요. 설정에서 입력해 주세요</div>'}</div>
+  <div class="card"><h2>💌 최근에 받은 마음 ${wk.avg?`<span class="chip">⭐ ${wk.avg}</span>`:''}</h2>${feed.length?feed.map(r=>`<div class="ev"><span><b>${esc(r.kid)}</b> → ${esc(r.to||'')} · ${r.meal}</span><span>${r.stars?'⭐'.repeat(r.stars):''} ${r.emo.join('')} <small>${+r.date.slice(5,7)}/${+r.date.slice(8)}</small></span></div>`).join(''):'<div class="small">아직 없어요. 첫 마음을 보내 보세요!</div>'}</div></div>`;
 }
 
 function homeView(){
@@ -677,7 +728,7 @@ function homeView(){
   <div class="skyrow">${clockCard(now)}${weatherCard(now)}</div>
   ${notices.length?`<div class="nbar">${notices.map(n=>`<span class="notice">📢 ${esc(n)}</span>`).join('')}</div>`:''}
   <div class="cols"><div class="col">${calCard(evs)}${schedCard(evs)}</div>
-    <div class="col">${todoCard()}<div class="pair">${kidsCard()}${upCard(evs)}</div></div></div></div>`;
+    <div class="col">${menuCard()}${todoCard()}<div class="pair">${kidsCard()}${upCard(evs)}</div></div></div></div>`;
 }
 
 function todoView(){
@@ -823,6 +874,12 @@ function setView(){
     <label class="small">전체 일정 목록 (한 줄에 하나씩, 직접 고치거나 지울 수 있어요)</label>
     ${ta('data-g="events"',S.events,'2026-12-25 크리스마스 #가족&#10;2026-11-08 10:30 건강 검진 #한율&#10;11-20 결혼기념일 #가족',170)}
     <p class="small">형식: 날짜 [시간] 이름 #사람 · 날짜를 11-20 처럼 연도 없이 쓰면 매년 반복돼요 · 아이 생일은 아래 아이 카드에 넣으면 자동으로 들어가요</p></div>
+  <div class="card"><h2>🍽 식단</h2>
+    <div class="row"><input type="date" id="mnd" value="${today()}"><select id="mnm" style="width:100px"><option>점심</option><option selected>저녁</option><option>아침</option><option>간식</option></select></div>
+    <div class="row"><input id="mnt" placeholder="메뉴 (예: 김치찌개, 계란말이)"><button class="go" data-act="addmenu">추가</button></div>
+    <label class="small">식단 목록 (한 줄에 하나씩, 직접 고치거나 지울 수 있어요)</label>
+    ${ta('data-g="menu"',S.menu,'2026-12-01 저녁 김치찌개, 계란말이&#10;2026-12-02 점심 비빔밥',150)}
+    <p class="small">형식: 날짜 점심|저녁|아침|간식 메뉴 · 같은 날 같은 끼니를 또 쓰면 아래 줄이 우선이에요 · 폰의 board.json에도 menu로 적을 수 있어요</p></div>
   <div class="card"><h2>✅ 할 일 · 장보기 · 체크리스트</h2>
     ${S.people.map(p=>`<label class="small">${esc(p.n)}${p.n==='가족'?' (공통 할 일)':' 할 일'} (한 줄에 하나씩)</label>${ta(`data-todo="${esc(p.n)}"`,(S.todoText||{})[p.n],'')}`).join('')}
     <label class="small">🛒 장보기 (한 줄에 하나씩)</label>${ta('data-g="shopping"',S.shopping,'')}
@@ -883,7 +940,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
 
 document.addEventListener('click',async e=>{
   bump();wake();
-  const t=e.target.closest('button,[data-sel],[data-gokid]');if(!t||t.id==='fs')return;
+  const t=e.target.closest('button,[data-sel],[data-gokid],[data-gotab]');if(!t||t.id==='fs')return;
   if(t.id==='mute'){S.mute=!S.mute;save();render();return}
   const k=K();
   if(t.dataset.tab){const n=t.dataset.tab;if(n==='set'&&!askPin())return;tab=n}
@@ -953,7 +1010,24 @@ document.addEventListener('click',async e=>{
     const q=S.kids.find(x=>x.name===r.kid);if(q)q.coins+=r.cost;
     S.requests=S.requests.filter(x=>x!==r);toast('취소하고 코인을 돌려줬어요');
   }
-  else if(t.dataset.act==='music'){toggleMusic();render();return}
+  else if(t.dataset.gotab){tab=t.dataset.gotab}
+  else if(t.dataset.act==='to'){S.thanksTo=t.dataset.n}
+  else if(t.dataset.act==='star'||t.dataset.act==='emo'){
+    const key=`${today()}|${t.dataset.m}|${k.name}`;
+    const r=S.thanks[key]=S.thanks[key]||{kid:k.name,date:today(),meal:t.dataset.m,stars:0,emo:[],to:'',ts:0};
+    r.to=thanksTo();r.ts=Date.now();
+    if(t.dataset.act==='star'){const n=+t.dataset.n;r.stars=r.stars===n?0:n}
+    else{const e=t.dataset.e,i=r.emo.indexOf(e);if(i>=0)r.emo.splice(i,1);else r.emo.push(e)}
+    if(!r.stars&&!r.emo.length)delete S.thanks[key];
+    else{sfx('buy');toast(`💌 ${r.to}에게 마음을 보냈어요!`)}
+  }
+  else if(t.dataset.act==='addmenu'){
+    const v=id=>{const el=document.getElementById(id);return el?el.value:''};
+    const ds=v('mnd'),ml=v('mnm'),tx=v('mnt').trim();
+    if(!ds||!tx){toast('날짜와 메뉴를 넣어주세요');return}
+    S.menu=(S.menu?S.menu.replace(/\s+$/,'')+'\n':'')+`${ds} ${ml} ${tx}`;
+    toast('식단을 추가했어요 ✅');
+  }
   else if(t.dataset.act==='cal'){const d=+t.dataset.d;calOff=d===0?0:calOff+d}
   else if(t.dataset.act==='tg'){const key=t.dataset.k;if(S.todoDone[key])delete S.todoDone[key];else S.todoDone[key]=1}
   else if(t.dataset.act==='addev'){
