@@ -682,14 +682,39 @@ function treeHtml(n,cur){
 
 /* ---------- 날씨 · 공지판 ---------- */
 const WX=c=>c===0?['☀️','맑음']:c<=3?['⛅','구름']:c<=48?['🌫','안개']:c<=57?['🌦','이슬비']:c<=67?['🌧','비']:c<=77?['❄️','눈']:c<=82?['🌧','소나기']:c<=86?['❄️','눈']:['⛈','천둥번개'];
+let weatherErr='';
+const numOr=(v,d)=>{const n=parseFloat(v);return isFinite(n)?n:d};
+async function weatherOpenMeteo(lat,lon){
+  const j=await jget('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code,precipitation_probability&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=2');
+  const all=j.hourly.time.map((x,i)=>({t:j.hourly.temperature_2m[i],c:j.hourly.weather_code[i],p:j.hourly.precipitation_probability[i]}));
+  const w={t:Math.round(j.current.temperature_2m),c:j.current.weather_code,hi:Math.round(j.daily.temperature_2m_max[0]),lo:Math.round(j.daily.temperature_2m_min[0]),
+    hours:all.slice(0,24),tom:all.slice(24,48),pm10:null,pm25:null};
+  try{const q=await jget('https://air-quality-api.open-meteo.com/v1/air-quality?latitude='+lat+'&longitude='+lon+'&current=pm10,pm2_5&timezone=auto');w.pm10=q.current.pm10;w.pm25=q.current.pm2_5}catch(e){}
+  return w;
+}
+// 예비: 노르웨이 기상청(MET Norway). Open-Meteo 가 안 열리는 오래된 기기를 위해서예요 (미세먼지는 없어요)
+async function weatherMetNo(lat,lon){
+  const j=await jget('https://api.met.no/weatherapi/locationforecast/2.0/compact?lat='+lat.toFixed(3)+'&lon='+lon.toFixed(3));
+  const ts=j.properties.timeseries;
+  const SYM=s=>{s=String(s||'');return /thunder/.test(s)?95:/snow/.test(s)?73:/sleet/.test(s)?67:/heavyrain/.test(s)?65:/rain/.test(s)?63:/fog/.test(s)?45:/^cloudy/.test(s)?3:/partlycloudy/.test(s)?2:/fair/.test(s)?1:0};
+  const d0=dstr(new Date()),d1=dstr(addDays(1)),m0={},m1={};
+  ts.forEach(x=>{
+    const d=new Date(x.time),key=dstr(d),det=x.data.instant.details,nx=x.data.next_1_hours||x.data.next_6_hours||{};
+    const amt=nx.details&&nx.details.precipitation_amount||0,sym=nx.summary&&nx.summary.symbol_code||'';
+    const rec={t:det.air_temperature,c:SYM(sym),p:amt>0.2?70:(amt>0?30:0)};
+    if(key===d0)m0[d.getHours()]=rec;else if(key===d1)m1[d.getHours()]=rec;
+  });
+  const fill=m=>{const ks=Object.keys(m).map(Number);if(!ks.length)return [];return Array.from({length:24},(_,h)=>{let best=ks[0];ks.forEach(k=>{if(Math.abs(k-h)<Math.abs(best-h))best=k});return m[best]})};
+  const h0=fill(m0),cur=ts[0].data.instant.details.air_temperature,t0=h0.map(x=>x.t);
+  return {t:Math.round(cur),c:h0.length?h0[new Date().getHours()].c:0,hi:Math.round(Math.max.apply(null,t0.concat([cur]))),lo:Math.round(Math.min.apply(null,t0.concat([cur]))),
+    hours:h0,tom:fill(m1),pm10:null,pm25:null};
+}
 async function loadWeather(){
-  try{
-    const j=await jget(`https://api.open-meteo.com/v1/forecast?latitude=${S.lat}&longitude=${S.lon}&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code,precipitation_probability&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=2`);
-    const w={t:Math.round(j.current.temperature_2m),c:j.current.weather_code,hi:Math.round(j.daily.temperature_2m_max[0]),lo:Math.round(j.daily.temperature_2m_min[0]),
-      hours:j.hourly.time.map((x,i)=>({t:j.hourly.temperature_2m[i],c:j.hourly.weather_code[i],p:j.hourly.precipitation_probability[i]})).slice(0,24),tom:j.hourly.time.map((x,i)=>({t:j.hourly.temperature_2m[i],c:j.hourly.weather_code[i],p:j.hourly.precipitation_probability[i]})).slice(24,48),pm10:null,pm25:null};
-    try{const a=await jget(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${S.lat}&longitude=${S.lon}&current=pm10,pm2_5&timezone=auto`);w.pm10=a.current.pm10;w.pm25=a.current.pm2_5}catch(e){}
-    W=w;lastSync=new Date();
-  }catch(e){}
+  const lat=numOr(S.lat,37.5665),lon=numOr(S.lon,126.978);
+  let w=null,err='';
+  try{w=await weatherOpenMeteo(lat,lon)}catch(e){err='1: '+(e&&e.message||e)}
+  if(!w){try{w=await weatherMetNo(lat,lon)}catch(e){err+=' / 2: '+(e&&e.message||e)}}
+  if(w&&w.hours.length){W=w;lastSync=new Date();weatherErr=''}else if(!W){weatherErr=err||'알 수 없는 오류'}
   if(tab==='home'&&!busy)render();
 }
 // 폰에서 GitHub의 board.json 파일을 고치면 패드에 자동 반영돼요
@@ -798,7 +823,7 @@ function wxTips(){
   return tips;
 }
 function weatherCard(now){
-  if(!W)return `<div class="wcard"><span class="small">날씨를 불러오는 중...</span></div>`;
+  if(!W)return `<div class="wcard">${weatherErr?`<b>🌥 날씨를 가져오지 못했어요</b><div class="small" style="word-break:break-all">${esc(weatherErr)}</div><button data-act="wxretry" style="margin-top:4px">🔄 다시 시도</button>`:'<span class="small">날씨를 불러오는 중...</span>'}</div>`;
   const a=aq(),wl=WX(W.c),curH=now.getHours();
   return `<div class="wcard">
     <div class="wtop2"><span class="wi2">${wl[0]}</span><b class="wt">${W.t}°</b>
@@ -1646,6 +1671,7 @@ document.addEventListener('click',async e=>{
     Object.keys(S.todoDone).forEach(x=>{if(x.indexOf(q.name+'|')===0)delete S.todoDone[x]});
     toast(q.name+'의 기록을 초기화했어요');
   }
+  else if(t.dataset.act==='wxretry'){weatherErr='';render();loadWeather();return}
   else if(t.dataset.act==='addperson'){S.people.push({n:'새 구성원',c:'#00acc1'})}
   else if(t.dataset.act==='delperson'){S.people.splice(+t.dataset.j,1)}
   else if(t.dataset.act==='addkid'){S.kids.push(fixAdd(newKid('새 아이',[['양치하기',10]],TRAINERS[S.kids.length%TRAINERS.length])))}
@@ -1707,6 +1733,7 @@ setInterval(()=>{
   if(today()!==lastDay){lastDay=today();S.kids.forEach(k=>{k.done={}});runPurge();save();if(!busy)render()}
 },15000);
 setInterval(loadWeather,30*60000);
+setInterval(()=>{if(!W)loadWeather()},120000);       // 못 불러왔으면 2분마다 다시 시도해요
 setInterval(loadBoard,5*60000);
 setInterval(syncNow,60000);                       // 1분마다 폰에서 고친 내용을 확인해요
 setTimeout(syncNow,1500);
