@@ -217,13 +217,42 @@ main{max-width:1200px}
 /* 한 화면에 최대한 들어오도록 간격 줄이기 */
 header{padding:6px 12px}
 header h1{font-size:16px}
-.tabs button{padding:8px 10px;font-size:14px}
-header>button{padding:8px 12px}
+.tabs button{padding:7px 9px;font-size:14px}
+.tabs,header>*{margin:2px!important}
+header>button{padding:7px 10px}
 .clk2{font-size:68px}
 .sky{min-height:126px;padding:8px 14px 24px}
 .dt2{font-size:19px}
 .cd{min-height:50px}
 main{padding-top:8px}
+/* 정렬: 윗줄과 아랫줄 칸 너비를 같게, 칸 높이를 맞추기 */
+.skyrow{display:grid;grid-template-columns:1fr 1fr;grid-gap:10px;gap:10px;margin:0}
+.skyrow>*{margin:0}
+@media(max-width:899px){.skyrow{grid-template-columns:1fr}}
+.cols{grid-template-columns:1fr 1fr}
+.sky,.wcard,.sec{border-radius:16px}
+.sky{display:flex;flex-direction:column;justify-content:center}
+.clk2{font-size:84px}
+.wcard{display:block;padding:10px 12px}
+.wtop{display:flex;align-items:center;flex-wrap:wrap}
+.wtop>*{margin:3px}
+.whs{flex:1 1 100%;display:flex;margin:3px 0 0 0}
+.wh{flex:1;margin:0 3px}
+.wtx small{display:block;font-weight:600;opacity:.6}
+.mm{display:flex;margin-top:4px}
+.mm span{font-weight:800;font-size:17px;border-radius:99px;padding:2px 12px;margin-right:6px}
+.mn{background:#e3f2fd;color:#1565c0}
+.mx{background:#ffebee;color:#c62828}
+.outfit{border-top:1px dashed var(--line);margin-top:6px;padding-top:6px}
+.oh{font-weight:800;margin-bottom:3px}
+.oh small{font-weight:600;font-size:11px;margin-left:6px}
+.orow{display:flex;font-weight:700;font-size:14px;margin:2px 0}
+.ot{width:88px;flex:none;color:#555}
+.otip{font-size:13px;font-weight:700;color:#1565c0;margin-top:4px}
+.col{display:flex;flex-direction:column}
+.col>.sec:last-child,.col>.pair:last-child{flex:1}
+.nbar{margin:10px 0 0}
+.nbar .notice{margin:0 8px 0 0}
 /* 구형 iOS(12) 호환: flex gap 대체 */
 header>*,.tabs>*,.kids>*,.acts>*,.stats>*{margin:4px}
 .bar>*{margin-right:10px}
@@ -236,8 +265,9 @@ body{padding-top:env(safe-area-inset-top)}
 </head>
 <body>
 <header>
-  <h1>🏠 우리집 포켓몬 보드</h1>
+  <h1>🏠 우리집 보드</h1>
   <div class="tabs" id="tabs"></div>
+  <button id="musbtn" data-act="music" title="음악">🎵</button>
   <button id="mute" title="소리">🔊</button>
   <button id="fs" title="전체화면">⛶</button>
 </header>
@@ -444,6 +474,7 @@ function render(){
   document.getElementById('tabs').innerHTML=[['home','🏠 대시보드'],['todo','📝 미션'],['town','🌳 마을'],['dex','📖 도감'],['shop','🎁 상점'],['rec','📊 기록'],['set','⚙️ 설정']]
     .map(([k,l])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${l}</button>`).join('');
   document.getElementById('mute').textContent=S.mute?'🔇':'🔊';
+  document.getElementById('musbtn').textContent=music?'⏹':'🎵';
   document.getElementById('kids').innerHTML=KIDTABS.indexOf(tab)>=0?S.kids.map((k,i)=>`<button class="${i===kid?'on':''}" data-kid="${i}">${esc(k.name)}</button>`).join(''):'';
   const m=document.getElementById('main');
   m.innerHTML=tab==='home'?homeView():tab==='todo'?todoView():tab==='town'?townView():tab==='dex'?dexView():tab==='shop'?shopView():tab==='rec'?recView():setView();
@@ -518,15 +549,43 @@ function clockCard(now){
     <div class="dt2" id="dt">${now.getMonth()+1}월 ${now.getDate()}일 ${WD[now.getDay()]}요일</div>
     <div class="clk-row"><span class="apm" id="apm">${apText(now)}</span><span class="clk2" id="clk">${clockText(now)}</span></div></div>`;
 }
+function outfit(t){                                  // 기온별 옷차림
+  if(t>=28)return ['🩳','민소매 · 반팔 · 반바지 · 린넨 옷'];
+  if(t>=23)return ['👕','반팔 · 얇은 셔츠 · 반바지 · 면바지'];
+  if(t>=20)return ['👚','얇은 가디건 · 긴팔 · 면바지 · 청바지'];
+  if(t>=17)return ['🧶','얇은 니트 · 맨투맨 · 가디건 · 청바지'];
+  if(t>=12)return ['🧥','자켓 · 가디건 · 야상 · 청바지'];
+  if(t>=9)return ['🧥','자켓 · 트렌치코트 · 니트 · 청바지'];
+  if(t>=5)return ['🧣','코트 · 가죽자켓 · 히트텍 · 니트'];
+  return ['🧤','패딩 · 두꺼운 코트 · 목도리 · 기모 옷'];
+}
+function wxTips(){
+  const tips=[],dr=W.hi-W.lo,a=aq();
+  const maxP=Math.max.apply(null,W.hours.slice(new Date().getHours()).map(h=>h.p||0).concat([0]));
+  if(dr>=10)tips.push(`🌗 일교차가 ${dr}°로 커요. 겉옷을 꼭 챙겨요`);
+  if(maxP>=60)tips.push('☔ 비 소식이 있어요. 우산을 챙겨요');
+  else if(maxP>=30)tips.push('🌂 비가 올 수도 있어요. 작은 우산을 챙기면 좋아요');
+  if(a&&a.g>=2)tips.push('😷 미세먼지가 나빠요. 마스크를 챙겨요');
+  if(W.lo<=0)tips.push('🥶 영하예요. 장갑과 목도리를 챙겨요');
+  if(W.hi>=28)tips.push('🥵 더워요. 물을 자주 마셔요');
+  if(!tips.length)tips.push('😊 나들이하기 좋은 날씨예요');
+  return tips;
+}
 function weatherCard(now){
-  if(!W)return `<div class="wcard" style="flex:1.4 1 420px"><span class="small">날씨를 불러오는 중...</span></div>`;
-  const a=aq(),wl=WX(W.c),curH=now.getHours();
-  return `<div class="wcard" style="flex:1.4 1 420px">
-    ${a?`<div class="aqbox" style="background:${a.c}"><small>미세먼지</small><b>${a.e}</b><span>${a.n}</span></div>`:''}
-    <div class="wnow"><div class="wbig"><span class="wi">${wl[0]}</span><b>${W.t}°</b><span class="wtx">${wl[1]}<br><small>최고 ${W.hi}° · 최저 ${W.lo}°</small></span></div>
-      ${a?`<small class="muted">미세 ${Math.round(W.pm10)} · 초미세 ${Math.round(W.pm25)} µg/m³</small>`:''}
-      <div class="wcm">${wxComment()}</div></div>
-    <div class="whs">${[8,12,16,20].map(h=>{const x=W.hours[h];if(!x)return '';return `<div class="wh ${h<curH?'past':''}"><small>${h}시</small><span class="wi">${WX(x.c)[0]}</span><b>${Math.round(x.t)}°</b><small>비 ${x.p||0}%</small></div>`}).join('')}</div></div>`;
+  if(!W)return `<div class="wcard"><span class="small">날씨를 불러오는 중...</span></div>`;
+  const a=aq(),wl=WX(W.c),curH=now.getHours(),am=outfit(W.lo),pm=outfit(W.hi);
+  return `<div class="wcard">
+    <div class="wtop">
+      ${a?`<div class="aqbox" style="background:${a.c}"><small>미세먼지</small><b>${a.e}</b><span>${a.n}</span></div>`:''}
+      <div class="wnow"><div class="wbig"><span class="wi">${wl[0]}</span><b>${W.t}°</b><span class="wtx">${wl[1]}<small>현재 기온</small></span></div>
+        <div class="mm"><span class="mn">최저 ${W.lo}°</span><span class="mx">최고 ${W.hi}°</span></div>
+        ${a?`<small class="muted">미세 ${Math.round(W.pm10)} · 초미세 ${Math.round(W.pm25)} µg/m³</small>`:''}</div>
+      <div class="whs">${[8,12,16,20].map(h=>{const x=W.hours[h];if(!x)return '';return `<div class="wh ${h<curH?'past':''}"><small>${h}시</small><span class="wi">${WX(x.c)[0]}</span><b>${Math.round(x.t)}°</b><small>비 ${x.p||0}%</small></div>`}).join('')}</div>
+    </div>
+    <div class="outfit"><div class="oh">👕 오늘의 옷차림 <small class="muted">🔄 ${apText(lastSync)} ${clockText(lastSync)}</small></div>
+      <div class="orow"><span class="ot">🌅 아침 ${W.lo}°</span><span>${am[0]} ${am[1]}</span></div>
+      <div class="orow"><span class="ot">☀️ 낮 ${W.hi}°</span><span>${pm[0]} ${pm[1]}</span></div>
+      <div class="otip">${wxTips().map(esc).join('<br>')}</div></div></div>`;
 }
 function calCard(evs){
   const now=new Date(),base=new Date(now.getFullYear(),now.getMonth()+calOff,1);
@@ -606,7 +665,8 @@ function toggleMusic(){
       o.type='triangle';o.frequency.value=NOTE[p[0]];
       e.gain.setValueAtTime(.0001,t);e.gain.exponentialRampToValueAtTime(.25,t+.03);e.gain.exponentialRampToValueAtTime(.0001,t+d*.95);
       o.connect(e);e.connect(g);o.start(t);o.stop(t+d);t+=d;total+=d});
-    music={g,t:setTimeout(()=>{music=null;if(tab==='home'&&!busy)render()},total*1000+300)};
+    music={g,t:setTimeout(()=>{music=null;render()},total*1000+300)};
+    toast('🎵 '+sg.n,2500);
   }catch(e){}
 }
 
@@ -616,9 +676,8 @@ function homeView(){
   return `<div class="dash">
   <div class="skyrow">${clockCard(now)}${weatherCard(now)}</div>
   ${notices.length?`<div class="nbar">${notices.map(n=>`<span class="notice">📢 ${esc(n)}</span>`).join('')}</div>`:''}
-  <div class="cols"><div class="col">${calCard(evs)}${checkCard()}${schedCard(evs)}</div>
-    <div class="col">${todoCard()}<div class="pair">${kidsCard()}${upCard(evs)}</div></div></div>
-  <div class="foot"><span class="small">🔄 ${apText(lastSync)} ${clockText(lastSync)} 갱신</span><button data-act="music" class="mus">${musicLabel()}</button></div></div>`;
+  <div class="cols"><div class="col">${calCard(evs)}${schedCard(evs)}</div>
+    <div class="col">${todoCard()}<div class="pair">${kidsCard()}${upCard(evs)}</div></div></div></div>`;
 }
 
 function todoView(){
