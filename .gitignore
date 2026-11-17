@@ -6,3 +6,4 @@
 *.txt
 .claude/
 !icon.png
+도구/
