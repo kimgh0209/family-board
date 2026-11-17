@@ -401,6 +401,11 @@ header{padding:4px 10px}
 @keyframes snowfall{from{transform:translate3d(0,0,0)}to{transform:translate3d(24px,92vh,0)}}
 .drop{position:absolute;top:-6%;z-index:4;width:2px;height:16px;background:rgba(255,255,255,.75);pointer-events:none;animation:rainfall linear infinite}
 @keyframes rainfall{from{transform:translate3d(0,0,0)}to{transform:translate3d(-8px,92vh,0)}}
+.stgrid{display:grid;grid-template-columns:repeat(4,1fr);grid-gap:10px;gap:10px;margin-top:8px}
+@media(max-width:700px){.stgrid{grid-template-columns:1fr 1fr}}
+.stbtn{display:flex;flex-direction:column;align-items:center;padding:8px;border:3px solid var(--yellow);background:#fffde7;font-size:20px}
+.stbtn img{width:120px;height:120px;object-fit:contain}
+.stbtn small{font-size:12px;opacity:.7}
 /* 구형 iOS(12) 호환: flex gap 대체 */
 header>*,.tabs>*,.kids>*,.acts>*,.stats>*{margin:4px}
 .bar>*{margin-right:10px}
@@ -452,7 +457,9 @@ function fixKid(k,i){
   k.dex=k.dex||{};k.mons=k.mons||[];k.mons.forEach(m=>{k.dex[m.id]=1});
   if(!k.trainer)k.trainer=TR_DEFAULT[i%3];
   if(!k.color)k.color=KID_COLORS[i%KID_COLORS.length];
-  k.birthday=k.birthday||'';k.face=k.face||'';
+  k.birthday=k.birthday||'';
+  if(typeof k.hatched!=='number')k.hatched=k.mons.length;
+  k.face=k.face||'';
   ['evos','earned','streak','best','perfect','bought','bonusAmt','coins','sel'].forEach(f=>{if(typeof k[f]!=='number')k[f]=0});
   k.hist=k.hist||{};k.badges=k.badges||{};k.lastPerfect=k.lastPerfect||'';k.bonusDate=k.bonusDate||'';
   const keys=Object.keys(k.hist).sort();while(keys.length>45)delete k.hist[keys.shift()];
@@ -502,6 +509,7 @@ const BADGES=[
   {id:'mon5',i:'🐾',n:'포켓몬 5마리',d:'친구가 5마리!',f:k=>k.mons.length>=5},
   {id:'mon10',i:'🐾',n:'포켓몬 10마리',d:'친구가 10마리!',f:k=>k.mons.length>=10},
   {id:'mon20',i:'🏰',n:'포켓몬 20마리',d:'대가족이 됐어요',f:k=>k.mons.length>=20},
+  {id:'legend1',i:'🌟',n:'전설의 주인',d:'전설·환상의 포켓몬을 만났어요',f:k=>k.mons.some(m=>m.legend)},
   {id:'evo1',i:'✨',n:'첫 진화',d:'처음으로 진화시켰어요',f:k=>k.evos>=1},
   {id:'evo5',i:'🌟',n:'진화 5번',d:'진화 박사!',f:k=>k.evos>=5},
   {id:'dex10',i:'📖',n:'도감 10종',d:'10종을 만났어요',f:k=>Object.keys(k.dex).length>=10},
@@ -558,17 +566,89 @@ async function chainCount(){
   try{chainTotal=(await jget(API+'evolution-chain?limit=1')).count}catch(e){chainTotal=500}
   return chainTotal;
 }
-async function rollEgg(){                         // 현존하는 전체 포켓몬 중에서 뽑고, 항상 진화 전 모습으로 부화
-  const total=await speciesCount();
-  for(let i=0;i<12;i++){
-    try{
-      let sp=await jget(API+'pokemon-species/'+(1+Math.floor(Math.random()*total)));
-      if(!S.legend&&(sp.is_legendary||sp.is_mythical))continue;
-      while(sp.evolves_from_species)sp=await jget(sp.evolves_from_species.url);
-      return {id:sp.id,sp:sp.name,name:koName(sp)};
-    }catch(e){}
+/* ---- 알 부화 규칙 ----
+   1번째 알: 피카츄·꼬부기·파이리·이상해씨 중에서 고르기
+   2~6번째 알: 진화 전 모습으로 랜덤 (형제끼리 같은 계보는 겹치지 않고, 최종 진화가 강한 계보만)
+   7번째 알: 전설·환상의 포켓몬 (역시 겹치지 않아요) */
+const STARTERS=[{id:25,sp:'pikachu',name:'피카츄',root:172},{id:7,sp:'squirtle',name:'꼬부기',root:7},{id:4,sp:'charmander',name:'파이리',root:4},{id:1,sp:'bulbasaur',name:'이상해씨',root:1}];
+const LEGENDS=[144,145,146,150,151,243,244,245,249,250,251,377,378,379,380,381,382,383,384,385,386,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,638,639,640,641,642,643,644,645,646,647,648,649,716,717,718,719,720,721,785,786,787,788,789,790,791,792,800,801,802,807,808,809,888,889,890,891,892,893,894,895,896,897,898,1001,1002,1003,1004,1007,1008,1014,1015,1016,1017,1024,1025];
+const MIN_BST=480;                                   // 최종 진화 모습의 종족값 합이 이 이상인 계보만 "괜찮은 포켓몬"으로 봐요
+const bstCache={};
+async function rootOf(id){let sp=await jget(API+'pokemon-species/'+id);while(sp.evolves_from_species)sp=await jget(sp.evolves_from_species.url);return sp.id}
+async function takenRoots(){                         // 모든 아이가 이미 가진 계보(첫 모습 번호)
+  const set={};
+  for(const q of S.kids)for(const m of q.mons){
+    if(!m.root){try{m.root=await rootOf(m.id)}catch(e){m.root=m.id}}
+    set[m.root]=1;
   }
-  throw new Error('roll');
+  return set;
+}
+async function bstOf(id){
+  if(bstCache[id])return bstCache[id];
+  const p=await jget(API+'pokemon/'+id);
+  return bstCache[id]=p.stats.reduce((x,y)=>x+y.base_stat,0);
+}
+async function lineStrong(root){                      // 계보의 최종 진화들 중 가장 강한 종족값 합
+  const sp=await jget(API+'pokemon-species/'+root),ch=await jget(sp.evolution_chain.url);
+  const finals=[];(function walk(n){if(!n.evolves_to.length)finals.push(idFrom(n.species.url));n.evolves_to.forEach(walk)})(ch.chain);
+  let best=0;for(const id of finals){try{best=Math.max(best,await bstOf(id))}catch(e){}}
+  return best>=MIN_BST;
+}
+async function candidate(id,taken,needLegend){        // 후보 하나를 검사해서 쓸 수 있으면 포켓몬 정보를, 아니면 null
+  try{
+    let sp=await jget(API+'pokemon-species/'+id);
+    const isL=sp.is_legendary||sp.is_mythical;
+    if(needLegend!==isL)return null;
+    while(sp.evolves_from_species)sp=await jget(sp.evolves_from_species.url);
+    if(taken[sp.id])return null;
+    if(!needLegend&&!(await lineStrong(sp.id)))return null;
+    return {id:sp.id,sp:sp.name,name:koName(sp),root:sp.id,legend:!!needLegend};
+  }catch(e){return null}
+}
+async function rollWith(pickId,needLegend){
+  const taken=await takenRoots();
+  for(let round=0;round<14;round++){
+    const ids=[pickId(),pickId(),pickId(),pickId()];   // 4개씩 동시에 확인해서 빨리 찾아요
+    const ok=(await Promise.all(ids.map(i=>candidate(i,taken,needLegend)))).filter(Boolean);
+    if(ok.length)return ok[Math.floor(Math.random()*ok.length)];
+  }
+  return null;
+}
+async function rollEgg(){                            // 2~6번째 알
+  const total=await speciesCount();
+  const p=await rollWith(()=>1+Math.floor(Math.random()*total),false);
+  if(!p)throw new Error('roll');
+  return p;
+}
+async function rollLegend(){                         // 7번째 알: 전설·환상 (찾지 못하면 일반 포켓몬)
+  const p=await rollWith(()=>LEGENDS[Math.floor(Math.random()*LEGENDS.length)],true);
+  return p||await rollEgg();
+}
+async function hatchEgg(k,btn){
+  busy=true;
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="shake" style="display:inline-block">🥚</span> 부화 중...'}
+  const legend=k.hatched===6;
+  try{
+    const p=legend?await rollLegend():await rollEgg();
+    k.coins-=S.eggCost;k.mons.push(p);k.dex[p.id]=1;k.hatched++;k.sel=k.mons.length-1;
+    sfx('hatch');confetti();
+    overlay((p.legend?'<h2>🌟 대박! 전설의 포켓몬이에요!</h2>':'')+'<h2>🎉 '+esc(p.name)+' 등장!</h2><img class="big" src="'+ART(p.id)+'">');
+  }catch(err){overlay('<h2>인터넷 연결을 확인해주세요 😢</h2>')}
+  busy=false;
+}
+async function openStarter(k){
+  let taken={};try{taken=await takenRoots()}catch(e){}
+  overlay('<h2>🥚 첫 알이에요! 함께할 친구를 골라요</h2><p class="small">고르면 코인 '+won(S.eggCost)+'개가 들어요 · 다른 형제가 고른 친구는 고를 수 없어요</p><div class="stgrid">'
+    +STARTERS.map(x=>'<button class="stbtn" data-starter="'+x.id+'" '+(taken[x.root]?'disabled':'')+'><img src="'+ART(x.id)+'"><b>'+x.name+'</b>'+(taken[x.root]?'<small>이미 골랐어요</small>':'')+'</button>').join('')+'</div>');
+}
+async function hatchStarter(k,id){
+  const st=STARTERS.find(x=>x.id===id);
+  if(!st||busy||k.coins<S.eggCost)return;
+  let taken={};try{taken=await takenRoots()}catch(e){}
+  if(taken[st.root]){toast('다른 친구가 이미 골랐어요');return}
+  k.coins-=S.eggCost;k.mons.push({id:st.id,sp:st.sp,name:st.name,root:st.root});k.dex[st.id]=1;k.hatched++;k.sel=k.mons.length-1;
+  sfx('hatch');confetti();
+  overlay('<h2>🎉 '+st.name+' 등장!</h2><img class="big" src="'+ART(st.id)+'">');
 }
 async function evolve(m){            // 진화할 수 없으면 null
   const sp=await jget(API+'pokemon-species/'+m.id);
@@ -1254,7 +1334,8 @@ function townView(){
   }
   return `<div class="stack">${sceneHtml(k)}
   <div class="card"><div class="stats"><span class="chip coin">🪙 ${won(k.coins)}</span><button data-act="pickTrainer" style="padding:6px 12px">🧢 트레이너 바꾸기</button></div>${hero}
-  <div class="acts"><button class="egg" data-act="egg" ${k.coins<S.eggCost?'disabled':''}>🥚 알 뽑기 (🪙${won(S.eggCost)})</button></div></div>
+  <div class="acts"><button class="egg" data-act="egg" ${k.coins<S.eggCost?'disabled':''}>${k.hatched===0?'🥚 첫 알 뽑기 · 친구 고르기':k.hatched===6?'🌟 알 뽑기 (전설!)':'🥚 알 뽑기'} (🪙${won(S.eggCost)})</button></div>
+  <div class="small" style="text-align:center;margin-top:4px">${k.hatched===0?'첫 알은 피카츄·꼬부기·파이리·이상해씨 중에서 골라요':k.hatched===6?'🌟 이번 알은 전설·환상의 포켓몬이 나와요!':`지금까지 알 ${k.hatched}개 · 7번째 알에는 전설·환상의 포켓몬이 나와요 ✨`}</div></div>
   <div class="card"><h2>내 포켓몬 (${k.mons.length}마리)</h2><div class="grid">
   ${k.mons.map((q,i)=>`<div class="mon ${i===k.sel?'sel':''}" data-sel="${i}"><img src="${ART(q.id)}" loading="lazy"><div>${esc(q.name)}</div></div>`).join('')}</div></div></div>`;
 }
@@ -1276,7 +1357,7 @@ function dexView(){
   const k=K();
   return `<div class="stack">
   <div class="card"><h2>📖 알과 진화 안내</h2>
-    <p>🥚 알을 뽑으면 <b>진화 전 모습</b>의 포켓몬이 나와요. 전체 도감 <b>${dexTotal||'1000'}${dexTotal?'':'+'}</b>종 중에서 뽑아요${S.legend?'':' (전설·환상 포켓몬은 빼고)'}.</p>
+    <p>🥚 <b>첫 알</b>은 피카츄·꼬부기·파이리·이상해씨 중에서 골라요. 그 다음부터는 전체 도감 <b>${dexTotal||'1000'}${dexTotal?'':'+'}</b>종 중에서 <b>진화 전 모습</b>의 든든한 포켓몬이 랜덤으로 나오고, 형제끼리 <b>같은 포켓몬은 나오지 않아요</b>. <b>7번째 알</b>에는 전설·환상의 포켓몬이 나와요 🌟</p>
     <p>✨ 코인으로 진화시키면 아래 계보처럼 다음 모습으로 바뀌어요. 갈래가 여러 개면 그중 하나가 <b>랜덤</b>으로 나와요!</p></div>
   ${dexProgress(k)}
   <div class="card"><h2>🌱 ${esc(k.name)}의 포켓몬 진화 계보</h2>
@@ -1369,8 +1450,7 @@ function setView(){
   <div class="card"><h2>🪙 포켓코인 설정</h2>
     <div class="row"><span>🥚 알 뽑기</span><input class="num" type="number" min="1" value="${S.eggCost}" data-eggcost><span>코인</span></div>
     <div class="row"><span>✨ 진화시키기</span><input class="num" type="number" min="1" value="${S.evoCost}" data-evocost><span>코인</span></div>
-    <div class="row"><span>🎉 전부 완료 보너스</span><input class="num" type="number" min="0" value="${S.bonus}" data-bonus><span>코인~</span></div>
-    <div class="row"><input type="checkbox" data-legend ${S.legend?'checked':''}><span>전설·환상 포켓몬도 알에서 나오게 하기</span></div></div>
+    <div class="row"><span>🎉 전부 완료 보너스</span><input class="num" type="number" min="0" value="${S.bonus}" data-bonus><span>코인~</span></div></div>
   ${S.kids.map((k,i)=>`<div class="card"><div class="row"><input value="${esc(k.name)}" data-kname="${i}" style="font-weight:700"><button data-act="delkid" data-k="${i}" style="background:#ffcdd2">삭제</button></div>
     <div class="row"><span>🎂 생일</span><input type="date" data-bday="${i}" value="${esc(k.birthday||'')}"><select data-kcol="${i}" style="width:100px">${pal(k.color)}</select></div>
     <div class="small">미션 이름 · 받는 코인</div>
@@ -1454,12 +1534,10 @@ document.addEventListener('click',async e=>{
   }
   else if(t.dataset.sel!==undefined){k.sel=+t.dataset.sel}
   else if(t.dataset.act==='egg'&&k.coins>=S.eggCost&&!busy){
-    busy=true;t.disabled=true;t.innerHTML='<span class="shake" style="display:inline-block">🥚</span> 부화 중...';
-    try{const p=await rollEgg();k.coins-=S.eggCost;k.mons.push(p);k.dex[p.id]=1;k.sel=k.mons.length-1;
-      sfx('hatch');confetti();overlay(`<h2>🎉 ${esc(p.name)} 등장!</h2><img class="big" src="${ART(p.id)}">`)}
-    catch(err){overlay('<h2>인터넷 연결을 확인해주세요 😢</h2>')}
-    busy=false;
+    if(k.hatched===0){await openStarter(k);return}      // 첫 알은 4마리 중에서 골라요
+    await hatchEgg(k,t);
   }
+  else if(t.dataset.starter){await hatchStarter(k,+t.dataset.starter)}
   else if(t.dataset.act==='evo'&&!busy){
     const p=leadOf(k);if(!p||p.final||k.coins<S.evoCost)return;
     busy=true;t.disabled=true;t.textContent='진화 중...';
