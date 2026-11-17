@@ -1456,7 +1456,8 @@ function setView(){
     <div class="small">미션 이름 · 받는 코인</div>
     ${k.chores.map((c,j)=>`<div class="row"><input value="${esc(c.t)}" data-ct="${i}.${j}"><input class="num" type="number" min="0" value="${c.c}" data-cc="${i}.${j}"><span>🪙</span><button data-act="delchore" data-k="${i}" data-c="${j}">✕</button></div>`).join('')}
     <div class="acts" style="justify-content:flex-start"><button data-act="addchore" data-k="${i}">➕ 미션 추가</button></div>
-    <div class="row"><span class="chip coin">보유 🪙 ${won(k.coins)}</span><button data-act="adj" data-k="${i}" data-v="10">+10</button><button data-act="adj" data-k="${i}" data-v="50">+50</button><button data-act="adj" data-k="${i}" data-v="-10">-10</button><button data-act="adj" data-k="${i}" data-v="-50">-50</button></div></div>`).join('')}
+    <div class="row"><span class="chip coin">보유 🪙 ${won(k.coins)}</span><button data-act="adj" data-k="${i}" data-v="10">+10</button><button data-act="adj" data-k="${i}" data-v="50">+50</button><button data-act="adj" data-k="${i}" data-v="-10">-10</button><button data-act="adj" data-k="${i}" data-v="-50">-50</button></div>
+    <div class="acts" style="justify-content:flex-start"><button data-act="resetkid" data-k="${i}" style="background:#fff3e0">🧹 ${esc(k.name)} 기록 초기화 (코인·포켓몬·배지)</button></div></div>`).join('')}
   <div class="card"><h2>☁️ 기기 연결 (폰 ↔ 거실 대시보드)</h2>
     <p class="small">폰에서 식단·옷·일정·미션을 고치면 거실 대시보드에 자동으로 반영돼요. 폰과 거실 대시보드 기기에서 각각 한 번씩만 연결하세요.</p>
     ${S.sync&&S.sync.on?`<div class="sstat ${syncState.st}">${syncState.st==='ok'?'✅ 연결됨 · '+esc(syncState.msg):syncState.st==='busy'?'🔄 맞추는 중...':syncState.st==='err'?'⚠️ '+esc(syncState.msg):'연결됨'}</div>
@@ -1636,6 +1637,14 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.act==='syncpush'){
     if(!confirm('이 기기의 설정으로 모든 기기를 덮어써요.\n정말 그럴까요?'))return;
     S.cfgTs=Date.now();lastCfgHash='';save();render();await syncNow();return}
+  else if(t.dataset.act==='resetkid'){
+    const q=S.kids[+t.dataset.k];
+    if(!q||!confirm(q.name+'의 코인·포켓몬·도감·배지·연속 기록이 모두 지워져요.\n(이름·미션·생일·얼굴 사진은 그대로예요)\n\n정말 지울까요?'))return;
+    Object.assign(q,{coins:0,mons:[],sel:0,dex:{},evos:0,earned:0,streak:0,best:0,perfect:0,hist:{},badges:{},lastPerfect:'',bonusDate:'',bonusAmt:0,done:{},hatched:0,prev:null});
+    Object.keys(S.thanks).forEach(x=>{if(S.thanks[x].kid===q.name)delete S.thanks[x]});
+    Object.keys(S.todoDone).forEach(x=>{if(x.indexOf(q.name+'|')===0)delete S.todoDone[x]});
+    toast(q.name+'의 기록을 초기화했어요');
+  }
   else if(t.dataset.act==='addperson'){S.people.push({n:'새 구성원',c:'#00acc1'})}
   else if(t.dataset.act==='delperson'){S.people.splice(+t.dataset.j,1)}
   else if(t.dataset.act==='addkid'){S.kids.push(fixAdd(newKid('새 아이',[['양치하기',10]],TRAINERS[S.kids.length%TRAINERS.length])))}
