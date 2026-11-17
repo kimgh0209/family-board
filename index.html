@@ -470,6 +470,7 @@ function defaults(){
     thanks:{},thanksTo:'',closet:[],outfit:{},
     shift:{on:true,name:'아빠',anchor:'2026-11-17',seq:'휴 야 야 휴 휴 주 주 휴'},   // 4조 2교대: 기준일(휴)부터 휴·야·야·휴·휴·주·주·휴 를 반복
     shiftOv:{},
+    autoPurge:true,                                  // 지난 날 입은 옷 사진은 다음날 자동 삭제
     eggCost:100,evoCost:80,legend:false,          // 알 가격 / 진화 가격 (포켓코인)
     bonus:20,mute:false,                           // 하루 미션 전부 완료 보너스
     kids:TR_DEFAULT.map((t,i)=>newKid(['한율','이현','서비'][i],base(),t))};
@@ -947,6 +948,38 @@ function outfitCard(){
     <div class="okids">${S.kids.map((k,i)=>{const its=itemsOf(ds,k);
       return `<button class="okid" data-act="gooutfit" data-i="${i}" style="border-color:${k.color}"><span class="onm">${avatar(k,'sm')}<b style="color:${k.color}">${esc(k.name)}</b></span><span class="thumbs">${its.length?its.slice(0,3).map(x=>`<img src="${IMG.mem[x.id]||''}">`).join(''):'<small>아직 안 골랐어요</small>'}</span></button>`}).join('')}</div></div>`;
 }
+/* ---- 지난 날 입은 옷 사진 자동 정리 (켜져 있을 때) ---- */
+function purgeUsedPhotos(){
+  if(!S.autoPurge||(S.sync&&S.sync.on&&S.sync.ro))return false;   // 보기 전용 기기는 폰의 정리 결과만 따라가요
+  const t=today(),keep={},past={};
+  Object.keys(S.outfit).forEach(d=>Object.keys(S.outfit[d]).forEach(n=>(S.outfit[d][n]||[]).forEach(id=>{if(d>=t)keep[id]=1;else past[id]=1})));
+  const kill=Object.keys(past).filter(id=>!keep[id]&&S.closet.some(c=>c.id===id));   // 오늘·내일 다시 입는 옷은 남겨요
+  const oldDates=Object.keys(S.outfit).filter(d=>d<t);
+  if(!kill.length&&!oldDates.length)return false;
+  S.closet=S.closet.filter(c=>kill.indexOf(c.id)<0);
+  oldDates.forEach(d=>{delete S.outfit[d]});
+  kill.forEach(id=>IMG.del(id));
+  if(S.sync&&S.sync.on&&!S.sync.ro&&kill.length)S.sync.del=(S.sync.del||[]).concat(kill);   // 클라우드에서도 지울 목록
+  return true;
+}
+function gcPhotos(){                                 // 어디에도 안 쓰이는 사진 조각을 기기에서 비워요
+  const used={};S.closet.forEach(c=>{used[c.id]=1});S.kids.forEach(k=>{if(k.face)used[k.face]=1});
+  Object.keys(IMG.mem).forEach(id=>{
+    if(used[id])return;
+    const tm=parseInt(id.slice(1,9),36);if(tm&&Date.now()-tm<600000)return;   // 방금 올린 사진은 건드리지 않아요
+    IMG.del(id);
+  });
+}
+function runPurge(){const ch=purgeUsedPhotos();gcPhotos();if(ch)save();return ch}
+async function purgeRemote(){
+  const sc=S.sync;if(!sc||sc.ro||!(sc.del&&sc.del.length))return;
+  for(const id of sc.del.slice(0,8)){
+    const g=await ghReq('GET','photos/'+id+'.jpg');
+    if(g.status===200){const j=await g.json();const d=await ghReq('DELETE','photos/'+id+'.jpg',{message:'delete old photo',sha:j.sha});if(!d.ok&&d.status!==404)throw new Error(ghMsg(d.status))}
+    else if(g.status!==404)throw new Error(ghMsg(g.status));
+    sc.del=sc.del.filter(x=>x!==id);if(sc.sent)delete sc.sent[id];
+  }
+}
 /* ---- 날씨에 따라 바뀌는 옷 입히기 배경 (겨울 / 눈 / 비) ---- */
 function skyKind(day){
   if(!W)return 'winter';
@@ -998,6 +1031,7 @@ function editView(k,ds,label,dayBtns){
     <div class="row"><select id="catsel" style="width:200px;flex:none">${CATS.map(([c,l])=>`<option value="${c}" ${c===lastCat?'selected':''}>${l}</option>`).join('')}</select>
       <label class="filebtn">📷 사진 고르기<input type="file" id="clothfile" accept="image/*" multiple style="display:none"></label></div>
     <p class="small">먼저 옷 종류를 고르고 사진을 선택하세요. 같은 종류는 여러 장을 한 번에 고를 수 있어요. 사진은 작게 줄여서 이 기기에만 저장돼요 (지금 ${mine.length}장 · 약 ${kb<1024?kb+'KB':(kb/1024).toFixed(1)+'MB'})${IMG.ok?'':' ⚠️ 이 브라우저에서는 저장이 안 돼서 새로고침하면 사라져요'}</p>
+    <div class="row"><input type="checkbox" data-autopurge ${S.autoPurge?'checked':''}><span>🧹 어제 입은 옷 사진은 다음날 자동으로 지워요 (저장 공간 절약)</span></div>
     <div class="acts"><button class="go" data-act="editdone">✅ 완료</button></div></div></div>`;
 }
 
@@ -1009,13 +1043,13 @@ const b64d=s=>decodeURIComponent(escape(atob(String(s).replace(/\s/g,''))));
 // 부모가 정하는 설정만 동기화해요 (아이들이 모은 코인·포켓몬 기록은 각 기기에 남아요)
 function cfgOf(){
   return {pin:S.pin,lat:S.lat,lon:S.lon,notices:S.notices,events:S.events,menu:S.menu,todoText:S.todoText,shopping:S.shopping,checklist:S.checklist,
-    people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,
+    people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,autoPurge:S.autoPurge,
     kids:S.kids.map(k=>({name:k.name,chores:k.chores,birthday:k.birthday,color:k.color,face:k.face||''})),closet:S.closet,outfit:S.outfit};
 }
 const cfgHash=()=>JSON.stringify(cfgOf());
 lastCfgHash=cfgHash();
 function applyCfg(c){
-  ['pin','lat','lon','notices','events','menu','todoText','shopping','checklist','people','eggCost','evoCost','bonus','legend','closet','outfit','shift','shiftOv'].forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});
+  ['pin','lat','lon','notices','events','menu','todoText','shopping','checklist','people','eggCost','evoCost','bonus','legend','closet','outfit','shift','shiftOv','autoPurge'].forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});
   if(Array.isArray(c.kids)){
     c.kids.forEach((kc,i)=>{
       let k=S.kids[i];
@@ -1093,6 +1127,7 @@ async function syncNow(){
       try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}
     }
     if(await pullPhotos()>0)render();
+    if(!sc.ro){if(runPurge())render();await purgeRemote()}else gcPhotos();
     setSync('ok','마지막으로 맞춘 시각 '+apText(new Date())+' '+clockText(new Date()));
   }catch(e){setSync('err',e.message||'연결 오류')}
   syncing=false;
@@ -1556,6 +1591,7 @@ document.addEventListener('change',e=>{
   else if(D.evocost!==undefined)S.evoCost=Math.max(1,Math.round(+t.value)||80);
   else if(D.bonus!==undefined)S.bonus=Math.max(0,Math.round(+t.value)||0);
   else if(D.legend!==undefined)S.legend=t.checked;
+  else if(D.autopurge!==undefined)S.autoPurge=t.checked;
   else if(D.shon!==undefined){S.shift.on=t.checked}
   else if(D.sh!==undefined){S.shift[D.sh]=t.value;render()}
   else if(D.todo!==undefined)S.todoText[D.todo]=t.value;
@@ -1580,7 +1616,7 @@ document.addEventListener('error',e=>{const i=e.target;if(!i||i.tagName!=='IMG')
 setInterval(()=>{
   const c=document.getElementById('clk');
   if(c){const n=new Date();c.textContent=clockText(n);document.getElementById('apm').textContent=apText(n);document.getElementById('dt').textContent=`${n.getMonth()+1}월 ${n.getDate()}일 ${WD[n.getDay()]}요일`}
-  if(today()!==lastDay){lastDay=today();S.kids.forEach(k=>{k.done={}});save();if(!busy)render()}
+  if(today()!==lastDay){lastDay=today();S.kids.forEach(k=>{k.done={}});runPurge();save();if(!busy)render()}
 },15000);
 setInterval(loadWeather,30*60000);
 setInterval(loadBoard,5*60000);
@@ -1588,7 +1624,7 @@ setInterval(syncNow,60000);                       // 1분마다 폰에서 고친
 setTimeout(syncNow,1500);
 
 render();loadWeather();loadBoard();bump();speciesCount();
-IMG.init().then(()=>render());
+IMG.init().then(()=>{runPurge();render()});
 </script>
 </body>
 </html>
