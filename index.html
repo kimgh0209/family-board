@@ -275,6 +275,39 @@ main{padding-top:8px}
 .rcs{display:flex;flex-wrap:wrap}
 .rc{margin:3px 6px 3px 0;padding:8px 18px;font-size:18px}
 .rc.on{background:var(--yellow)}
+/* 옷 · 인형 */
+.okids{display:grid;grid-template-columns:repeat(3,1fr);grid-gap:8px;gap:8px}
+.okid{display:flex;flex-direction:column;align-items:center;border:3px solid;background:#fff;padding:8px 4px;min-height:92px;font-size:20px}
+.thumbs{display:flex;margin-top:4px;min-height:34px;align-items:center;justify-content:center;flex-wrap:wrap}
+.thumbs img{width:32px;height:32px;object-fit:cover;border-radius:6px;margin:1px;border:1px solid #ddd}
+.thumbs small{font-size:12px;font-weight:600;opacity:.6}
+.stagewrap{display:flex;justify-content:center}
+.stage{display:flex;align-items:center;width:100%;max-width:max(360px,min(100%,calc((100vh - 320px)*1.25)))}
+.sc{flex:1 1 0;min-width:0}
+.dollcol{flex:0 0 40%}
+.dollbox{position:relative;width:100%;padding-top:200%}
+.dollbox svg{position:absolute;left:0;top:0;width:100%;height:100%}
+.z{position:absolute}
+.zhat{left:33%;width:34%;top:0;height:11%}
+.ztop{left:24%;width:52%;top:22%;height:27%}
+.zbot{left:27%;width:46%;top:50%;height:37%}
+.zshoe{left:20%;width:60%;top:88%;height:12%}
+.tl{position:relative;cursor:pointer}
+.z .tl{width:100%;height:100%}
+.tl img{width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.tl small{position:absolute;left:5px;bottom:5px;background:rgba(0,0,0,.6);color:#fff;border-radius:8px;padding:0 7px;font-size:12px;font-weight:700}
+.sc .tl{width:calc(100% - 8px);margin:6px 4px;padding-top:calc(100% - 8px)}
+.sc .tl img{position:absolute;left:0;top:0}
+.cg{margin:10px 0}
+.cg b{display:block;margin-bottom:4px}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));grid-gap:8px;gap:8px}
+.ct{position:relative;border:4px solid transparent;border-radius:12px;background:#f1f1f1;cursor:pointer;padding-top:100%;overflow:hidden}
+.ct img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain}
+.ct.on{border-color:var(--green)}
+.ck{display:none;position:absolute;right:4px;top:4px;background:var(--green);color:#fff;border-radius:50%;width:26px;height:26px;text-align:center;line-height:26px;font-weight:800}
+.ct.on .ck{display:block}
+.delc{position:absolute;left:2px;bottom:2px;padding:2px 8px;font-size:12px;border-radius:8px;background:rgba(255,255,255,.9)}
+.filebtn{display:inline-block;background:var(--blue);color:#fff;border-radius:14px;padding:12px 18px;font-weight:700;cursor:pointer}
 /* 구형 iOS(12) 호환: flex gap 대체 */
 header>*,.tabs>*,.kids>*,.acts>*,.stats>*{margin:4px}
 .bar>*{margin-right:10px}
@@ -340,7 +373,7 @@ function defaults(){
     todoDone:{},shopping:'우유\n사과\n식빵\n요거트',
     checklist:{title:'여행 준비물',sub:'',text:'여권\n충전기\n카메라\n간식\n세면도구\n비상약'},
     menu:`${dkey(0)} 점심 비빔밥, 계란국\n${dkey(0)} 저녁 김치찌개, 계란말이, 시금치나물\n${dkey(1)} 저녁 삼겹살, 쌈채소`,   // 예시예요. 설정에서 고쳐 쓰세요
-    thanks:{},thanksTo:'',
+    thanks:{},thanksTo:'',closet:[],outfit:{},
     eggCost:100,evoCost:80,legend:false,          // 알 가격 / 진화 가격 (포켓코인)
     bonus:20,mute:false,                           // 하루 미션 전부 완료 보너스
     shop:[{n:'🍦 아이스크림',c:150},{n:'🎮 게임 30분',c:200},{n:'🎬 가족 영화 고르기',c:250},{n:'🛏 늦잠 허용권',c:300}],
@@ -355,6 +388,7 @@ function load(){
   Object.keys(d).forEach(k=>{if(k!=='kids'&&s[k]===undefined)s[k]=d[k]});
   s.kids.forEach(fixKid);
   Object.keys(s.thanks).forEach(x=>{if(s.thanks[x].date<dkey(-90))delete s.thanks[x]});
+  Object.keys(s.outfit).forEach(x=>{if(x<dkey(-14))delete s.outfit[x]});
   return s;
 }
 let S=load(), tab='home', kid=0, W=null, B=null, lastDay=today(), unlockUntil=0, busy=false;
@@ -492,14 +526,14 @@ function closeOv(){document.getElementById('ov').classList.remove('show')}
 let tt;function toast(m,ms){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),ms||1400)}
 function clockHtml(){const d=new Date();return `${pad(d.getHours())}:${pad(d.getMinutes())}`}
 function dateHtml(){return new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})}
-const KIDTABS=['menu','todo','town','dex','shop','rec'];
+const KIDTABS=['menu','outfit','todo','town','dex','shop','rec'];
 
 function render(){
-  document.getElementById('tabs').innerHTML=[['home','🏠 대시보드'],['menu','🍽 식단'],['todo','📝 미션'],['town','🌳 마을'],['dex','📖 도감'],['shop','🎁 상점'],['rec','📊 기록'],['set','⚙️ 설정']]
+  document.getElementById('tabs').innerHTML=[['home','🏠 홈'],['menu','🍽 식단'],['outfit','👕 옷'],['todo','📝 미션'],['town','🌳 마을'],['dex','📖 도감'],['shop','🎁 상점'],['rec','📊 기록'],['set','⚙️ 설정']]
     .map(([k,l])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${l}</button>`).join('');
   document.getElementById('mute').textContent=S.mute?'🔇':'🔊';  document.getElementById('kids').innerHTML=KIDTABS.indexOf(tab)>=0?S.kids.map((k,i)=>`<button class="${i===kid?'on':''}" data-kid="${i}">${esc(k.name)}</button>`).join(''):'';
   const m=document.getElementById('main');
-  m.innerHTML=tab==='home'?homeView():tab==='menu'?menuView():tab==='todo'?todoView():tab==='town'?townView():tab==='dex'?dexView():tab==='shop'?shopView():tab==='rec'?recView():setView();
+  m.innerHTML=tab==='home'?homeView():tab==='menu'?menuView():tab==='outfit'?outfitView():tab==='todo'?todoView():tab==='town'?townView():tab==='dex'?dexView():tab==='shop'?shopView():tab==='rec'?recView():setView();
   if(tab==='dex')fillDex();
 }
 
@@ -571,31 +605,21 @@ function clockCard(now){
     <div class="dt2" id="dt">${now.getMonth()+1}월 ${now.getDate()}일 ${WD[now.getDay()]}요일</div>
     <div class="clk-row"><span class="apm" id="apm">${apText(now)}</span><span class="clk2" id="clk">${clockText(now)}</span></div></div>`;
 }
-function outfit(t){                                  // 기온별 옷차림
-  if(t>=28)return ['🩳','민소매 · 반팔 · 반바지 · 시원한 옷'];
-  if(t>=23)return ['👕','반팔 · 반바지 · 얇은 면바지'];
-  if(t>=20)return ['👚','얇은 긴팔 · 가벼운 후드집업 · 면바지'];
-  if(t>=17)return ['🧶','맨투맨 · 후드티 · 바람막이 · 청바지'];
-  if(t>=12)return ['🧥','후드집업 · 맨투맨 · 가벼운 점퍼 · 긴바지'];
-  if(t>=9)return ['🧥','도톰한 후드 · 점퍼 · 니트 · 기모바지'];
-  if(t>=5)return ['🧣','도톰한 점퍼 · 히트텍 · 니트 · 기모바지'];
-  return ['🧤','패딩 · 목도리 · 장갑 · 기모 옷 · 핫팩'];
-}
 function wxTips(){
   const tips=[],dr=W.hi-W.lo,a=aq();
   const maxP=Math.max.apply(null,W.hours.slice(new Date().getHours()).map(h=>h.p||0).concat([0]));
-  if(dr>=10)tips.push(`🌗 일교차가 ${dr}°로 커요. 벗고 입을 후드집업이나 바람막이를 챙겨요`);
+  if(dr>=10)tips.push(`🌗 일교차가 ${dr}°로 커요. 아침저녁으로 쌀쌀할 수 있어요`);
   if(maxP>=60)tips.push('☔ 비 소식이 있어요. 우산을 챙겨요');
   else if(maxP>=30)tips.push('🌂 비가 올 수도 있어요. 작은 우산을 챙기면 좋아요');
   if(a&&a.g>=2)tips.push('😷 미세먼지가 나빠요. 마스크를 챙겨요');
-  if(W.lo<=0)tips.push('🥶 영하예요. 패딩에 장갑과 목도리를 챙겨요');
+  if(W.lo<=0)tips.push('🥶 영하예요. 아주 추워요');
   if(W.hi>=28)tips.push('🥵 더워요. 물을 자주 마셔요');
   if(!tips.length)tips.push('😊 나들이하기 좋은 날씨예요');
   return tips;
 }
 function weatherCard(now){
   if(!W)return `<div class="wcard"><span class="small">날씨를 불러오는 중...</span></div>`;
-  const a=aq(),wl=WX(W.c),curH=now.getHours(),am=outfit(W.lo),pm=outfit(W.hi);
+  const a=aq(),wl=WX(W.c),curH=now.getHours();
   return `<div class="wcard">
     <div class="wtop">
       ${a?`<div class="aqbox" style="background:${a.c}"><small>미세먼지</small><b>${a.e}</b><span>${a.n}</span></div>`:''}
@@ -604,10 +628,7 @@ function weatherCard(now){
         ${a?`<small class="muted">미세 ${Math.round(W.pm10)} · 초미세 ${Math.round(W.pm25)} µg/m³</small>`:''}</div>
       <div class="whs">${[8,12,16,20].map(h=>{const x=W.hours[h];if(!x)return '';return `<div class="wh ${h<curH?'past':''}"><small>${h}시</small><span class="wi">${WX(x.c)[0]}</span><b>${Math.round(x.t)}°</b><small>비 ${x.p||0}%</small></div>`}).join('')}</div>
     </div>
-    <div class="outfit"><div class="oh">👕 오늘의 옷차림 <small class="muted">🔄 ${apText(lastSync)} ${clockText(lastSync)}</small></div>
-      <div class="orow"><span class="ot">🌅 아침 ${W.lo}°</span><span>${am[0]} ${am[1]}</span></div>
-      <div class="orow"><span class="ot">☀️ 낮 ${W.hi}°</span><span>${pm[0]} ${pm[1]}</span></div>
-      <div class="otip">${wxTips().map(esc).join('<br>')}</div></div></div>`;
+    <div class="outfit"><div class="otip">${wxTips().map(esc).join('<br>')}</div><div class="small muted" style="margin-top:2px">🔄 ${apText(lastSync)} ${clockText(lastSync)} 갱신</div></div></div>`;
 }
 function calCard(evs){
   const now=new Date(),base=new Date(now.getFullYear(),now.getMonth()+calOff,1);
@@ -721,13 +742,121 @@ function menuView(){
   <div class="card"><h2>💌 최근에 받은 마음 ${wk.avg?`<span class="chip">⭐ ${wk.avg}</span>`:''}</h2>${feed.length?feed.map(r=>`<div class="ev"><span><b>${esc(r.kid)}</b> → ${esc(r.to||'')} · ${r.meal}</span><span>${r.stars?'⭐'.repeat(r.stars):''} ${r.emo.join('')} <small>${+r.date.slice(5,7)}/${+r.date.slice(8)}</small></span></div>`).join(''):'<div class="small">아직 없어요. 첫 마음을 보내 보세요!</div>'}</div></div>`;
 }
 
+/* ---- 옷장 · 오늘의 옷 ---- */
+let editMode=false,outDay=0,lastCat='top';
+const CATS=[['hat','모자'],['top','상의'],['bottom','하의'],['outer','겉옷'],['socks','양말'],['shoes','신발'],['etc','소품 (가방·우산·장갑 등)']];
+const SINGLE=['hat','top','bottom','outer','socks','shoes'];
+const catName=c=>{const x=CATS.find(y=>y[0]===c);return x?x[1].split(' ')[0]:c};
+
+// 사진은 용량이 커서 localStorage 대신 IndexedDB에 저장해요
+const IMG={db:null,mem:{},ok:false,
+  init(){return new Promise(res=>{
+    setTimeout(()=>res(false),5000);                  // 일부 구형 기기에서 응답이 늦어도 화면은 먼저 보여요
+    try{const r=indexedDB.open('pkboard',1);
+      r.onupgradeneeded=()=>{r.result.createObjectStore('img')};
+      r.onsuccess=()=>{IMG.db=r.result;IMG.ok=true;
+        try{const req=IMG.db.transaction('img','readonly').objectStore('img').openCursor();
+          req.onsuccess=e=>{const c=e.target.result;if(c){IMG.mem[c.key]=c.value;c.continue()}else{res(true);if(typeof render==='function')render()}};
+          req.onerror=()=>res(true)}catch(e){res(true)}};
+      r.onerror=()=>res(false);r.onblocked=()=>res(false);
+    }catch(e){res(false)}})},
+  put(id,data){IMG.mem[id]=data;if(!IMG.ok)return Promise.resolve(false);
+    return new Promise(res=>{try{const tx=IMG.db.transaction('img','readwrite');tx.objectStore('img').put(data,id);tx.oncomplete=()=>res(true);tx.onerror=()=>res(false)}catch(e){res(false)}})},
+  del(id){delete IMG.mem[id];if(!IMG.ok)return;try{IMG.db.transaction('img','readwrite').objectStore('img').delete(id)}catch(e){}}
+};
+function compress(file){
+  return new Promise((res,rej)=>{
+    const u=URL.createObjectURL(file),im=new Image();
+    im.onload=()=>{const M=520,s=Math.min(1,M/Math.max(im.width,im.height)),w=Math.max(1,Math.round(im.width*s)),h=Math.max(1,Math.round(im.height*s));
+      const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+      x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(im,0,0,w,h);URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',0.8))};
+    im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('img'))};
+    im.src=u;
+  });
+}
+async function addPhotos(files){
+  const cat=(document.getElementById('catsel')||{}).value||lastCat,k=K();lastCat=cat;
+  let n=0;toast('사진을 저장하는 중...',4000);
+  const arr=Array.prototype.slice.call(files);
+  for(let i=0;i<arr.length;i++){
+    try{const d=await compress(arr[i]),id='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+      await IMG.put(id,d);S.closet.push({id,kid:k.name,cat,ts:Date.now()});n++}catch(e){}
+  }
+  save();render();toast(n?`📷 ${n}장을 추가했어요`:'사진을 불러오지 못했어요',2500);
+}
+const closetOf=k=>S.closet.filter(c=>c.kid===k.name);
+const outfitIds=(ds,k)=>((S.outfit[ds]||{})[k.name]||[]).filter(id=>S.closet.some(c=>c.id===id));
+const itemsOf=(ds,k)=>outfitIds(ds,k).map(id=>S.closet.find(c=>c.id===id));
+function togglePick(id){
+  const k=K(),ds=dstr(addDays(outDay)),x=S.closet.find(c=>c.id===id);if(!x)return;
+  const o=S.outfit[ds]=S.outfit[ds]||{};let list=o[k.name]||[];
+  if(list.indexOf(id)>=0)list=list.filter(v=>v!==id);
+  else{
+    if(SINGLE.indexOf(x.cat)>=0)list=list.filter(v=>{const y=S.closet.find(c=>c.id===v);return !y||y.cat!==x.cat});
+    list=list.concat([id]);
+  }
+  o[k.name]=list;
+}
+const DOLL=`<svg viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
+<rect x="90" y="74" width="20" height="18" rx="6" fill="#f5cba7"/>
+<circle cx="100" cy="46" r="30" fill="#ffe0bd" stroke="#e0b88f" stroke-width="2"/>
+<path d="M69 44 Q70 10 100 12 Q130 10 131 44 Q120 26 100 28 Q80 26 69 44Z" fill="#6d4c41"/>
+<circle cx="89" cy="50" r="3.5" fill="#333"/><circle cx="111" cy="50" r="3.5" fill="#333"/>
+<path d="M90 62 Q100 71 110 62" fill="none" stroke="#c0675b" stroke-width="3" stroke-linecap="round"/>
+<circle cx="80" cy="60" r="5" fill="#ffb4a2" opacity=".6"/><circle cx="120" cy="60" r="5" fill="#ffb4a2" opacity=".6"/>
+<rect x="54" y="90" width="92" height="100" rx="14" fill="#cfd8dc"/>
+<rect x="30" y="96" width="22" height="92" rx="11" fill="#ffe0bd"/><rect x="148" y="96" width="22" height="92" rx="11" fill="#ffe0bd"/>
+<rect x="62" y="188" width="35" height="165" rx="12" fill="#b0bec5"/><rect x="103" y="188" width="35" height="165" rx="12" fill="#b0bec5"/>
+<ellipse cx="79" cy="368" rx="24" ry="12" fill="#90a4ae"/><ellipse cx="121" cy="368" rx="24" ry="12" fill="#90a4ae"/>
+</svg>`;
+const tile=(x,label)=>`<div class="tl" data-zoom="${x.id}"><img src="${IMG.mem[x.id]||''}">${label?`<small>${label}</small>`:''}</div>`;
+function stageHtml(items){
+  const body=['hat','top','bottom','shoes'],first={},extra=[];
+  items.forEach(x=>{if(body.indexOf(x.cat)>=0&&!first[x.cat])first[x.cat]=x;else if(x.cat!=='outer'&&x.cat!=='socks')extra.push(x)});
+  const side=c=>items.filter(x=>x.cat===c).map(x=>tile(x,catName(c))).join('');
+  const z=(c,cls)=>first[c]?`<div class="z ${cls}">${tile(first[c],'')}</div>`:'';
+  return `<div class="stagewrap"><div class="stage"><div class="sc">${side('outer')}${side('socks')}</div>
+    <div class="dollcol"><div class="dollbox">${DOLL}${z('hat','zhat')}${z('top','ztop')}${z('bottom','zbot')}${z('shoes','zshoe')}</div></div>
+    <div class="sc">${extra.map(x=>tile(x,catName(x.cat))).join('')}</div></div></div>`;
+}
+function outfitCard(){
+  const ds=today();
+  return `<div class="sec"><div class="sh" style="--c:#00acc1;color:#00838f">👕 오늘 입을 옷<span class="small" style="margin-left:auto">내 이름을 눌러 보세요</span></div>
+    <div class="okids">${S.kids.map((k,i)=>{const its=itemsOf(ds,k);
+      return `<button class="okid" data-act="gooutfit" data-i="${i}" style="border-color:${k.color}"><b style="color:${k.color}">${esc(k.name)}</b><span class="thumbs">${its.length?its.slice(0,4).map(x=>`<img src="${IMG.mem[x.id]||''}">`).join(''):'<small>아직 안 골랐어요</small>'}</span></button>`}).join('')}</div></div>`;
+}
+function outfitView(){
+  const k=K(),ds=dstr(addDays(outDay)),label=outDay?'내일':'오늘',d0=addDays(0),d1=addDays(1);
+  const dayBtns=`<div class="acts" style="margin:6px 0 8px"><button class="${outDay===0?'go':''}" data-act="oday" data-d="0">오늘 ${d0.getMonth()+1}/${d0.getDate()}</button><button class="${outDay===1?'go':''}" data-act="oday" data-d="1">내일 ${d1.getMonth()+1}/${d1.getDate()}</button></div>`;
+  if(editMode)return editView(k,ds,label,dayBtns);
+  const items=itemsOf(ds,k);
+  return `<div class="stack"><div class="card"><div class="bar" style="justify-content:center;font-size:24px"><b style="color:${k.color}">${esc(k.name)}</b>의 ${label} 옷 👕</div>${dayBtns}
+    ${items.length?stageHtml(items):`<div class="hero" style="padding:20px 0"><div class="stagewrap"><div class="stage" style="max-width:260px"><div class="dollcol" style="flex:1"><div class="dollbox">${DOLL}</div></div></div></div><p style="font-size:20px;font-weight:700">🤔 아직 옷을 안 골랐어요.<br>엄마·아빠에게 부탁해요!</p></div>`}
+    ${items.length?'<p class="small" style="text-align:center">사진을 누르면 크게 볼 수 있어요 🔍</p>':''}
+    <div class="acts"><button data-act="editout">✏️ 부모: 옷 골라주기 · 사진 관리</button></div></div></div>`;
+}
+function editView(k,ds,label,dayBtns){
+  const sel=outfitIds(ds,k),mine=closetOf(k);
+  const kb=Math.round(mine.reduce((a,c)=>a+(IMG.mem[c.id]||'').length,0)/1024);
+  const groups=CATS.map(([c,l])=>{const list=mine.filter(x=>x.cat===c);
+    return list.length?`<div class="cg"><b>${l}</b><div class="cgrid">${list.map(x=>`<div class="ct ${sel.indexOf(x.id)>=0?'on':''}" data-pick="${x.id}"><img src="${IMG.mem[x.id]||''}"><span class="ck">✓</span><button class="delc" data-act="delcloth" data-id="${x.id}">✕</button></div>`).join('')}</div></div>`:''}).join('');
+  return `<div class="stack"><div class="card"><div class="bar"><b style="color:${k.color}">${esc(k.name)}</b>의 ${label} 옷 고르기 ✏️</div>${dayBtns}
+    <p class="small">입을 옷을 눌러 ✓ 표시하세요. 상의·하의처럼 한 종류는 하나만 선택돼요. 위의 아이 이름 버튼으로 다른 아이 옷도 고를 수 있어요. 내일 옷도 미리 골라 둘 수 있어요.</p>
+    ${groups||'<p class="small">아직 등록된 옷이 없어요. 아래에서 사진을 추가해 주세요.</p>'}</div>
+  <div class="card"><h2>📷 ${esc(k.name)}의 옷 사진 추가</h2>
+    <div class="row"><select id="catsel" style="width:200px;flex:none">${CATS.map(([c,l])=>`<option value="${c}" ${c===lastCat?'selected':''}>${l}</option>`).join('')}</select>
+      <label class="filebtn">📷 사진 고르기<input type="file" id="clothfile" accept="image/*" multiple style="display:none"></label></div>
+    <p class="small">먼저 옷 종류를 고르고 사진을 선택하세요. 같은 종류는 여러 장을 한 번에 고를 수 있어요. 사진은 작게 줄여서 이 기기에만 저장돼요 (지금 ${mine.length}장 · 약 ${kb<1024?kb+'KB':(kb/1024).toFixed(1)+'MB'})${IMG.ok?'':' ⚠️ 이 브라우저에서는 저장이 안 돼서 새로고침하면 사라져요'}</p>
+    <div class="acts"><button class="go" data-act="editdone">✅ 완료</button></div></div></div>`;
+}
+
 function homeView(){
   const now=new Date(),evs=parseEv();
   const rn=B?lines(B.notices):[],notices=rn.length?rn:lines(S.notices);
   return `<div class="dash">
   <div class="skyrow">${clockCard(now)}${weatherCard(now)}</div>
   ${notices.length?`<div class="nbar">${notices.map(n=>`<span class="notice">📢 ${esc(n)}</span>`).join('')}</div>`:''}
-  <div class="cols"><div class="col">${calCard(evs)}${schedCard(evs)}</div>
+  <div class="cols"><div class="col">${outfitCard()}${calCard(evs)}${schedCard(evs)}</div>
     <div class="col">${menuCard()}${todoCard()}<div class="pair">${kidsCard()}${upCard(evs)}</div></div></div></div>`;
 }
 
@@ -906,6 +1035,7 @@ function setView(){
     <div class="acts" style="justify-content:flex-start"><button data-act="addchore" data-k="${i}">➕ 미션 추가</button></div>
     <div class="row"><span class="chip coin">보유 🪙 ${won(k.coins)}</span><button data-act="adj" data-k="${i}" data-v="10">+10</button><button data-act="adj" data-k="${i}" data-v="50">+50</button><button data-act="adj" data-k="${i}" data-v="-10">-10</button><button data-act="adj" data-k="${i}" data-v="-50">-50</button></div></div>`).join('')}
   <div class="card"><h2>기타</h2>
+    <p class="small">📷 옷 사진은 이 기기 안에만 저장돼요. 아래 백업 글자에는 포함되지 않아요.</p>
     <p class="small">📱 폰에서 올리기: GitHub의 <b>board.json</b> 파일을 고치면 패드에 5분 안에 반영돼요. (공지·일정·할 일·장보기·체크리스트 지원)</p>
     <div class="row"><input type="number" step="any" value="${S.lat}" data-lat> <input type="number" step="any" value="${S.lon}" data-lon><button data-act="geo">📍 내 위치</button></div>
     <div class="small">날씨 위치(위도·경도)</div>
@@ -931,7 +1061,7 @@ function recordDay(k){
   if(k.bonusDate===today())c+=k.bonusAmt;
   k.hist[today()]={n:d.length,t:k.chores.length,c,m:d.map(i=>k.chores[i]?k.chores[i].t:'')};
 }
-let idle;function bump(){clearTimeout(idle);idle=setTimeout(()=>{if(tab==='home'&&calOff&&!busy){calOff=0;render()}if(tab!=='home'&&!busy&&!document.getElementById('ov').classList.contains('show')&&!(tab==='set'&&document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))){tab='home';render()}},IDLE_MS)}
+let idle;function bump(){clearTimeout(idle);idle=setTimeout(()=>{if(tab==='home'&&calOff&&!busy){calOff=0;render()}if(tab!=='home'&&!editMode&&!busy&&!document.getElementById('ov').classList.contains('show')&&!(tab==='set'&&document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))){tab='home';render()}},IDLE_MS)}
 async function wake(){try{if('wakeLock' in navigator)await navigator.wakeLock.request('screen')}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
 (function(){const b=document.getElementById('fs'),d=document.documentElement;
@@ -940,10 +1070,11 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
 
 document.addEventListener('click',async e=>{
   bump();wake();
-  const t=e.target.closest('button,[data-sel],[data-gokid],[data-gotab]');if(!t||t.id==='fs')return;
+  if(e.target.id==='ov'){closeOv();return}
+  const t=e.target.closest('button,[data-sel],[data-gokid],[data-gotab],[data-pick],[data-zoom]');if(!t||t.id==='fs')return;
   if(t.id==='mute'){S.mute=!S.mute;save();render();return}
   const k=K();
-  if(t.dataset.tab){const n=t.dataset.tab;if(n==='set'&&!askPin())return;tab=n}
+  if(t.dataset.tab){const n=t.dataset.tab;if(n==='set'&&!askPin())return;tab=n;editMode=false}
   else if(t.dataset.gokid!==undefined){kid=+t.dataset.gokid;tab='todo'}
   else if(t.dataset.kid!==undefined){kid=+t.dataset.kid}
   else if(t.dataset.chore!==undefined){
@@ -1011,6 +1142,20 @@ document.addEventListener('click',async e=>{
     S.requests=S.requests.filter(x=>x!==r);toast('취소하고 코인을 돌려줬어요');
   }
   else if(t.dataset.gotab){tab=t.dataset.gotab}
+  else if(t.dataset.zoom){
+    const x=S.closet.find(c=>c.id===t.dataset.zoom);
+    if(x)overlay(`<img src="${IMG.mem[x.id]||''}" style="max-width:84vw;max-height:66vh;border-radius:12px"><div class="bar" style="justify-content:center">${catName(x.cat)}</div>`);
+    return}
+  else if(t.dataset.act==='gooutfit'){kid=+t.dataset.i;tab='outfit';outDay=0;editMode=false}
+  else if(t.dataset.act==='oday'){outDay=+t.dataset.d}
+  else if(t.dataset.act==='editout'){if(!askPin())return;editMode=true}
+  else if(t.dataset.act==='editdone'){editMode=false}
+  else if(t.dataset.pick){togglePick(t.dataset.pick)}
+  else if(t.dataset.act==='delcloth'){
+    if(!confirm('이 옷 사진을 지울까요?'))return;
+    const id=t.dataset.id;S.closet=S.closet.filter(c=>c.id!==id);IMG.del(id);
+    Object.keys(S.outfit).forEach(d=>Object.keys(S.outfit[d]).forEach(n=>{S.outfit[d][n]=S.outfit[d][n].filter(x=>x!==id)}));
+  }
   else if(t.dataset.act==='to'){S.thanksTo=t.dataset.n}
   else if(t.dataset.act==='star'||t.dataset.act==='emo'){
     const key=`${today()}|${t.dataset.m}|${k.name}`;
@@ -1064,8 +1209,12 @@ document.addEventListener('click',async e=>{
 function fixAdd(k){fixKid(k,S.kids.length);return k}
 document.addEventListener('change',e=>{
   bump();const t=e.target,D=t.dataset;
+  if(t.id==='clothfile'){const fs=t.files;if(fs&&fs.length)addPhotos(fs);return}
+  if(t.id==='catsel'){lastCat=t.value;return}
   if(D.g)S[D.g]=t.value;
-  else if(D.kname!==undefined){const old=S.kids[+D.kname].name;S.kids[+D.kname].name=t.value;S.requests.forEach(r=>{if(r.kid===old)r.kid=t.value})}
+  else if(D.kname!==undefined){const old=S.kids[+D.kname].name;S.kids[+D.kname].name=t.value;S.requests.forEach(r=>{if(r.kid===old)r.kid=t.value});
+    S.closet.forEach(c=>{if(c.kid===old)c.kid=t.value});
+    Object.keys(S.outfit).forEach(d=>{if(S.outfit[d][old]){S.outfit[d][t.value]=S.outfit[d][old];delete S.outfit[d][old]}})}
   else if(D.ct){const[i,j]=D.ct.split('.');S.kids[i].chores[j].t=t.value}
   else if(D.cc){const[i,j]=D.cc.split('.');S.kids[i].chores[j].c=Math.max(0,Math.round(+t.value)||0)}
   else if(D.sn!==undefined)S.shop[+D.sn].n=t.value;
@@ -1102,6 +1251,7 @@ setInterval(loadWeather,30*60000);
 setInterval(loadBoard,5*60000);
 
 render();loadWeather();loadBoard();bump();speciesCount();
+IMG.init().then(()=>render());
 </script>
 </body>
 </html>
