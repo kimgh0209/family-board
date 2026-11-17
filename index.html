@@ -949,6 +949,9 @@ function applyCfg(c){
     if(kid>=S.kids.length)kid=0;
   }
 }
+// 덮어쓰기 전에 이 기기의 이전 설정을 자동으로 보관해요 (최근 5개)
+function snapsGet(){try{return JSON.parse(localStorage.getItem('pkfam3_snaps'))||[]}catch(e){return []}}
+function saveSnap(label){try{const a=snapsGet();a.unshift({at:Date.now(),label,cfg:cfgOf()});localStorage.setItem('pkfam3_snaps',JSON.stringify(a.slice(0,5)))}catch(e){}}
 function setSync(st,msg){syncState={st,msg:msg||'',at:st==='ok'?new Date():syncState.at};paintCloud()}
 function paintCloud(){
   const el=document.getElementById('cloud');if(!el)return;
@@ -998,6 +1001,7 @@ async function syncNow(){
     const mine=S.cfgTs||0;
     const ro=!!sc.ro;                                        // 보기 전용(거실 대시보드): 받아오기만 하고 올리지 않아요
     if(remote&&(remote.ts>mine||(ro&&(remote.ts!==mine||cfgHash()!==lastCfgHash)))){   // 다른 기기에서 고친 내용이 더 최신 → 받아오기
+      if(mine===0||cfgHash()!==lastCfgHash)saveSnap('클라우드에서 받기 전');
       applyCfg(remote.cfg);S.cfgTs=remote.ts;lastCfgHash=cfgHash();
       try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}
       render();
@@ -1024,9 +1028,7 @@ async function connectSync(repo,token,ro){
   if(!r.ok){toast(ghMsg(r.status),3500);return}
   S.sync={repo,token,on:true,sent:{},ro:!!ro};
   const g=await ghReq('GET','data.json');
-  if(g.status===200){
-    const useCloud=!!ro||confirm('클라우드에 이미 저장된 설정이 있어요.\n\n[확인] 이 기기를 클라우드 설정으로 맞춰요 (거실 대시보드는 이쪽을 고르세요)\n[취소] 이 기기의 설정으로 클라우드를 덮어써요');
-    S.cfgTs=useCloud?0:Date.now();
+  if(g.status===200){saveSnap('연결 전 이 기기 설정');S.cfgTs=0;toast('클라우드에 저장된 설정을 가져와요',3500)   // 항상 클라우드를 따라가요 (이 기기의 이전 설정은 보관돼요)
   }else{S.cfgTs=ro?0:Date.now();if(ro)toast('아직 저장된 설정이 없어요. 폰에서 먼저 연결해 주세요',3500)}
   save();syncState={st:'busy',msg:'',at:null};render();
   await syncNow();
@@ -1268,7 +1270,9 @@ function setView(){
     ${S.sync&&S.sync.on?`<div class="sstat ${syncState.st}">${syncState.st==='ok'?'✅ 연결됨 · '+esc(syncState.msg):syncState.st==='busy'?'🔄 맞추는 중...':syncState.st==='err'?'⚠️ '+esc(syncState.msg):'연결됨'}</div>
       <div class="small">저장소: ${esc(S.sync.repo)}</div>
       <div class="small"><b>${S.sync.ro?'📺 거실 대시보드 모드 (보기 전용)':'📱 일반 모드 (여기서 고치면 모든 기기에 반영)'}</b></div>
-      <div class="acts" style="justify-content:flex-start"><button class="go" data-act="syncnow">🔄 지금 맞추기</button><button data-act="syncmode">${S.sync.ro?'📱 일반 모드로 바꾸기':'📺 대시보드(보기 전용)로 바꾸기'}</button><button data-act="syncoff" style="background:#ffcdd2">연결 끊기</button></div>`
+      <div class="acts" style="justify-content:flex-start"><button class="go" data-act="syncnow">🔄 지금 맞추기</button><button data-act="syncmode">${S.sync.ro?'📱 일반 모드로 바꾸기':'📺 대시보드(보기 전용)로 바꾸기'}</button><button data-act="syncoff" style="background:#ffcdd2">연결 끊기</button></div>
+      ${(()=>{const sn=snapsGet();return sn.length?'<div class="small" style="margin-top:8px"><b>↩️ 이전 설정 복구</b> (덮어쓰기 전에 자동 보관된 설정)</div>'+sn.map((x,i)=>'<div class="row"><span>'+new Date(x.at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'numeric',minute:'2-digit'})+' · '+esc(x.label)+'</span><button data-act="snaprestore" data-i="'+i+'">되돌리기</button></div>').join(''):''})()}
+      ${S.sync.ro?'':'<div class="acts" style="justify-content:flex-start"><button data-act="syncpush" style="background:#fff3e0">⬆️ 이 기기 설정으로 클라우드 덮어쓰기</button></div>'}`
     :`<label class="small">저장소 (소유자/이름)</label><input id="syrepo" value="kimgh0209/family-board-data">
       <label class="small">접속 키 (github_pat_ 로 시작하는 긴 글자)</label><input id="sytok" type="password" autocomplete="off" placeholder="github_pat_...">
       <div class="row"><input type="checkbox" id="syro"><span>이 기기는 <b>거실 대시보드</b>예요 (보기 전용)</span></div>
@@ -1431,6 +1435,16 @@ document.addEventListener('click',async e=>{
     save();render();await syncNow();return}
   else if(t.dataset.act==='syncoff'){if(!confirm('연결을 끊을까요? 이 기기의 설정은 그대로 남아요.'))return;S.sync=null;syncState={st:'off',msg:'',at:null}}
   else if(t.dataset.act==='syncnow'){await syncNow();return}
+  else if(t.dataset.act==='snaprestore'){
+    const sn=snapsGet()[+t.dataset.i];
+    if(!sn||!confirm('이 시점의 설정으로 되돌릴까요?\n(지금 설정도 \'이전 설정 복구\'에 보관돼요)'))return;
+    saveSnap('되돌리기 전');applyCfg(sn.cfg);
+    if(S.sync&&S.sync.on&&!S.sync.ro){S.cfgTs=Date.now();lastCfgHash=''}
+    else toast('보기 전용 모드에서는 폰 설정으로 다시 맞춰져요',3500);
+  }
+  else if(t.dataset.act==='syncpush'){
+    if(!confirm('이 기기의 설정으로 모든 기기를 덮어써요.\n정말 그럴까요?'))return;
+    S.cfgTs=Date.now();lastCfgHash='';save();render();await syncNow();return}
   else if(t.dataset.act==='addperson'){S.people.push({n:'새 구성원',c:'#00acc1'})}
   else if(t.dataset.act==='delperson'){S.people.splice(+t.dataset.j,1)}
   else if(t.dataset.act==='addkid'){S.kids.push(fixAdd(newKid('새 아이',[['양치하기',10]],TRAINERS[S.kids.length%TRAINERS.length])))}
@@ -1440,7 +1454,7 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.act==='adj'){const q=S.kids[+t.dataset.k];q.coins=Math.max(0,q.coins+(+t.dataset.v))}
   else if(t.dataset.act==='geo'){navigator.geolocation.getCurrentPosition(p=>{S.lat=+p.coords.latitude.toFixed(3);S.lon=+p.coords.longitude.toFixed(3);save();loadWeather();render()},()=>toast('위치를 가져오지 못했어요'));return}
   else if(t.dataset.act==='export'){overlay('<h2>💾 백업</h2><p class="small">아래 글자를 전부 복사해서 메모 앱에 저장해 두세요</p><textarea id="bk" readonly style="width:70vw;height:30vh">'+esc(JSON.stringify(Object.assign({},S,{sync:null})))+'</textarea>');const b=document.getElementById('bk');b.focus();b.select();return}
-  else if(t.dataset.act==='import'){const v=prompt('백업 내용을 붙여넣으세요');if(v){try{const o=JSON.parse(v);if(!o.kids)throw 0;const keepSync=S.sync;S=o;S.sync=keepSync;const d=defaults();Object.keys(d).forEach(x=>{if(x!=='kids'&&S[x]===undefined)S[x]=d[x]});S.kids.forEach(fixKid);kid=0;save();render();toast('불러왔어요')}catch(err){toast('올바른 백업이 아니에요')}}return}
+  else if(t.dataset.act==='import'){const v=prompt('백업 내용을 붙여넣으세요');if(v){try{const o=JSON.parse(v);if(!o.kids)throw 0;saveSnap('백업 불러오기 전');const keepSync=S.sync;S=o;S.sync=keepSync;const d=defaults();Object.keys(d).forEach(x=>{if(x!=='kids'&&S[x]===undefined)S[x]=d[x]});S.kids.forEach(fixKid);kid=0;save();render();toast('불러왔어요')}catch(err){toast('올바른 백업이 아니에요')}}return}
   else if(t.dataset.act==='reset'){if(confirm('모든 기록이 지워져요. 정말요?')){try{localStorage.removeItem('pkfam3')}catch(err){}S=defaults();S.kids.forEach(fixKid);kid=0}}
   else return;
   const nb=checkAll();
