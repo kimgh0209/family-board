@@ -553,7 +553,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261118e';
+const BUILD='20261118f';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -867,7 +867,7 @@ async function weatherMetNo(lat,lon){
     hours:h0,tom:fill(m1),pm10:null,pm25:null};
 }
 async function loadWeather(){
-  const lat=numOr(S.lat,37.5665),lon=numOr(S.lon,126.978);
+  const lat=37.298,lon=127.152;                       // 경기도 용인시 기흥구 동백1동 고정
   let w=null,err='';
   try{w=await weatherOpenMeteo(lat,lon)}catch(e){err='1: '+(e&&e.message||e)}
   if(!w){try{w=await weatherMetNo(lat,lon)}catch(e){err+=' / 2: '+(e&&e.message||e)}}
@@ -1078,7 +1078,7 @@ function menuCard(){
     `<div class="mrow"><span class="mt">${MI[m]} ${m}</span><span class="mv">${td[m]?esc(td[m]):'<span class="small">아직 정해지지 않았어요</span>'}</span></div>`).join('');
   const tm=parseMenu()[dstr(addDays(1))]||{},tl=['아침','점심','저녁','간식'].filter(m=>tm[m]);
   const tmr=tl.length?`<div class="mtm"><b>내일</b> ${tl.map(m=>`${MI[m]} ${esc(tm[m])}`).join(' · ')}</div>`:'';
-  return `<div class="sec menucard" data-gotab="menu"><div class="sh" style="--c:#ef6c00;color:#e65100">🍽 오늘의 메뉴<span class="small" style="margin-left:auto">눌러서 별점·고마워요 ›</span></div>${rows}
+  return `<div class="sec menucard" data-gotab="menubig"><div class="sh" style="--c:#ef6c00;color:#e65100">🍽 오늘의 메뉴<span class="small" style="margin-left:auto">눌러서 크게 보기 ›</span></div>${rows}
     ${tmr}
     ${g.n?`<div class="mfoot">💌 오늘 받은 마음 ${g.n}개${g.avg?` · ⭐ ${g.avg}`:''}</div>`:''}</div>`;
 }
@@ -1718,8 +1718,7 @@ function setView(){
   <div class="card"><h2>기타</h2>
     <p class="small">📷 옷 사진은 이 기기 안에만 저장돼요. 아래 백업 글자에는 포함되지 않아요.</p>
     <p class="small">📱 폰에서 올리기: GitHub의 <b>board.json</b> 파일을 고치면 패드에 5분 안에 반영돼요. (공지·일정·할 일·장보기·체크리스트 지원)</p>
-    <div class="row"><input type="number" step="any" value="${S.lat}" data-lat> <input type="number" step="any" value="${S.lon}" data-lon><button data-act="geo">📍 내 위치</button></div>
-    <div class="small">날씨 위치(위도·경도)</div>
+    <div class="small">🌤 날씨 위치: 경기도 용인시 동백1동 (고정)</div>
     <label class="small">부모 PIN (숫자 4자리)</label><input value="${esc(S.pin)}" data-pin maxlength="8" inputmode="numeric">
     <div class="acts" style="justify-content:flex-start"><button data-act="addkid">➕ 아이 추가</button><button data-act="export">💾 백업 저장</button><button data-act="import">📂 백업 불러오기</button><button data-act="reset" style="background:#ffcdd2">🗑 전체 초기화</button></div>
     </div></div>`;
@@ -1805,6 +1804,11 @@ document.addEventListener('click',async e=>{
     return}
   else if(t.dataset.trainer){k.trainer=t.dataset.trainer;closeOv();toast('트레이너를 바꿨어요!')}
   else if(t.dataset.act==='exmore'){exTrees=null;const el=document.getElementById('exs');if(el)el.textContent='불러오는 중...';loadExamples();return}
+  else if(t.dataset.gotab==='menubig'){
+    const mp=parseMenu(),blk=(title,d)=>{const r=['아침','점심','저녁','간식'].filter(m=>d[m]).map(m=>`<div style="margin:6px 0;font-size:22px"><b>${MI[m]} ${m}</b>　${esc(d[m])}</div>`).join('');
+      return `<div style="text-align:left;margin-bottom:12px"><div style="font-size:18px;color:#e65100;font-weight:bold;margin-bottom:4px">${title}</div>${r||'<div class="small" style="font-size:16px">아직 정해지지 않았어요</div>'}</div>`};
+    overlay(`<div style="max-width:86vw;max-height:70vh;overflow:auto">${blk('🍽 오늘의 메뉴',mp[today()]||{})}${blk('📅 내일의 메뉴',mp[dstr(addDays(1))]||{})}<button class="go" data-gotab="menu" onclick="closeOv()">⭐ 별점·고마워요 하러 가기</button></div>`);
+    return}
   else if(t.dataset.gotab){tab=t.dataset.gotab}
   else if(t.dataset.zoom){
     const x=S.closet.find(c=>c.id===t.dataset.zoom);
