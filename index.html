@@ -426,6 +426,7 @@ body{padding-top:env(safe-area-inset-top)}
   <h1>🏠 우리집 보드</h1>
   <div class="tabs" id="tabs"></div>
   <span id="cloud" style="display:none"></span>
+  <button id="dimbtn" title="화면 어둡게">🌙</button>
   <button id="mute" title="소리">🔊</button>
   <button id="fs" title="전체화면">⛶</button>
 </header>
@@ -552,7 +553,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261118a';
+const BUILD='20261118b';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -582,6 +583,37 @@ function sfx(type){
       g.gain.setValueAtTime(.07,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d);t+=d*.9});
   }catch(e){}
 }
+/* ---------- 밤 화면 어둡게 (검은 막으로 덮어요. 실제로 화면이 꺼지는 건 아니에요) ---------- */
+const DIM_DEF={on:true,from:'23:00',to:'07:00',ramp:120};      // 23시에 가장 어둡게, 7시에 가장 환하게, 그 전 2시간은 서서히 어두워져요
+function dimCfg(){return Object.assign({},DIM_DEF,S.dim||{})}
+let dimManual=false,dimPeek=0,dimEl=null;
+function dimLevel(n){                                           // 0(환함) ~ 1(완전 어두움)
+  if(dimManual)return 1;
+  if(Date.now()<dimPeek)return 0;
+  const c=dimCfg();if(!c.on)return 0;
+  const p=s=>{const a=String(s).split(':');return (+a[0]||0)*60+(+a[1]||0)},m=n.getHours()*60+n.getMinutes(),f=p(c.from),t=p(c.to),r=Math.max(0,+c.ramp||0);
+  const inNight=f>t?(m>=f||m<t):(m>=f&&m<t);
+  if(inNight)return 1;
+  const d=(f-m+1440)%1440;                                      // 어두워지는 시각까지 남은 분
+  if(r&&d<=r)return Math.min(.85,(1-d/r)*.85);
+  return 0;
+}
+function dimTick(){
+  try{
+    if(!dimEl){
+      dimEl=document.createElement('div');dimEl.id='dim';
+      dimEl.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;background:#000;opacity:0;pointer-events:none;z-index:50;-webkit-transition:opacity 1.5s;transition:opacity 1.5s';
+      (document.documentElement||document.body).appendChild(dimEl);
+    }
+    const l=dimLevel(new Date());
+    dimEl.style.opacity=String(l);dimEl.style.pointerEvents=l>=1?'auto':'none';      // 완전히 어두울 때만 터치를 받아 깨워요
+  }catch(e){}
+}
+function dimWake(){dimManual=false;dimPeek=Date.now()+60000;dimTick();setTimeout(dimTick,60500)}   // 터치하면 1분 동안 보이고 다시 어두워져요
+document.addEventListener('click',e=>{if(dimEl&&e.target===dimEl&&dimEl.style.pointerEvents==='auto')dimWake()});
+document.addEventListener('touchend',e=>{if(dimEl&&e.target===dimEl&&dimEl.style.pointerEvents==='auto')dimWake()},{passive:true});
+setInterval(dimTick,20000);setTimeout(dimTick,500);
+
 /* ---------- 아침 배경음악 (파일 없이 코드로 만든 잔잔한 오르골 멜로디) ---------- */
 const BGM_DEF={on:true,from:'08:00',to:'09:00',vol:.1};          // 월~금 아침 8시~9시
 function bgmCfg(){return Object.assign({},BGM_DEF,S.bgm||{})}
@@ -1269,13 +1301,13 @@ const b64d=s=>decodeURIComponent(escape(atob(String(s).replace(/\s/g,''))));
 // 부모가 정하는 설정 (아이 기록은 아래 progress.json 으로 따로 맞춰요)
 function cfgOf(){
   return {pin:S.pin,lat:S.lat,lon:S.lon,notices:S.notices,events:S.events,menu:S.menu,todoText:S.todoText,shopping:S.shopping,checklist:S.checklist,
-    people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,autoPurge:S.autoPurge,bgm:S.bgm,
+    people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,autoPurge:S.autoPurge,bgm:S.bgm,dim:S.dim,
     kids:S.kids.map(k=>({name:k.name,chores:k.chores,birthday:k.birthday,color:k.color,face:k.face||''})),closet:S.closet,outfit:S.outfit};
 }
 const cfgHash=()=>JSON.stringify(cfgOf());
 lastCfgHash=cfgHash();
 function applyCfg(c){
-  ['pin','lat','lon','notices','events','menu','todoText','shopping','checklist','people','eggCost','evoCost','bonus','legend','closet','outfit','shift','shiftOv','autoPurge','bgm'].forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});
+  ['pin','lat','lon','notices','events','menu','todoText','shopping','checklist','people','eggCost','evoCost','bonus','legend','closet','outfit','shift','shiftOv','autoPurge','bgm','dim'].forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});
   if(Array.isArray(c.kids)){
     c.kids.forEach((kc,i)=>{
       let k=S.kids[i];
@@ -1639,6 +1671,12 @@ function setView(){
     <div class="row"><span>🥚 알 뽑기</span><input class="num" type="number" min="1" value="${S.eggCost}" data-eggcost><span>코인</span></div>
     <div class="row"><span>✨ 진화시키기</span><input class="num" type="number" min="1" value="${S.evoCost}" data-evocost><span>코인</span></div>
     <div class="row"><span>🎉 전부 완료 보너스</span><input class="num" type="number" min="0" value="${S.bonus}" data-bonus><span>코인~</span></div></div>
+  <div class="card"><h2>🌙 밤에 화면 어둡게</h2>
+    <div class="row"><input type="checkbox" data-dim="on" ${dimCfg().on?'checked':''}><span>밤에는 화면을 어둡게 해요 (실제로 꺼지지는 않아요)</span></div>
+    <div class="row"><input type="time" data-dim="from" value="${dimCfg().from}"><span>에 가장 어둡게 (아주 까맣게)</span></div>
+    <div class="row"><input type="time" data-dim="to" value="${dimCfg().to}"><span>에 가장 환하게</span></div>
+    <div class="row"><span>그 전에 서서히 어두워지는 시간</span><select data-dim="ramp" style="width:110px">${[[0,'바로'],[60,'1시간'],[120,'2시간'],[180,'3시간']].map(([v,l])=>`<option value="${v}" ${+dimCfg().ramp===v?'selected':''}>${l}</option>`).join('')}</select></div>
+    <p class="small">완전히 어두울 때 화면을 터치하면 1분 동안 보였다가 다시 어두워져요. 위쪽 🌙 버튼을 누르면 지금 바로 어둡게 해요.</p></div>
   <div class="card"><h2>🎵 아침 배경음악</h2>
     <div class="row"><input type="checkbox" data-bgm="on" ${bgmCfg().on?'checked':''}><span>월~금, 정해진 시간에 잔잔한 멜로디를 틀어요</span></div>
     <div class="row"><input type="time" data-bgm="from" value="${bgmCfg().from}"><span>부터</span><input type="time" data-bgm="to" value="${bgmCfg().to}"><span>까지</span></div>
@@ -1703,6 +1741,7 @@ document.addEventListener('click',async e=>{
   bump();wake();
   if(e.target.id==='ov'){closeOv();return}
   const t=e.target.closest('button,[data-sel],[data-gokid],[data-gotab],[data-pick],[data-zoom]');if(!t||t.id==='fs')return;
+  if(t.id==='dimbtn'){dimManual=true;dimTick();return}
   if(t.id==='mute'){S.mute=!S.mute;save();render();return}
   if(t.id==='gohome'){tab='home';editMode=false;render();window.scrollTo(0,0);return}   // 어디서든 한 번에 홈으로
   const k=K();
@@ -1874,6 +1913,7 @@ document.addEventListener('change',e=>{
   else if(D.bonus!==undefined)S.bonus=Math.max(0,Math.round(+t.value)||0);
   else if(D.legend!==undefined)S.legend=t.checked;
   else if(D.autopurge!==undefined)S.autoPurge=t.checked;
+  else if(D.dim!==undefined){S.dim=Object.assign(dimCfg(),{[D.dim]:D.dim==='on'?t.checked:D.dim==='ramp'?+t.value:t.value});dimTick()}
   else if(D.bgm!==undefined){S.bgm=Object.assign(bgmCfg(),{[D.bgm]:D.bgm==='on'?t.checked:D.bgm==='vol'?+t.value:t.value});bgmNext=0}
   else if(D.shon!==undefined){S.shift.on=t.checked}
   else if(D.sh!==undefined){S.shift[D.sh]=t.value;render()}
