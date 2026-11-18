@@ -553,7 +553,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261118b';
+const BUILD='20261118c';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -584,7 +584,7 @@ function sfx(type){
   }catch(e){}
 }
 /* ---------- 밤 화면 어둡게 (검은 막으로 덮어요. 실제로 화면이 꺼지는 건 아니에요) ---------- */
-const DIM_DEF={on:true,from:'23:00',to:'07:00',ramp:120};      // 23시에 가장 어둡게, 7시에 가장 환하게, 그 전 2시간은 서서히 어두워져요
+const DIM_DEF={on:true,from:'23:00',to:'07:00',ramp:60};      // 23시에 가장 어둡게, 7시에 가장 환하게, 22시부터 서서히 어두워져요
 function dimCfg(){return Object.assign({},DIM_DEF,S.dim||{})}
 let dimManual=false,dimPeek=0,dimEl=null;
 function dimLevel(n){                                           // 0(환함) ~ 1(완전 어두움)
