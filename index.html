@@ -553,7 +553,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261118f';
+const BUILD='20261118g';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1077,7 +1077,7 @@ function menuCard(){
   const rows=['아침','점심','저녁','간식'].filter(m=>td[m]||m==='점심'||m==='저녁').map(m=>
     `<div class="mrow"><span class="mt">${MI[m]} ${m}</span><span class="mv">${td[m]?esc(td[m]):'<span class="small">아직 정해지지 않았어요</span>'}</span></div>`).join('');
   const tm=parseMenu()[dstr(addDays(1))]||{},tl=['아침','점심','저녁','간식'].filter(m=>tm[m]);
-  const tmr=tl.length?`<div class="mtm"><b>내일</b> ${tl.map(m=>`${MI[m]} ${esc(tm[m])}`).join(' · ')}</div>`:'';
+  const tmr=tl.length?`<div class="mtm"><div style="font-weight:bold;color:#e65100;margin-bottom:2px">📅 내일 (${['일','월','화','수','목','금','토'][addDays(1).getDay()]})</div>${tl.map(m=>`<div class="mrow"><span class="mt">${MI[m]} ${m}</span><span class="mv">${esc(tm[m])}</span></div>`).join('')}</div>`:'';
   return `<div class="sec menucard" data-gotab="menubig"><div class="sh" style="--c:#ef6c00;color:#e65100">🍽 오늘의 메뉴<span class="small" style="margin-left:auto">눌러서 크게 보기 ›</span></div>${rows}
     ${tmr}
     ${g.n?`<div class="mfoot">💌 오늘 받은 마음 ${g.n}개${g.avg?` · ⭐ ${g.avg}`:''}</div>`:''}</div>`;
