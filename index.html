@@ -158,6 +158,7 @@ main{max-width:1200px}
 .wh{text-align:center;background:#f1f8ff;border-radius:12px;padding:6px 8px;margin-left:6px;min-width:56px;display:flex;flex-direction:column}
 .wh .wi{font-size:22px}
 .wh.past{opacity:.4}
+.mtm{margin-top:6px;padding-top:5px;border-top:2px dashed #ffcc80;font-size:13px;color:#6d4c41}
 .nbar{display:flex;flex-wrap:wrap;margin:6px -4px 0}
 .nbar .notice{margin:4px;font-size:16px;padding:8px 12px}
 .cols{display:grid;grid-template-columns:1.1fr 1fr;grid-gap:10px;gap:10px;margin-top:10px}
@@ -312,6 +313,9 @@ main{padding-top:8px}
 /* 한 화면 3열 컴팩트 레이아웃 (아이패드 가로 1024x768) */
 .tri{display:grid;grid-template-columns:1.25fr 1fr 1fr;grid-gap:8px;gap:8px;align-items:stretch}
 @media(max-width:899px){.tri{grid-template-columns:1fr}}
+/* 큰 화면(LG 스탠바이미 등): 가로는 화면 높이에 맞춰 키우고, 세로로 세우면 2열 */
+body.port .tri{grid-template-columns:1fr 1fr}
+body.port .tri>.col:nth-child(3){grid-column:1 / span 2}
 .col>*+*{margin-top:8px}
 main{padding:6px 10px 8px}
 .dash{font-size:14px}
@@ -491,6 +495,7 @@ function load(){
   const d=defaults();
   Object.keys(d).forEach(k=>{if(k!=='kids'&&s[k]===undefined)s[k]=d[k]});
   s.kids.forEach(fixKid);
+  if(s.todoDay!==today()){Object.keys(s.todoDone).forEach(x=>{if(x.indexOf('__ck|')!==0)delete s.todoDone[x]});s.todoDay=today()}   // 할 일 체크는 하루가 지나면 풀려요
   Object.keys(s.thanks).forEach(x=>{if(s.thanks[x].date<dkey(-90))delete s.thanks[x]});
   Object.keys(s.outfit).forEach(x=>{if(x<dkey(-14))delete s.outfit[x]});
   Object.keys(s.shiftOv).forEach(x=>{if(x<dkey(-60))delete s.shiftOv[x]});
@@ -499,6 +504,7 @@ function load(){
 let S=load(), tab='home', kid=0, W=null, B=null, lastDay=today(), unlockUntil=0, busy=false;
 const save=()=>{
   try{if(S.sync&&S.sync.on&&!S.sync.ro&&cfgHash()!==lastCfgHash){S.cfgTs=Date.now();clearTimeout(syncTimer);syncTimer=setTimeout(syncNow,2500)}}catch(e){}   // 설정이 바뀌면 곧바로 클라우드에 올려요
+  try{if(S.sync&&S.sync.on&&progMark()){clearTimeout(syncTimer);syncTimer=setTimeout(syncNow,2500)}}catch(e){}   // 아이 기록이 바뀌어도 곧바로 올려요
   try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}
 };
 const K=()=>S.kids[kid]||S.kids[0];
@@ -534,6 +540,34 @@ function checkAll(){
 }
 checkAll();
 
+/* 스탠바이미처럼 큰 화면이면 전체를 비율에 맞춰 키워요 (아이패드는 그대로) */
+function fitScreen(){
+  try{
+    const w=window.innerWidth,h=window.innerHeight,b=document.body,port=h>w*1.1;
+    if(!w||!h)return;
+    if(w<1200&&h<1100){b.style.zoom='';b.style.minHeight='';b.classList.remove('port');return}
+    const z=port?w/800:h/760;b.style.zoom=String(Math.round(z*100)/100);b.style.minHeight=Math.floor(h/z)+'px';   // 확대된 만큼 높이 기준도 줄여요
+    
+    if(port)b.classList.add('port');else b.classList.remove('port');
+  }catch(e){}
+}
+if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
+const BUILD='20261118a';
+/* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
+async function checkUpdate(){
+  try{
+    if(tab!=='home'||busy)return;
+    const r=await fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
+    const m=(await r.text()).match(/const BUILD='([^']+)'/);
+    if(!m||m[1]===BUILD)return;
+    let last='';try{last=localStorage.getItem('pk_upd')||''}catch(e){}
+    if(last.split('|')[0]===m[1]&&Date.now()-(+last.split('|')[1]||0)<3600000)return;   // 같은 버전으로 계속 다시 불러오지 않게
+    try{localStorage.setItem('pk_upd',m[1]+'|'+Date.now())}catch(e){}
+    location.replace(location.pathname+'?v='+m[1]);
+  }catch(e){}
+}
+setInterval(checkUpdate,10*60000);setTimeout(checkUpdate,30000);
+
 /* ---------- 효과음 · 효과 ---------- */
 let AC=null;
 function sfx(type){
@@ -557,10 +591,41 @@ function bgmShould(n){
   const m=n.getHours()*60+n.getMinutes(),p=s=>{const a=String(s).split(':');return (+a[0]||0)*60+(+a[1]||0)};
   return m>=p(c.from)&&m<p(c.to);
 }
-const BGM_TUNE=[[659,1],[784,1],[880,1],[784,1],[659,1],[587,1],[523,2],[587,1],[659,1],[784,1],[659,1],[587,1],[523,1],[587,2],
-  [659,1],[784,1],[880,1],[1047,1],[880,1],[784,1],[659,2],[587,1],[659,1],[587,1],[523,1],[523,3],[0,1]];
-const BGM_BASS=[262,262,196,196,220,262,196,262];
-let bgmI=0,bgmBeat=0,bgmNext=0,audioOk=false,bgmHint=null;
+// 끝없이 조금씩 달라지는 멜로디: 조(키)·코드 진행·템포·리듬을 바꿔 가며 계속 새로 만들어요
+const BGM_MAJ=[0,2,4,5,7,9,11],BGM_PROGS=[[0,9,5,7],[0,5,9,7],[5,0,7,0],[0,4,9,5],[9,5,0,7],[0,7,9,5],[5,7,4,9],[0,2,5,7]],
+  BGM_RHY=[[1,1,1,1],[2,1,1],[1,1,2],[1.5,.5,1,1],[1,1,.5,.5,1],[2,2],[1,2,1],[.5,.5,1,2]],BGM_KEYS=[0,2,5,7,9,-2,4];
+const mf=m=>440*Math.pow(2,(m-69)/12);
+let bgmSec=null,bgmBarN=0,bgmLast=76;
+function bgmNewSection(){
+  const keyI=Math.floor(Math.random()*BGM_KEYS.length);
+  bgmSec={key:60+BGM_KEYS[keyI],prog:BGM_PROGS[Math.floor(Math.random()*BGM_PROGS.length)],beat:.55+Math.random()*.2,
+    arp:Math.random()<.6,rest:Math.random()<.25,len:8};
+  bgmBarN=0;
+}
+function bgmGenBar(){                                  // 4박자 한 마디의 소리들을 [시작박,높이(MIDI),길이박,세기] 로 만들어요
+  if(!bgmSec||bgmBarN>=bgmSec.len)bgmNewSection();
+  const s=bgmSec,root=s.prog[bgmBarN%4],minor=[2,4,9].indexOf(root)>=0,ev=[];
+  const ct=[root,root+(minor?3:4),root+7].map(x=>s.key+x);              // 코드 구성음
+  ev.push([0,ct[0]-24,3.6,.7]);ev.push([2,ct[2]-24,1.8,.4]);              // 낮은 베이스
+  if(s.arp)[0,1,2,3].forEach(b=>ev.push([b+.5,ct[b%3]-12+(b===3?12:0),1.2,.22]));   // 잔잔한 펼친 화음
+  const rest=s.rest&&bgmBarN%4===3;
+  if(!rest){
+    const pool=[];for(let o=-1;o<=1;o++)BGM_MAJ.forEach(d=>pool.push(s.key+12+d+12*o));
+    const near=(m,list)=>list.reduce((a,b)=>Math.abs(b-m)<Math.abs(a-m)?b:a);
+    const tones=[];for(let o=0;o<=1;o++)ct.forEach(x=>tones.push(x+12*o+12));
+    let b=0,rh=BGM_RHY[Math.floor(Math.random()*BGM_RHY.length)];
+    rh.forEach(d=>{
+      let m;
+      if(b%2===0||Math.random()<.2)m=near(bgmLast+(Math.random()<.5?-2:2),tones);                 // 강박에서는 화음 소리
+      else{const i=pool.indexOf(near(bgmLast,pool))+(Math.random()<.5?-1:1)*(Math.random()<.7?1:2);m=pool[Math.max(0,Math.min(pool.length-1,i))]}
+      m=Math.max(67,Math.min(88,m));
+      if(Math.random()<.12){b+=d;return}                                                           // 가끔 쉬어요
+      ev.push([b,m,d*1.5+.5,.9]);bgmLast=m;b+=d;
+    });
+  }
+  bgmBarN++;return ev;
+}
+let bgmNext=0,audioOk=false,bgmHint=null;
 function unlockAudio(){
   try{
     AC=AC||new (window.AudioContext||window.webkitAudioContext)();
@@ -585,14 +650,12 @@ function bgmTick(){
     if(!on||!audioOk||!AC){bgmNext=0;return}
     if(AC.state==='suspended')AC.resume();
     if(AC.state!=='running')return;
-    const vol=Math.max(.02,Math.min(.5,+bgmCfg().vol||.1)),beat=.62;
+    const vol=Math.max(.02,Math.min(.5,+bgmCfg().vol||.1));
     if(bgmNext<AC.currentTime+.1)bgmNext=AC.currentTime+.3;
     while(bgmNext<AC.currentTime+2.5){                              // 2초 정도 앞서서 예약해요
-      const [f,b]=BGM_TUNE[bgmI];
-      if(f)bgmNote(f,bgmNext,b*beat*1.4+.4,vol);
-      if(bgmBeat%4===0)bgmNote(BGM_BASS[(bgmBeat/4)%BGM_BASS.length],bgmNext,beat*3,vol*.7);
-      bgmNext+=b*beat;bgmBeat+=b;bgmI++;
-      if(bgmI>=BGM_TUNE.length){bgmI=0;bgmBeat=0;bgmNext+=beat*3}   // 한 곡이 끝나면 잠깐 쉬고 다시
+      const bar=bgmGenBar(),beat=bgmSec.beat;
+      bar.forEach(([st,m,d,v])=>bgmNote(mf(m),bgmNext+st*beat,d*beat,vol*v));
+      bgmNext+=4*beat;
     }
   }catch(e){}
 }
@@ -972,7 +1035,10 @@ function menuCard(){
   const td=parseMenu()[today()]||{},g=thanksOn(today());
   const rows=['아침','점심','저녁','간식'].filter(m=>td[m]||m==='점심'||m==='저녁').map(m=>
     `<div class="mrow"><span class="mt">${MI[m]} ${m}</span><span class="mv">${td[m]?esc(td[m]):'<span class="small">아직 정해지지 않았어요</span>'}</span></div>`).join('');
+  const tm=parseMenu()[dstr(addDays(1))]||{},tl=['아침','점심','저녁','간식'].filter(m=>tm[m]);
+  const tmr=tl.length?`<div class="mtm"><b>내일</b> ${tl.map(m=>`${MI[m]} ${esc(tm[m])}`).join(' · ')}</div>`:'';
   return `<div class="sec menucard" data-gotab="menu"><div class="sh" style="--c:#ef6c00;color:#e65100">🍽 오늘의 메뉴<span class="small" style="margin-left:auto">눌러서 별점·고마워요 ›</span></div>${rows}
+    ${tmr}
     ${g.n?`<div class="mfoot">💌 오늘 받은 마음 ${g.n}개${g.avg?` · ⭐ ${g.avg}`:''}</div>`:''}</div>`;
 }
 function menuView(){
@@ -1200,11 +1266,11 @@ const GHAPI=(()=>{try{return localStorage.getItem('pkgh')||'https://api.github.c
 let syncing=false,syncTimer=null,lastCfgHash='',syncState={st:'off',msg:'',at:null};
 const b64e=s=>btoa(unescape(encodeURIComponent(s)));
 const b64d=s=>decodeURIComponent(escape(atob(String(s).replace(/\s/g,''))));
-// 부모가 정하는 설정만 동기화해요 (아이들이 모은 코인·포켓몬 기록은 각 기기에 남아요)
+// 부모가 정하는 설정 (아이 기록은 아래 progress.json 으로 따로 맞춰요)
 function cfgOf(){
   return {pin:S.pin,lat:S.lat,lon:S.lon,notices:S.notices,events:S.events,menu:S.menu,todoText:S.todoText,shopping:S.shopping,checklist:S.checklist,
     people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,autoPurge:S.autoPurge,bgm:S.bgm,
-    kids:S.kids.map(k=>({name:k.name,chores:k.chores,birthday:k.birthday,color:k.color,face:k.face||'',gift:k.gift||0})),closet:S.closet,outfit:S.outfit};
+    kids:S.kids.map(k=>({name:k.name,chores:k.chores,birthday:k.birthday,color:k.color,face:k.face||''})),closet:S.closet,outfit:S.outfit};
 }
 const cfgHash=()=>JSON.stringify(cfgOf());
 lastCfgHash=cfgHash();
@@ -1215,9 +1281,6 @@ function applyCfg(c){
       let k=S.kids[i];
       if(!k){k=newKid(kc.name,[],TR_DEFAULT[i%3]);S.kids.push(k);fixKid(k,i)}
       k.name=kc.name;k.chores=kc.chores||[];k.birthday=kc.birthday||'';if(kc.color)k.color=kc.color;if(kc.face!==undefined)k.face=kc.face;
-      // 부모가 준 선물 코인: 이 기기가 아직 못 받은 만큼만 한 번 더해요
-      const g=+kc.gift||0;k.gift=g;k.giftSeen=k.giftSeen||0;
-      if(g>k.giftSeen){k.coins+=g-k.giftSeen;k.giftSeen=g}
     });
     if(S.kids.length>c.kids.length)S.kids.length=c.kids.length;
     if(kid>=S.kids.length)kid=0;
@@ -1262,6 +1325,48 @@ async function pullPhotos(){
   }
   return got;
 }
+/* ---- 아이 기록(코인·포켓몬·할 일 체크 등) 기기 간 동기화: 아이별로 "나중에 바뀐 쪽"이 이겨요 ---- */
+const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev'];
+const progOf=k=>{const o={};PF.forEach(f=>{if(k[f]!==undefined)o[f]=k[f]});return o};
+const progG=()=>({todoDone:S.todoDone,thanks:S.thanks});
+let lastPH=[],lastGH='';
+function progMark(init){                                  // 바뀐 아이가 있으면 시각을 새로 찍어요
+  let dirty=false;
+  S.kids.forEach((k,i)=>{const h=JSON.stringify(progOf(k));if(lastPH[i]!==h){lastPH[i]=h;if(!init){k.pts=Date.now();dirty=true}}});
+  const g=JSON.stringify(progG());if(lastGH!==g){lastGH=g;if(!init){S.gpts=Date.now();dirty=true}}
+  return dirty;
+}
+progMark(true);
+async function syncProgress(){
+  const r=await ghReq('GET','progress.json');
+  let remote=null,sha=null;
+  if(r.status===200){const j=await r.json();sha=j.sha;remote=JSON.parse(b64d(j.content))}
+  else if(r.status!==404)throw new Error(ghMsg(r.status));
+  const rk=(remote&&remote.kids)||[],rg=(remote&&remote.g)||null,now=Date.now();
+  let push=!remote,pulled=false;
+  S.kids.forEach((k,i)=>{
+    const x=rk[i],lp=k.pts||0;
+    if(x&&x.pts>lp){
+      if(busy)return;
+      Object.assign(k,JSON.parse(JSON.stringify(x.d)));k.pts=x.pts;fixKid(k,i);lastPH[i]=JSON.stringify(progOf(k));pulled=true;
+    }else if(!x&&lp===0){k.pts=now;push=true}
+    else if(lp>(x?x.pts:0))push=true;
+  });
+  if(rg&&rg.pts>(S.gpts||0)){
+    if(!busy){S.todoDone=JSON.parse(JSON.stringify(rg.d.todoDone||{}));S.thanks=JSON.parse(JSON.stringify(rg.d.thanks||{}));S.gpts=rg.pts;lastGH=JSON.stringify(progG());pulled=true}
+  }else if(!rg&&!(S.gpts)){S.gpts=now;push=true}
+  else if((S.gpts||0)>(rg?rg.pts:0))push=true;
+  if(pulled){try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}render()}
+  if(push){
+    const kids=S.kids.map((k,i)=>{const x=rk[i];return (x&&x.pts>=(k.pts||0))?x:{pts:k.pts||0,d:progOf(k)}});
+    const g=(rg&&rg.pts>=(S.gpts||0))?rg:{pts:S.gpts||0,d:progG()};
+    const body={message:'progress',content:b64e(JSON.stringify({kids,g}))};
+    if(sha)body.sha=sha;
+    const w=await ghReq('PUT','progress.json',body);
+    if(!w.ok&&w.status!==409&&w.status!==422)throw new Error(ghMsg(w.status));
+    try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}
+  }
+}
 async function syncNow(){
   const sc=S.sync;
   if(!sc||!sc.on||!sc.token||!sc.repo||syncing)return;
@@ -1289,6 +1394,7 @@ async function syncNow(){
       lastCfgHash=cfgHash();
       try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}
     }
+    await syncProgress();
     if(await pullPhotos()>0)render();
     if(!sc.ro){if(runPurge())render();await purgeRemote()}else gcPhotos();
     setSync('ok','마지막으로 맞춘 시각 '+apText(new Date())+' '+clockText(new Date()));
@@ -1365,7 +1471,6 @@ function homeView(){
   const now=new Date(),evs=parseEv();
   const rn=B?lines(B.notices):[],notices=rn.length?rn:lines(S.notices);
   return `<div class="dash">
-  ${notices.length?`<div class="nbar">${notices.map(n=>`<span class="notice">📢 ${esc(n)}</span>`).join('')}</div>`:''}
   <div class="tri">
     <div class="col">${clockCard(now)}${calCard(evs)}${schedCard(evs)}</div>
     <div class="col">${weatherCard(now)}${shiftCard()}${outfitCard()}${menuCard()}</div>
@@ -1741,8 +1846,7 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.act==='delkid'){if(confirm('이 아이의 기록이 모두 지워져요. 정말요?')){S.kids.splice(+t.dataset.k,1);kid=0;if(!S.kids.length)S.kids.push(newKid('아이',[['양치하기',10]],'red'))}}
   else if(t.dataset.act==='addchore'){S.kids[+t.dataset.k].chores.push({t:'새 미션',c:10})}
   else if(t.dataset.act==='delchore'){S.kids[+t.dataset.k].chores.splice(+t.dataset.c,1);S.kids[+t.dataset.k].done={}}
-  else if(t.dataset.act==='adj'){const q=S.kids[+t.dataset.k],v=+t.dataset.v;q.coins=Math.max(0,q.coins+v);
-    if(v>0&&!(S.sync&&S.sync.on&&S.sync.ro)){q.gift=(q.gift||0)+v;q.giftSeen=(q.giftSeen||0)+v}}   // 폰에서 준 코인(+)은 다른 기기에도 전해져요
+  else if(t.dataset.act==='adj'){const q=S.kids[+t.dataset.k];q.coins=Math.max(0,q.coins+(+t.dataset.v))}
   else if(t.dataset.act==='geo'){navigator.geolocation.getCurrentPosition(p=>{S.lat=+p.coords.latitude.toFixed(3);S.lon=+p.coords.longitude.toFixed(3);save();loadWeather();render()},()=>toast('위치를 가져오지 못했어요'));return}
   else if(t.dataset.act==='export'){overlay('<h2>💾 백업</h2><p class="small">아래 글자를 전부 복사해서 메모 앱에 저장해 두세요</p><textarea id="bk" readonly style="width:70vw;height:30vh">'+esc(JSON.stringify(Object.assign({},S,{sync:null})))+'</textarea>');const b=document.getElementById('bk');b.focus();b.select();return}
   else if(t.dataset.act==='import'){const v=prompt('백업 내용을 붙여넣으세요');if(v){try{const o=JSON.parse(v);if(!o.kids)throw 0;saveSnap('백업 불러오기 전');const keepSync=S.sync;S=o;S.sync=keepSync;const d=defaults();Object.keys(d).forEach(x=>{if(x!=='kids'&&S[x]===undefined)S[x]=d[x]});S.kids.forEach(fixKid);kid=0;save();render();toast('불러왔어요')}catch(err){toast('올바른 백업이 아니에요')}}return}
@@ -1795,7 +1899,7 @@ document.addEventListener('error',e=>{const i=e.target;if(!i||i.tagName!=='IMG')
 setInterval(()=>{
   const c=document.getElementById('clk');
   if(c){const n=new Date();c.textContent=clockText(n);document.getElementById('apm').textContent=apText(n);document.getElementById('dt').textContent=`${n.getMonth()+1}월 ${n.getDate()}일 ${WD[n.getDay()]}요일`}
-  if(today()!==lastDay){lastDay=today();S.kids.forEach(k=>{k.done={}});runPurge();save();if(!busy)render()}
+  if(today()!==lastDay){lastDay=today();Object.keys(S.todoDone).forEach(x=>{if(x.indexOf('__ck|')!==0)delete S.todoDone[x]});S.todoDay=today();S.kids.forEach(k=>{k.done={}});runPurge();save();if(!busy)render()}
 },15000);
 setInterval(loadWeather,30*60000);
 setInterval(()=>{if(!W)loadWeather()},120000);       // 못 불러왔으면 2분마다 다시 시도해요
