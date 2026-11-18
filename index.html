@@ -553,7 +553,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261118d';
+const BUILD='20261118e';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -743,42 +743,51 @@ async function lineStrong(root){                      // 계보의 최종 진화
   let best=0;for(const id of finals){try{best=Math.max(best,await bstOf(id))}catch(e){}}
   return best>=MIN_BST;
 }
-async function candidate(id,taken,needLegend){        // 후보 하나를 검사해서 쓸 수 있으면 포켓몬 정보를, 아니면 null
+async function candidate(id,taken,needLegend,needStrong){        // 후보 하나를 검사해서 쓸 수 있으면 포켓몬 정보를, 아니면 null
   try{
     let sp=await jget(API+'pokemon-species/'+id);
     const isL=sp.is_legendary||sp.is_mythical;
     if(needLegend!==isL)return null;
     while(sp.evolves_from_species)sp=await jget(sp.evolves_from_species.url);
     if(taken[sp.id])return null;
-    if(!needLegend&&!(await lineStrong(sp.id)))return null;
+    if(!needLegend&&needStrong&&!(await lineStrong(sp.id)))return null;
     return {id:sp.id,sp:sp.name,name:koName(sp),root:sp.id,legend:!!needLegend};
   }catch(e){return null}
 }
-async function rollWith(pickId,needLegend){
-  const taken=await takenRoots();
-  for(let round=0;round<14;round++){
-    const ids=[pickId(),pickId(),pickId(),pickId()];   // 4개씩 동시에 확인해서 빨리 찾아요
-    const ok=(await Promise.all(ids.map(i=>candidate(i,taken,needLegend)))).filter(Boolean);
-    if(ok.length)return ok[Math.floor(Math.random()*ok.length)];
+async function ownRoots(k){                            // 이 아이가 이미 가진 계보
+  const set={};
+  for(const m of k.mons){if(!m.root){try{m.root=await rootOf(m.id)}catch(e){m.root=m.id}}set[m.root]=1}
+  return set;
+}
+// 1순위: 형제들이 아무도 안 가진 새 포켓몬 → 다 떨어지면 2순위: 이 아이만 아직 없는 것 (아이들 모두 도감 전체를 채울 수 있게)
+async function rollWith(pickId,needLegend,k){
+  const tiers=needLegend?[[await takenRoots(),true,14],[await ownRoots(k),true,40]]
+    :[[await takenRoots(),true,14],[await ownRoots(k),true,30],[await ownRoots(k),false,60]];
+  for(const [taken,strong,rounds] of tiers){
+    for(let round=0;round<rounds;round++){
+      const ids=[pickId(),pickId(),pickId(),pickId()];   // 4개씩 동시에 확인해서 빨리 찾아요
+      const ok=(await Promise.all(ids.map(i=>candidate(i,taken,needLegend,strong)))).filter(Boolean);
+      if(ok.length)return ok[Math.floor(Math.random()*ok.length)];
+    }
   }
   return null;
 }
-async function rollEgg(){                            // 2~6번째 알
+async function rollEgg(k){                            // 2~6번째 알
   const total=await speciesCount();
-  const p=await rollWith(()=>1+Math.floor(Math.random()*total),false);
+  const p=await rollWith(()=>1+Math.floor(Math.random()*total),false,k);
   if(!p)throw new Error('roll');
   return p;
 }
-async function rollLegend(){                         // 7번째 알: 전설·환상 (찾지 못하면 일반 포켓몬)
-  const p=await rollWith(()=>LEGENDS[Math.floor(Math.random()*LEGENDS.length)],true);
-  return p||await rollEgg();
+async function rollLegend(k){                         // 7번째 알: 전설·환상 (찾지 못하면 일반 포켓몬)
+  const p=await rollWith(()=>LEGENDS[Math.floor(Math.random()*LEGENDS.length)],true,k);
+  return p||await rollEgg(k);
 }
 async function hatchEgg(k,btn){
   busy=true;
   if(btn){btn.disabled=true;btn.innerHTML='<span class="shake" style="display:inline-block">🥚</span> 부화 중...'}
   const n=k.hatched+1,legend=n===7||n%20===0;   // 7번째, 그리고 20번째마다 (화면에는 알리지 않음)
   try{
-    const p=legend?await rollLegend():await rollEgg();
+    const p=legend?await rollLegend(k):await rollEgg(k);
     k.coins-=S.eggCost;k.mons.push(p);k.dex[p.id]=1;k.hatched++;k.sel=k.mons.length-1;
     sfx('hatch');confetti();
     overlay((p.legend?'<h2>🌟 대박! 전설의 포켓몬이에요!</h2>':'')+'<h2>🎉 '+esc(p.name)+' 등장!</h2><img class="big" src="'+ART(p.id)+'">');
