@@ -553,7 +553,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261118c';
+const BUILD='20261118d';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1369,6 +1369,7 @@ function progMark(init){                                  // 바뀐 아이가 �
   return dirty;
 }
 progMark(true);
+const progScore=d=>(+d.earned||0)+100*(+d.hatched||0)+10*Object.keys(d.hist||{}).length+Object.keys(d.dex||{}).length;
 async function syncProgress(){
   const r=await ghReq('GET','progress.json');
   let remote=null,sha=null;
@@ -1380,6 +1381,8 @@ async function syncProgress(){
     const x=rk[i],lp=k.pts||0;
     if(x&&x.pts>lp){
       if(busy)return;
+      if(lp===0&&progScore(progOf(k))>progScore(x.d)){k.pts=now;push=true;return}   // 처음 연결한 기기에 기록이 더 많으면(예: 며칠 쓴 패드) 그 기록을 지키고 올려요
+      try{const bk=JSON.parse(localStorage.getItem('pkfam3_progsnap'))||{};bk[i]={at:now,d:progOf(k)};localStorage.setItem('pkfam3_progsnap',JSON.stringify(bk))}catch(e){}   // 덮어쓰기 전 보관
       Object.assign(k,JSON.parse(JSON.stringify(x.d)));k.pts=x.pts;fixKid(k,i);lastPH[i]=JSON.stringify(progOf(k));pulled=true;
     }else if(!x&&lp===0){k.pts=now;push=true}
     else if(lp>(x?x.pts:0))push=true;
