@@ -137,16 +137,47 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 .stk{display:block;text-align:center;padding:10px 4px;border-radius:16px}
 .stk span{display:block;font-size:40px;line-height:1.1}
 .stk b{display:block;font-size:14px;margin-top:2px}
-.arena{display:flex;align-items:flex-end;justify-content:center;max-width:90vw}
-.bside{width:120px;text-align:center}
-.bside img{width:110px;height:110px;object-fit:contain;transition:filter .1s}
-.bside img.hit{filter:brightness(2) saturate(2);animation:shake .25s}
-.bnm{font-weight:800;font-size:14px}
-.bvs{font-size:34px;margin:0 6px 40px}
-.bhp{height:12px;background:#ddd;border-radius:8px;overflow:hidden;margin-top:4px;border:2px solid #fff;box-shadow:0 0 0 1px #bbb}
-.bhp i{display:block;height:100%;background:#43a047;transition:width .5s}
-.bhp i.foe{background:#e53935}
-.blog{margin-top:10px;font-size:17px;font-weight:700;min-height:26px}
+.bstage{position:relative;width:min(88vw,520px);height:290px;border-radius:16px;overflow:hidden;border:3px solid #fff;box-shadow:0 0 0 2px #90a4ae}
+.bsky{position:absolute;left:0;top:0;right:0;bottom:0;background:linear-gradient(#8ed1fc,#d9f3ff 55%,#bde48a 56%,#8bc34a)}
+.bground{position:absolute;left:-10%;right:-10%;bottom:-40px;height:150px;background:radial-gradient(ellipse at 50% 30%,#a5d66b,#7cb342 70%);border-radius:50%}
+.bsh{position:absolute;width:100px;height:22px;background:rgba(0,0,0,.22);border-radius:50%}
+.bmon{position:absolute;object-fit:contain;z-index:3}
+.bmon.mine{width:150px;height:150px;left:6%;bottom:16px}
+.bmon.foe{width:118px;height:118px;right:7%;top:56px}
+.bpan{position:absolute;background:rgba(255,255,255,.92);border:2px solid #455a64;border-radius:12px;padding:3px 8px;font-size:13px;width:150px;z-index:5;text-align:left}
+.bpan.foep{left:6px;top:8px}
+.bpan.minep{right:6px;bottom:8px}
+.bpan b{font-size:14px}
+.bsub{font-size:11px;color:#546e7a}
+.tchip{font-style:normal;font-size:10px;background:#eceff1;border-radius:8px;padding:0 4px;margin-left:2px;white-space:nowrap}
+.bhp{height:10px;background:#cfd8dc;border-radius:6px;overflow:hidden;margin-top:2px}
+.bhp i{display:block;height:100%;background:#43a047;transition:width .6s,background .3s}
+.bpan small{font-size:10px;color:#607d8b}
+#bfx{position:absolute;left:0;top:0;right:0;bottom:0;z-index:6;pointer-events:none}
+.bproj,.bburst,.bdmg{position:absolute;transform:translate(-50%,-50%)}
+.bproj{font-size:40px;transition:left .38s linear,top .38s linear}
+.bburst{font-size:58px;animation:bburst .8s ease-out forwards}
+@keyframes bburst{0%{transform:translate(-50%,-50%) scale(.3);opacity:1}50%{transform:translate(-50%,-50%) scale(1.5);opacity:1}100%{transform:translate(-50%,-50%) scale(1.9);opacity:0}}
+.bdmg{font-size:26px;font-weight:900;color:#fff;text-shadow:-2px 0 #c62828,2px 0 #c62828,0 -2px #c62828,0 2px #c62828;animation:bdmg 1.1s ease-out forwards}
+.bdmg.crit{font-size:38px;color:#ffeb3b}
+@keyframes bdmg{0%{opacity:0;margin-top:0}15%{opacity:1}100%{opacity:0;margin-top:-46px}}
+.bmon.lungeA{animation:lungeA .5s}
+.bmon.lungeB{animation:lungeB .5s}
+@keyframes lungeA{40%{transform:translate(90px,-60px) scale(1.12)}100%{transform:none}}
+@keyframes lungeB{0%{transform:scaleX(-1)}40%{transform:translate(-90px,60px) scaleX(-1) scale(1.12)}100%{transform:scaleX(-1)}}
+.bmon.gethit{animation:gethit .42s}
+@keyframes gethit{0%,100%{filter:none;margin-left:0}20%{filter:brightness(3) saturate(0);margin-left:-8px}40%{margin-left:8px}60%{filter:brightness(2);margin-left:-6px}80%{margin-left:5px}}
+.bmon.faint{transition:all .9s;transform:translateY(60px) rotate(-25deg);opacity:0;filter:grayscale(1)}
+.bmon.foe.faint{transform:translateY(60px) rotate(25deg) scaleX(-1)}
+.bmon.popin{animation:popin .7s}
+@keyframes popin{0%{transform:scale(.1) translateY(40px);opacity:0}70%{transform:scale(1.15)}100%{transform:none;opacity:1}}
+.bmon.cheer{animation:cheer .5s infinite ease-in-out}
+@keyframes cheer{50%{margin-bottom:18px}}
+.bstage.sk{animation:shake .4s}
+.bbanner{position:absolute;left:0;right:0;top:34%;text-align:center;font-size:40px;font-weight:900;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.55);opacity:0;z-index:8;transition:opacity .4s,transform .4s;transform:scale(.6)}
+.bbanner.show{opacity:1;transform:scale(1)}
+.bbanner.l{color:#cfd8dc}
+.bmsg{margin-top:8px;background:#263238;color:#fff;border-radius:12px;padding:8px 12px;font-size:16px;font-weight:700;min-height:44px;width:min(88vw,520px);box-sizing:border-box;text-align:left}
 .shopg{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));margin-top:8px}
 .shopg>*{margin:4px}
 .shopi{display:block;text-align:center;padding:8px 4px}
@@ -654,7 +685,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261119f';
+const BUILD='20261119g';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -823,7 +854,7 @@ async function chainCount(){
 const STARTERS=[{id:25,sp:'pikachu',name:'피카츄',root:172},{id:7,sp:'squirtle',name:'꼬부기',root:7},{id:4,sp:'charmander',name:'파이리',root:4},{id:1,sp:'bulbasaur',name:'이상해씨',root:1}];
 const LEGENDS=[144,145,146,150,151,243,244,245,249,250,251,377,378,379,380,381,382,383,384,385,386,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,638,639,640,641,642,643,644,645,646,647,648,649,716,717,718,719,720,721,785,786,787,788,789,790,791,792,800,801,802,807,808,809,888,889,890,891,892,893,894,895,896,897,898,1001,1002,1003,1004,1007,1008,1014,1015,1016,1017,1024,1025];
 const MIN_BST=480;                                   // 최종 진화 모습의 종족값 합이 이 이상인 계보만 "괜찮은 포켓몬"으로 봐요
-const bstCache={};
+const bstCache={},typeCache={};
 async function rootOf(id){let sp=await jget(API+'pokemon-species/'+id);while(sp.evolves_from_species)sp=await jget(sp.evolves_from_species.url);return sp.id}
 async function takenRoots(){                         // 모든 아이가 이미 가진 계보(첫 모습 번호)
   const set={};
@@ -836,6 +867,7 @@ async function takenRoots(){                         // 모든 아이가 이미 
 async function bstOf(id){
   if(bstCache[id])return bstCache[id];
   const p=await jget(API+'pokemon/'+id);
+  typeCache[id]=p.types.map(t=>t.type.name);
   return bstCache[id]=p.stats.reduce((x,y)=>x+y.base_stat,0);
 }
 async function lineStrong(root){                      // 계보의 최종 진화들 중 가장 강한 종족값 합
@@ -1734,48 +1766,90 @@ async function ensureBst(m){                                // 종족값(기본 
   if(m.bst>0||bstTried[m.id])return;bstTried[m.id]=1;
   try{m.bst=await bstOf(m.id)}catch(e){m.bst=-1}
 }
-function simBattle(pa,pb,rnd){                              // 순서대로 공격해요. 힘이 센 쪽이 먼저, 힘 차이가 클수록 더 아파요
-  rnd=rnd||Math.random;
+/* 타입 상성: 굉장함 ×1.25 / 별로 ×0.85 */
+const T_SE={fire:'grass ice bug steel',water:'fire ground rock',electric:'water flying',grass:'water ground rock',ice:'grass ground flying dragon',fighting:'normal ice rock dark steel',poison:'grass fairy',ground:'fire electric poison rock steel',flying:'grass fighting bug',psychic:'fighting poison',bug:'grass psychic dark',rock:'fire ice flying bug',ghost:'psychic ghost',dragon:'dragon',dark:'psychic ghost',steel:'ice rock fairy',fairy:'fighting dragon dark'};
+const T_NV={normal:'rock steel',fire:'fire water rock dragon',water:'water grass dragon',electric:'electric grass dragon ground',grass:'fire grass poison flying bug dragon steel',ice:'fire water ice steel',fighting:'poison flying psychic bug fairy',poison:'poison ground rock ghost',ground:'grass bug',flying:'electric rock steel',psychic:'psychic steel',bug:'fire fighting poison flying ghost steel fairy',rock:'fighting ground steel',ghost:'dark',dragon:'steel',dark:'fighting dark fairy',steel:'fire water electric steel',fairy:'fire poison steel'};
+const T_KO={normal:'노말',fire:'불꽃',water:'물',electric:'전기',grass:'풀',ice:'얼음',fighting:'격투',poison:'독',ground:'땅',flying:'비행',psychic:'에스퍼',bug:'벌레',rock:'바위',ghost:'고스트',dragon:'드래곤',dark:'악',steel:'강철',fairy:'페어리'};
+const T_EMO={normal:'💥',fire:'🔥',water:'💧',electric:'⚡',grass:'🍃',ice:'❄️',fighting:'👊',poison:'☠️',ground:'⛰️',flying:'🌪️',psychic:'🔮',bug:'🐛',rock:'☄️',ghost:'👻',dragon:'🐉',dark:'🌑',steel:'⚙️',fairy:'🌸'};
+const T_RANGED={fire:1,water:1,electric:1,grass:1,ice:1,poison:1,psychic:1,ghost:1,dragon:1,fairy:1,dark:1};   // 날아가는 기술 (나머지는 몸으로 부딪혀요)
+const T_MOVE={normal:['몸통박치기','할퀴기'],fire:['불꽃세례','화염방사'],water:['물대포','거품광선'],electric:['10만 볼트','전기쇼크'],grass:['덩굴채찍','잎날가르기'],ice:['냉동빔','얼음뭉치'],fighting:['스카이 어퍼','정권 찌르기'],poison:['독침','오물폭탄'],ground:['지진','진흙폭탄'],flying:['공중날기','제비반환'],psychic:['염동력','사이코키네시스'],bug:['벌레의 저항','시저크로스'],rock:['스톤에지','락블라스트'],ghost:['섀도볼','야습'],dragon:['용의 숨결','용의 파동'],dark:['깨물어 부수기','악의 파동'],steel:['아이언 헤드','메탈 클로'],fairy:['문 포스','매지컬샤인']};
+function typeMul(at,defTypes){let m=1;(defTypes||[]).forEach(d=>{if((T_SE[at]||'').split(' ').indexOf(d)>=0)m*=1.25;if((T_NV[at]||'').split(' ').indexOf(d)>=0)m*=.85});return m}
+async function typesOf(id){if(typeCache[id])return typeCache[id];try{const p=await jget(API+'pokemon/'+id);typeCache[id]=p.types.map(t=>t.type.name)}catch(e){typeCache[id]=[]}return typeCache[id]}
+function simBattle(pa,pb,rnd,ta,tb){                         // 순서대로 공격해요. 힘이 센 쪽이 먼저, 타입이 잘 맞으면 더 아파요
+  rnd=rnd||Math.random;ta=ta&&ta.length?ta:['normal'];tb=tb&&tb.length?tb:['normal'];
   const ea=pa*(.7+.6*rnd()),eb=pb*(.7+.6*rnd());                // 그날 컨디션: 조금 약한 쪽도 이길 수 있어요
   let ha=100,hb=100,turn=ea===eb?(rnd()<.5?0:1):(ea>eb?0:1);const log=[];
   for(let i=0;i<60&&ha>0&&hb>0;i++){
-    const att=turn===0?ea:eb,def=turn===0?eb:ea,crit=rnd()<.12;
-    const d=Math.max(2,Math.round(16*Math.pow(att/def,.5)*(.6+.8*rnd())*(crit?1.5:1)));
+    const att=turn===0?ea:eb,def=turn===0?eb:ea,crit=rnd()<.12,mts=turn===0?ta:tb,mt=mts[Math.floor(rnd()*mts.length)],mul=typeMul(mt,turn===0?tb:ta);
+    const d=Math.max(2,Math.round(16*Math.pow(att/def,.5)*(.6+.8*rnd())*(crit?1.5:1)*mul));
     if(turn===0)hb=Math.max(0,hb-d);else ha=Math.max(0,ha-d);
-    log.push({by:turn,d,crit,ha,hb});turn=1-turn;
+    const mv=T_MOVE[mt]||T_MOVE.normal;
+    log.push({by:turn,d,crit,ha,hb,mt,mul,mv:mv[Math.floor(rnd()*mv.length)]});turn=1-turn;
   }
   return {log,winner:ha>hb?0:hb>ha?1:(rnd()<.5?0:1)};
 }
 let fighting=false;
-function battleStart(me,mine,opp){                          // opp: {name,id,power,onEnd(win)}
+const typeChips=ts=>(ts||[]).map(t=>`<i class="tchip">${T_EMO[t]||''}${T_KO[t]||t}</i>`).join('');
+async function battleStart(me,mine,opp){                      // opp: {name,id,power,onEnd(win),winTxt}
   fighting=true;
-  const pa=powerOf(mine),pb=opp.power,res=simBattle(pa,pb);
-  overlay(`<div class="arena"><div class="bside"><img id="bimgA" src="${ART(mine.id)}"><div class="bnm">${esc(mine.name)}<br><small>⚡${pa}</small></div><div class="bhp"><i id="bhpA" style="width:100%"></i></div></div>
-    <div class="bvs">⚔️</div>
-    <div class="bside"><img id="bimgB" src="${ART(opp.id)}" style="transform:scaleX(-1)"><div class="bnm">${esc(opp.name)}<br><small>⚡${pb}</small></div><div class="bhp"><i id="bhpB" class="foe" style="width:100%"></i></div></div></div>
-    <div class="blog" id="blog">⚔️ 배틀 시작!</div>`);
-  const $=id=>document.getElementById(id);
-  let i=0;
-  const step=()=>{
-    if(!$('blog'))return;                                   // 창을 닫으면 멈춰요 (결과는 이미 정해져 있어서 아래에서 바로 처리)
-    if(i>=res.log.length){return finish()}
-    const r=res.log[i++],nm=r.by===0?mine.name:opp.name;
-    $('blog').textContent=`${r.crit?'💥 급소! ':'✨ '}${nm}의 공격! ${r.d} 피해`;
-    $('bhpA').style.width=r.ha+'%';$('bhpB').style.width=r.hb+'%';
-    const tgt=$(r.by===0?'bimgB':'bimgA');if(tgt){tgt.classList.add('hit');setTimeout(()=>tgt.classList.remove('hit'),250)}
-    sfx(r.crit?'win':'coin');
-    setTimeout(step,750);
-  };
+  let ta=[],tb=[];try{ta=await typesOf(mine.id);tb=await typesOf(opp.id)}catch(e){}
+  const pa=powerOf(mine),pb=opp.power,res=simBattle(pa,pb,null,ta,tb);
+  overlay(`<div class="bstage" id="bstage"><div class="bsky"></div><div class="bground"></div>
+    <div class="bsh" style="right:11%;top:46%"></div><div class="bsh" style="left:9%;bottom:6%;width:120px"></div>
+    <img id="bimgB" class="bmon foe" src="${ART(opp.id)}" style="transform:scaleX(-1)">
+    <img id="bimgA" class="bmon mine" src="${ART(mine.id)}">
+    <div class="bpan foep"><b>${esc(opp.name)}</b><div class="bsub">⚡${pb} ${typeChips(tb)}</div><div class="bhp"><i id="bhpB" class="foe" style="width:100%"></i></div><small id="bhtB">HP 100%</small></div>
+    <div class="bpan minep"><b>${esc(mine.name)}</b> <span class="bsub">Lv.${mine.lv||0}</span><div class="bsub">⚡${pa} ${typeChips(ta)}</div><div class="bhp"><i id="bhpA" style="width:100%"></i></div><small id="bhtA">HP 100%</small></div>
+    <div id="bfx"></div><div id="bbanner" class="bbanner"></div></div>
+    <div class="bmsg" id="blog">⚔️ ${esc(opp.name)}이(가) 나타났다!</div>
+    <button id="bskip" style="margin-top:6px" onclick="window.__bfast=true">⏩ 빨리 보기</button>`);
+  window.__bfast=false;
+  const $=id=>document.getElementById(id),nm=w=>w===0?mine.name:opp.name;
+  const sleep=ms=>new Promise(r=>setTimeout(r,window.__bfast?Math.round(ms*.25):ms));
+  const say=t=>{const e=$('blog');if(e)e.textContent=t};
+  const hpc=(id,v)=>{const e=$(id);if(e){e.style.width=v+'%';e.style.background=v>50?'#43a047':v>20?'#fbc02d':'#e53935'}};
+  const cls=(id,c,ms)=>{const e=$(id);if(!e)return;e.classList.remove(c);void e.offsetWidth;e.classList.add(c);if(ms)setTimeout(()=>e.classList.remove(c),ms)};
+  const pos={0:{x:24,y:60},1:{x:76,y:30}};                       // 내 포켓몬(왼쪽 아래) · 상대(오른쪽 위)
+  const spawn=(cl,txt,x,y,ms,style)=>{const f=$('bfx');if(!f)return null;const e=document.createElement('div');e.className=cl;e.textContent=txt;e.style.left=x+'%';e.style.top=y+'%';if(style)e.style.cssText+=style;f.appendChild(e);setTimeout(()=>{if(e.parentNode)e.parentNode.removeChild(e)},ms);return e};
   let done=false;
   const finish=()=>{
     if(done)return;done=true;fighting=false;
     const win=res.winner===0;
-    if($('blog'))$('blog').innerHTML=win?`<b style="color:#2e7d32">🎉 ${esc(mine.name)} 승리!</b>${opp.winTxt?' '+opp.winTxt:''}`:`<b style="color:#c62828">😢 졌어요... 훈련해서 다시 도전해요!</b>`;
-    if(win){sfx('win');confetti()}
     opp.onEnd(win);save();render();
   };
-  setTimeout(step,600);
-  setTimeout(()=>{if(!done&&!$('blog'))finish()},res.log.length*750+3000);   // 중간에 창을 닫아도 결과는 반영돼요
+  try{
+    await sleep(900);say(`가자! ${mine.name}!`);cls('bimgA','popin',700);await sleep(800);
+    for(const r of res.log){
+      const a=r.by,d=1-a,A=a===0?'bimgA':'bimgB',D=d===0?'bimgA':'bimgB';
+      say(`${nm(a)}의 ${r.mv}!`);
+      cls(A,a===0?'lungeA':'lungeB',520);
+      await sleep(380);
+      if(T_RANGED[r.mt]){                                      // 날아가는 기술: 이모지가 상대에게 날아가요
+        const pr=spawn('bproj',T_EMO[r.mt]||'💥',pos[a].x,pos[a].y,700);
+        if(pr){void pr.offsetWidth;pr.style.left=pos[d].x+'%';pr.style.top=pos[d].y+'%'}
+        await sleep(380);
+      }
+      spawn('bburst',T_EMO[r.mt]||'💥',pos[d].x-4,pos[d].y-8,800,r.crit?'font-size:84px':'');
+      spawn('bdmg'+(r.crit?' crit':''),'-'+r.d,pos[d].x+(a===0?2:-2),pos[d].y-14,1100);
+      cls(D,'gethit',420);if(r.crit)cls('bstage','sk',420);
+      sfx(r.crit||r.mul>1?'win':'coin');
+      hpc(d===0?'bhpA':'bhpB',d===0?r.ha:r.hb);
+      const he=$(d===0?'bhtA':'bhtB');if(he)he.textContent='HP '+(d===0?r.ha:r.hb)+'%';
+      say(`${nm(a)}의 ${r.mv}! ${r.crit?'💥 급소에 맞았다! ':''}${r.mul>1.1?'🔥 효과가 굉장했다!':r.mul<.95?'💤 효과가 별로인 듯하다...':''}`);
+      await sleep(850);
+    }
+    const lose=res.winner===0?'bimgB':'bimgA',winI=res.winner===0?'bimgA':'bimgB';
+    const lp=$(lose);if(lp)lp.classList.add('faint');
+    say(`${nm(1-res.winner)}은(는) 쓰러졌다!`);
+    await sleep(900);
+    cls(winI,'cheer');
+    const win=res.winner===0,bn=$('bbanner');
+    if(bn){bn.textContent=win?'🎉 승리!':'😢 졌어요...';bn.className='bbanner show '+(win?'w':'l')}
+    say(win?`${mine.name} 승리!${opp.winTxt?' '+opp.winTxt:''}`:'훈련해서 다시 도전해요! 💪');
+    if(win){sfx('win');confetti()}
+  }catch(e){}
+  finish();                                                    // 중간에 이상이 있어도 결과는 꼭 반영돼요
+  const sk=document.getElementById('bskip');if(sk)sk.style.display='none';
 }
 async function wildBattle(k){
   const m=k.mons[k.sel];if(!m||fighting)return;
