@@ -126,6 +126,8 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 @keyframes flash{0%,93%,100%{opacity:0}95%{opacity:.55}97%{opacity:.1}98%{opacity:.4}}
 .scene.windy .dc{transform-origin:50% 100%;animation:sway 1.6s ease-in-out infinite}
 @keyframes sway{0%,100%{transform:translateX(-50%) rotate(-3deg)}50%{transform:translateX(-50%) rotate(3deg)}}
+.scene .vwrap{position:absolute;z-index:4}
+.vtag{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:800;background:rgba(255,255,255,.85);border-radius:8px;padding:0 6px;white-space:nowrap}
 .shopg{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));margin-top:8px}
 .shopg>*{margin:4px}
 .shopi{display:block;text-align:center;padding:8px 4px}
@@ -541,6 +543,7 @@ function fixKid(k,i){
   k.face=k.face||'';
   ['evos','earned','streak','best','perfect','bought','bonusAmt','coins','sel'].forEach(f=>{if(typeof k[f]!=='number')k[f]=0});
   k.hist=k.hist||{};k.badges=k.badges||{};k.lastPerfect=k.lastPerfect||'';k.bonusDate=k.bonusDate||'';
+  if(!Array.isArray(k.out))k.out=[];
   if(!Array.isArray(k.deco)){k.deco=Object.keys(OLD_GIFT).filter(id=>k.mons.length>=OLD_GIFT[id])}   // 마을 상점에서 산 것
   const keys=Object.keys(k.hist).sort();while(keys.length>45)delete k.hist[keys.shift()];
 }
@@ -632,7 +635,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261119c';
+const BUILD='20261119d';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1534,7 +1537,7 @@ async function pullPhotos(){
   return got;
 }
 /* ---- 아이 기록(코인·포켓몬·할 일 체크 등) 기기 간 동기화: 아이별로 "나중에 바뀐 쪽"이 이겨요 ---- */
-const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev','deco'];
+const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev','deco','out'];
 const progOf=k=>{const o={};PF.forEach(f=>{if(k[f]!==undefined)o[f]=k[f]});return o};
 function sweepTodo(){                                       // 오늘이 아닌 날 체크된 할 일은 지워요
   let n=0;Object.keys(S.todoDone).forEach(x=>{const v=S.todoDone[x];if(x.indexOf('__ck|')!==0&&typeof v==='string'&&v!==today()){delete S.todoDone[x];n++}});return n}
@@ -1709,6 +1712,26 @@ function townWx(){                                         // 지금 날씨를 �
   const kind=(c>=71&&c<=77)||c===85||c===86?'snow':(c>=51&&c<=67)||(c>=80&&c<=82)||c>=95?'rain':c===45||c===48?'fog':c>=3?'cloudy':'clear';
   return {kind,thunder:c>=95,windy:wind>=25}
 }
+/* ---- 🚌 친구 마을에 놀러 가기 (포켓몬·트레이너) ---- */
+const vSel={to:'',who:'t',mode:'play'};
+const VISIT_MS=3*3600000;                                       // "잠깐 놀기"는 3시간 뒤에 저절로 돌아와요
+const ents=()=>S.kids.concat(S.parents);
+const visitOn=o=>o.stay||Date.now()-o.at<VISIT_MS;
+const outOf=k=>(k.out||[]).filter(visitOn);
+const isAway=(k,i)=>outOf(k).some(o=>o.m===i&&k.mons[i]&&k.mons[i].id===o.id);
+const trainerAway=k=>outOf(k).some(o=>o.m<0);
+function visitorsOf(host){const r=[];ents().forEach(q=>{if(q===host)return;outOf(q).forEach(o=>{if(o.to===host.name&&(o.m<0||(q.mons[o.m]&&q.mons[o.m].id===o.id)))r.push({q,o})})});return r}
+function visitCard(k){
+  const fr=ents().filter(q=>q!==k);if(!fr.length)return '';
+  const to=fr.some(q=>q.name===vSel.to)?vSel.to:fr[0].name,away=outOf(k),vis=visitorsOf(k);
+  const who=k.mons.map((m,i)=>isAway(k,i)?'':`<option value="${i}" ${String(vSel.who)===String(i)?'selected':''}>${esc(m.name)}</option>`).join('');
+  const rows=away.map((o,j)=>`<div class="giverow"><span style="flex:1">${o.m<0?'🧢 트레이너':'🐾 '+esc((k.mons[o.m]||{}).name||'')} → <b>${esc(o.to)}</b>의 마을 (${o.stay?'맡겨 뒀어요':'놀고 있어요'})</span><button data-act="vback" data-j="${j}">🏠 데려오기</button></div>`).join('');
+  return `<div class="card"><h2>🚌 친구 마을에 놀러 가요</h2>
+    <div class="row"><span>어디로?</span><select data-vsel="to" style="width:120px">${fr.map(q=>`<option ${q.name===to?'selected':''}>${esc(q.name)}</option>`).join('')}</select><span>누가?</span><select data-vsel="who" style="width:130px">${trainerAway(k)?'':`<option value="t" ${vSel.who==='t'?'selected':''}>🧢 트레이너</option>`}${who}</select></div>
+    <div class="row"><span>얼마나?</span><select data-vsel="mode" style="width:200px"><option value="play" ${vSel.mode==='play'?'selected':''}>잠깐 놀기 (3시간)</option><option value="stay" ${vSel.mode==='stay'?'selected':''}>맡겨 두기 (데리러 갈 때까지)</option></select><button class="go" data-act="vsend" ${away.length>=3?'disabled':''}>🚌 보내기</button></div>
+    ${rows}${vis.length?`<div class="small" style="margin-top:6px">🎈 우리 마을에 놀러 온 친구: ${vis.map(v=>`${esc(v.q.name)}의 ${v.o.m<0?'트레이너':esc(v.q.mons[v.o.m].name)}`).join(', ')}</div>`:''}
+    <div class="small" style="margin-top:4px">한 번에 3개까지 보낼 수 있어요. 놀러 간 친구는 우리 마을에서 잠시 안 보여요.</div></div>`;
+}
 function sceneHtml(k){
   const n=k.mons.length,d0=new Date(),hr=d0.getHours()+d0.getMinutes()/60,ph=skyPhase(),night=ph==='night',wx=townWx();
   const items=FREE_DECOR.concat(SHOP.filter(d=>(k.deco||[]).indexOf(d.id)>=0));
@@ -1716,6 +1739,7 @@ function sceneHtml(k){
   const from=Math.max(0,n-12);
   let wm='';
   for(let i=from;i<n;i++){
+    if(isAway(k,i))continue;
     const x=14+((i*37)%66),bt=6+((i*53)%48),s=Math.round((48+(54-bt)*0.5)*1.15),dur=7+((i*13)%9),dl=(i*3)%7;
     wm+=`<div class="wm ${i===k.sel?'sel':''}" data-sel="${i}" style="left:${x}%;bottom:${Math.round(bt*1.25)}px;width:${s}px;animation-duration:${dur}s;animation-delay:-${dl}s"><img src="${ART(k.mons[i].id)}"></div>`;
   }
@@ -1739,8 +1763,15 @@ function sceneHtml(k){
     <svg viewBox="0 0 800 380" preserveAspectRatio="none"><path d="M0 250 Q200 185 400 240 T800 215 V380 H0Z" fill="${g1}"/><path d="M0 300 Q250 255 500 298 T800 282 V380 H0Z" fill="${g2}"/><path d="M300 380 Q360 325 410 300 L470 300 Q420 325 395 380Z" fill="${night?'#8c7d5a':'#e6d3a3'}"/></svg>
     ${orb}${sky}<div class="tint"></div>${decor}
     <div class="dc" style="left:7%;bottom:38px;font-size:84px">🏡</div>
-    <div class="tr" style="left:13%;bottom:12px"><img src="${TRAINER(k.trainer)}"></div>${wm}${fx}</div>
-    <div class="small" style="margin-top:6px">🏘️ ${esc(k.name)}의 마을 · 포켓몬 ${n}마리 · 꾸민 것 ${items.length-FREE_DECOR.length}개</div>`;
+    ${trainerAway(k)?'<div class="dc" style="left:13%;bottom:14px;font-size:34px">🚌</div>':`<div class="tr" style="left:13%;bottom:12px"><img src="${TRAINER(k.trainer)}"></div>`}${wm}${visHtml(k)}${fx}</div>
+    <div class="small" style="margin-top:6px">🏘️ ${esc(k.name)}의 마을 · 포켓몬 ${n}마리 · 꾸민 것 ${items.length-FREE_DECOR.length}개${visitorsOf(k).length?` · 놀러 온 친구 ${visitorsOf(k).length}`:''}</div>`;
+}
+function visHtml(k){                                       // 놀러 온 친구들
+  return visitorsOf(k).map((v,j)=>{
+    const lf=22+((j*29)%58),tag=`<span class="vtag">${esc(v.q.name)}</span>`;
+    if(v.o.m<0)return `<div class="vwrap" style="left:${lf}%;bottom:14px">${tag}<div class="tr" style="position:relative"><img src="${TRAINER(v.q.trainer)}"></div></div>`;
+    return `<div class="vwrap" style="left:${lf}%;bottom:${18+((j*23)%40)}px">${tag}<div class="wm" style="position:relative;width:74px;animation-duration:${8+j}s"><img src="${ART(v.q.mons[v.o.m].id)}"></div></div>`;
+  }).join('');
 }
 function shopCard(k){
   const own=k.deco||[],left=SHOP.filter(d=>own.indexOf(d.id)<0);
@@ -1761,7 +1792,7 @@ function townView(){
     <div class="acts"><button class="go" data-act="evo" ${p.final||k.coins<S.evoCost?'disabled':''}>✨ 진화시키기 (💰${won(S.evoCost)})</button><button data-act="tree">🌱 진화 계보</button></div></div>`;
   }
   return `<div class="stack">${sceneHtml(k)}
-  ${giveCard(k)}${shopCard(k)}
+  ${visitCard(k)}${giveCard(k)}${shopCard(k)}
   <div class="card"><div class="stats"><span class="chip coin">💰 ${won(k.coins)}</span><button data-act="pickTrainer" style="padding:6px 12px">🧢 트레이너 바꾸기</button></div>${hero}
   <div class="acts"><button class="egg" data-act="egg" ${k.coins<S.eggCost?'disabled':''}>${k.hatched===0&&!k.adult?'🥚 첫 알 뽑기 · 친구 고르기':'🥚 알 뽑기'} (💰${won(S.eggCost)})</button></div>
   <div class="small" style="text-align:center;margin-top:4px">${k.hatched===0&&!k.adult?'첫 알은 피카츄·꼬부기·파이리·이상해씨 중에서 골라요':`지금까지 알 ${k.hatched}개`}</div></div>
@@ -1973,6 +2004,16 @@ document.addEventListener('click',async e=>{
     await hatchEgg(k,t);
   }
   else if(t.dataset.starter){await hatchStarter(k,+t.dataset.starter)}
+  else if(t.dataset.act==='vsend'){
+    const f=ents().find(q=>q.name===vSel.to&&q!==k)||ents().find(q=>q!==k),cur=outOf(k);
+    if(f&&cur.length<3){
+      let o=null;
+      if(vSel.who==='t'){if(!trainerAway(k))o={to:f.name,m:-1,id:0}}
+      else{const i=+vSel.who,m=k.mons[i];if(m&&!isAway(k,i))o={to:f.name,m:i,id:m.id}}
+      if(o){o.stay=vSel.mode==='stay';o.at=Date.now();k.out=cur.concat([o]);sfx('hatch');toast('🚌 '+(o.m<0?'트레이너':k.mons[o.m].name)+'가 '+f.name+'의 마을로 놀러 갔어요!')}
+    }
+  }
+  else if(t.dataset.act==='vback'){const cur=outOf(k);k.out=cur.filter((_,j)=>j!==+t.dataset.j);toast('🏠 돌아왔어요!')}
   else if(t.dataset.buy){const d=SHOP.find(x=>x.id===t.dataset.buy);if(d&&(k.deco||[]).indexOf(d.id)<0&&k.coins>=d.p){k.coins-=d.p;k.deco.push(d.id);sfx('hatch');toast(d.e+' '+d.n+' 샀어요! 마을에 놓였어요')}}
   else if(t.dataset.give){const a=t.dataset.give.split('|'),q=S.parents[+a[0]],v=+a[1];if(q&&!k.adult&&v>0&&k.coins>=v){k.coins-=v;q.coins+=v;sfx('hatch');toast('💝 '+q.name+'에게 코인 '+v+'개를 선물했어요!')}}
   else if(t.dataset.act==='evo'&&!busy){
@@ -2129,6 +2170,7 @@ document.addEventListener('change',e=>{
     else if(q.bonusDate===today()){q.lastPerfect=today();q.prev={streak:Math.max(0,n-1),last:n>1?dkey(-1):''}}   // 오늘 이미 다 했으면 오늘까지 센 값
     else q.lastPerfect=dkey(-1);                                                                                   // 오늘 다 하면 n+1 이 돼요
   }
+  else if(D.vsel!==undefined){vSel[D.vsel]=t.value;return}
   else if(D.morn!==undefined){S.morning=Object.assign(morningCfg(),{[D.morn]:D.morn==='on'?t.checked:t.value});if(D.morn==='kid')S.morning.chore=''}
   else if(D.bgm!==undefined){S.bgm=Object.assign(bgmCfg(),{[D.bgm]:D.bgm==='on'?t.checked:D.bgm==='vol'?+t.value:t.value});bgmNext=0}
   else if(D.shon!==undefined){S.shift.on=t.checked}
