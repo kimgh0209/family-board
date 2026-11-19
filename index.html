@@ -496,7 +496,7 @@ function load(){
   const d=defaults();
   Object.keys(d).forEach(k=>{if(k!=='kids'&&s[k]===undefined)s[k]=d[k]});
   s.kids.forEach(fixKid);
-  if(s.todoDay!==today()){Object.keys(s.todoDone).forEach(x=>{if(x.indexOf('__ck|')!==0)delete s.todoDone[x]});s.todoDay=today()}   // 할 일 체크는 하루가 지나면 풀려요
+  if(s.todoDay!==today()){Object.keys(s.todoDone).forEach(x=>{if(x.indexOf('__ck|')!==0)delete s.todoDone[x]});s.todoDay=today();s.gpts=Date.now()}   // 할 일 체크는 하루가 지나면 풀려요 (gpts: 풀린 상태가 클라우드의 어제 체크보다 새것이 되게)
   Object.keys(s.thanks).forEach(x=>{if(s.thanks[x].date<dkey(-90))delete s.thanks[x]});
   Object.keys(s.outfit).forEach(x=>{if(x<dkey(-14))delete s.outfit[x]});
   Object.keys(s.shiftOv).forEach(x=>{if(x<dkey(-60))delete s.shiftOv[x]});
@@ -553,7 +553,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261118g';
+const BUILD='20261119a';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1369,6 +1369,8 @@ async function pullPhotos(){
 /* ---- 아이 기록(코인·포켓몬·할 일 체크 등) 기기 간 동기화: 아이별로 "나중에 바뀐 쪽"이 이겨요 ---- */
 const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev'];
 const progOf=k=>{const o={};PF.forEach(f=>{if(k[f]!==undefined)o[f]=k[f]});return o};
+function sweepTodo(){                                       // 오늘이 아닌 날 체크된 할 일은 지워요
+  let n=0;Object.keys(S.todoDone).forEach(x=>{const v=S.todoDone[x];if(x.indexOf('__ck|')!==0&&typeof v==='string'&&v!==today()){delete S.todoDone[x];n++}});return n}
 const progG=()=>({todoDone:S.todoDone,thanks:S.thanks});
 let lastPH=[],lastGH='';
 function progMark(init){                                  // 바뀐 아이가 있으면 시각을 새로 찍어요
@@ -1397,7 +1399,7 @@ async function syncProgress(){
     else if(lp>(x?x.pts:0))push=true;
   });
   if(rg&&rg.pts>(S.gpts||0)){
-    if(!busy){S.todoDone=JSON.parse(JSON.stringify(rg.d.todoDone||{}));S.thanks=JSON.parse(JSON.stringify(rg.d.thanks||{}));S.gpts=rg.pts;lastGH=JSON.stringify(progG());pulled=true}
+    if(!busy){S.todoDone=JSON.parse(JSON.stringify(rg.d.todoDone||{}));S.thanks=JSON.parse(JSON.stringify(rg.d.thanks||{}));S.gpts=rg.pts;lastGH=JSON.stringify(progG());pulled=true;if(sweepTodo()){S.gpts=now;lastGH=JSON.stringify(progG());push=true}}
   }else if(!rg&&!(S.gpts)){S.gpts=now;push=true}
   else if((S.gpts||0)>(rg?rg.pts:0))push=true;
   if(pulled){try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}render()}
@@ -1843,7 +1845,7 @@ document.addEventListener('click',async e=>{
     toast('식단을 추가했어요 ✅');
   }
   else if(t.dataset.act==='cal'){const d=+t.dataset.d;calOff=d===0?0:calOff+d}
-  else if(t.dataset.act==='tg'){const key=t.dataset.k;if(S.todoDone[key])delete S.todoDone[key];else S.todoDone[key]=1}
+  else if(t.dataset.act==='tg'){const key=t.dataset.k;if(S.todoDone[key])delete S.todoDone[key];else S.todoDone[key]=today()}   // 체크한 날짜를 함께 기록해요 → 어제 체크가 다른 기기에서 돌아와도 걸러져요
   else if(t.dataset.act==='addev'){
     const v=id=>{const el=document.getElementById(id);return el?el.value:''};
     const ds=v('evd'),tm=v('evt'),ti=v('evn').trim(),wh=v('evw'),an=document.getElementById('eva').checked;
@@ -1955,6 +1957,7 @@ document.addEventListener('error',e=>{const i=e.target;if(!i||i.tagName!=='IMG')
 setInterval(()=>{
   const c=document.getElementById('clk');
   if(c){const n=new Date();c.textContent=clockText(n);document.getElementById('apm').textContent=apText(n);document.getElementById('dt').textContent=`${n.getMonth()+1}월 ${n.getDate()}일 ${WD[n.getDay()]}요일`}
+  if(sweepTodo())save();
   if(today()!==lastDay){lastDay=today();Object.keys(S.todoDone).forEach(x=>{if(x.indexOf('__ck|')!==0)delete S.todoDone[x]});S.todoDay=today();S.kids.forEach(k=>{k.done={}});runPurge();save();if(!busy)render()}
 },15000);
 setInterval(loadWeather,30*60000);
