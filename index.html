@@ -178,6 +178,32 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 .bbanner.show{opacity:1;transform:scale(1)}
 .bbanner.l{color:#cfd8dc}
 .bmsg{margin-top:8px;background:#263238;color:#fff;border-radius:12px;padding:8px 12px;font-size:16px;font-weight:700;min-height:44px;width:min(88vw,520px);box-sizing:border-box;text-align:left}
+.bday{position:relative;overflow:hidden;border-radius:18px;padding:12px;text-align:center;background:linear-gradient(#ffe0f0,#fff4c9 55%,#d6f2ff);border:3px solid #ffb300}
+.bdconf{position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:1}
+.bdc{position:absolute;top:-8%;font-style:normal;animation:bdfall linear infinite}
+@keyframes bdfall{from{transform:translate3d(0,0,0) rotate(0)}to{transform:translate3d(20px,520px,0) rotate(360deg)}}
+.bdhead,.bdguests,.bdmons,.bday .acts,.bdcake{position:relative;z-index:2}
+.bdface{display:inline-block;position:relative}
+.bdcrown{position:absolute;left:50%;top:-20px;transform:translateX(-50%);font-size:34px}
+.bdt1{font-size:30px;font-weight:900;color:#d81b60;margin-top:2px}
+.bdt2{font-size:18px;font-weight:800;color:#6d4c41}
+.bdguests{display:flex;justify-content:center;margin-top:10px}
+.bdg{width:30%;position:relative;padding-top:50px}
+.bdgi{width:100%;max-width:170px;aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 0 10px #ffd54f);animation:bob 1.6s infinite ease-in-out}
+.bdg.talk .bdgi{animation:bdjump .5s infinite ease-in-out;filter:drop-shadow(0 0 14px #ff80ab)}
+@keyframes bdjump{50%{transform:translateY(-14px) scale(1.06)}}
+.bdg small{display:block;font-weight:800;font-size:14px;min-height:18px}
+.bdbub{position:absolute;left:50%;top:0;transform:translateX(-50%);min-width:90%;background:#fff;border:3px solid #ff80ab;border-radius:16px;padding:4px 8px;font-size:15px;font-weight:800;opacity:0;transition:opacity .3s;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.bdbub.show{opacity:1}
+.bdcake{font-size:56px;line-height:1;margin-top:2px;animation:bob 1.2s infinite ease-in-out}
+.bdmons{display:flex;justify-content:center;flex-wrap:wrap;margin-top:6px}
+.bdm{width:15%;max-width:110px;aspect-ratio:1;object-fit:contain;margin:0 2px}
+.bdm.d0{animation:bddance0 .9s infinite ease-in-out}
+.bdm.d1{animation:bddance1 1.1s infinite ease-in-out}
+.bdm.d2{animation:bddance2 .8s infinite ease-in-out}
+@keyframes bddance0{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-16px) rotate(8deg)}}
+@keyframes bddance1{0%,100%{transform:scale(1) rotate(6deg)}50%{transform:scale(1.15) rotate(-6deg)}}
+@keyframes bddance2{0%,100%{transform:translateX(-6px) scaleX(1)}25%{transform:translateX(6px) translateY(-10px)}50%{transform:translateX(6px) scaleX(-1)}75%{transform:translateX(-6px) translateY(-10px) scaleX(-1)}}
 .shopg{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));margin-top:8px}
 .shopg>*{margin:4px}
 .shopi{display:block;text-align:center;padding:8px 4px}
@@ -685,7 +711,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261119i';
+const BUILD='20261120a';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1531,13 +1557,13 @@ const b64d=s=>decodeURIComponent(escape(atob(String(s).replace(/\s/g,''))));
 // 부모가 정하는 설정 (아이 기록은 아래 progress.json 으로 따로 맞춰요)
 function cfgOf(){
   return {pin:S.pin,lat:S.lat,lon:S.lon,notices:S.notices,events:S.events,menu:S.menu,todoText:S.todoText,shopping:S.shopping,checklist:S.checklist,
-    people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,autoPurge:S.autoPurge,bgm:S.bgm,dim:S.dim,morning:S.morning,
+    people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,autoPurge:S.autoPurge,bgm:S.bgm,dim:S.dim,morning:S.morning,bdayCfg:S.bdayCfg,
     kids:S.kids.map(k=>({name:k.name,chores:k.chores,birthday:k.birthday,color:k.color,face:k.face||''})),closet:S.closet,outfit:S.outfit};
 }
 const cfgHash=()=>JSON.stringify(cfgOf());
 lastCfgHash=cfgHash();
 function applyCfg(c){
-  ['pin','lat','lon','notices','events','menu','todoText','shopping','checklist','people','eggCost','evoCost','bonus','legend','closet','outfit','shift','shiftOv','autoPurge','bgm','dim','morning'].forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});
+  ['pin','lat','lon','notices','events','menu','todoText','shopping','checklist','people','eggCost','evoCost','bonus','legend','closet','outfit','shift','shiftOv','autoPurge','bgm','dim','morning','bdayCfg'].forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});
   if(Array.isArray(c.kids)){
     c.kids.forEach((kc,i)=>{
       let k=S.kids[i];
@@ -1739,11 +1765,12 @@ function homeView(){
   const now=new Date(),evs=parseEv();
   const rn=B?lines(B.notices):[],notices=rn.length?rn:lines(S.notices),ms=mornState();
   if(ms==='run'||ms==='done')return `<div class="dash">${morningView()}</div>`;
+  if(bdayCfg().on&&bdayRun())return birthdayView();
   return `<div class="dash">
   <div class="tri">
     <div class="col">${clockCard(now)}${calCard(evs)}${schedCard(evs)}</div>
     <div class="col">${weatherCard(now)}${shiftCard()}${outfitCard()}${menuCard()}</div>
-    <div class="col">${msgBanner()}${mornBanner()}${todoCard()}${kidsCard()}${upCard(evs)}</div>
+    <div class="col">${msgBanner()}${bdayBanner()}${mornBanner()}${todoCard()}${kidsCard()}${upCard(evs)}</div>
   </div></div>`;
 }
 
@@ -1892,6 +1919,109 @@ function townWx(){                                         // 지금 날씨를 �
   const c=W?W.c:0,wind=W&&W.wind?W.wind:0;
   const kind=(c>=71&&c<=77)||c===85||c===86?'snow':(c>=51&&c<=67)||(c>=80&&c<=82)||c>=95?'rain':c===45||c===48?'fog':c>=3?'cloudy':'clear';
   return {kind,thunder:c>=95,windy:wind>=25}
+}
+/* ---- 🎂 생일 축하 파티: 가진 포켓몬들이 춤추고, 전설·환상 포켓몬이 손님으로 와서 축하해 줘요 ---- */
+const BDAY_DEF={on:true,min:10,voice:true,from:'07:00'};
+const bdayCfg=()=>Object.assign({},BDAY_DEF,S.bdayCfg||{});
+const BD_KEY='pkfam3_bday',BD_AUTO='pkfam3_bdayauto';
+let bdMem=null;                                          // 저장소를 못 쓰는 환경(사생활 보호 모드 등)에서도 동작하도록 메모리에도 둬요
+const bdFresh=()=>({day:today(),done:{},run:null});
+const bdLoad=()=>{let o=null;try{o=JSON.parse(localStorage.getItem(BD_KEY))}catch(e){}if(!o||o.day!==today())o=(bdMem&&bdMem.day===today())?bdMem:bdFresh();return o};
+const bdSave=o=>{bdMem=o;try{localStorage.setItem(BD_KEY,JSON.stringify(o))}catch(e){}};
+const bdAutoOn=()=>{try{return localStorage.getItem(BD_AUTO)!=='off'}catch(e){return true}};
+const isBirthday=k=>!!(k&&k.birthday&&String(k.birthday).slice(5)===today().slice(5));
+const josa=n=>{const c=String(n).charCodeAt(String(n).length-1);return (c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28!==0)?'아':'야'};
+const KNUM=['','한','두','세','네','다섯','여섯','일곱','여덟','아홉','열','열한','열두','열세','열네','열다섯','열여섯','열일곱','열여덟','열아홉','스무'];
+function bdAge(k){const y=+String(k.birthday).slice(0,4);return y>1900?new Date().getFullYear()-y:0}
+function bdLines(k){
+  const n=k.name,a=bdAge(k),l=[`${n}${josa(n)}, 생일 축하해!`,'행복한 하루 보내!'];
+  if(a>0&&a<=20)l.push(`${KNUM[a]} 살이 된 걸 축하해!`);
+  l.push('오늘은 네가 주인공이야!','우리 모두 너를 사랑해!','정말 정말 축하해!');
+  return l;
+}
+function bdayRun(){const o=bdLoad();return o.run&&Date.now()-o.run.start<bdayCfg().min*60000?o.run:null}
+function pickGuests(k){                                  // 아직 아무도 못 만난 전설·환상 포켓몬 3마리 (없으면 이 아이가 못 가진 것)
+  const fam={};ents().forEach(q=>Object.keys(q.dex||{}).forEach(x=>{fam[x]=1}));
+  let pool=LEGENDS.filter(id=>!fam[id]);
+  if(pool.length<3)pool=LEGENDS.filter(id=>!(k.dex||{})[id]);
+  if(pool.length<3)pool=LEGENDS.slice();
+  const out=[];while(out.length<3&&pool.length){const i=Math.floor(Math.random()*pool.length);out.push(pool.splice(i,1)[0])}
+  return out.map(id=>({id,name:''}));
+}
+function pickDancers(k){                                 // 먼저 대표 포켓몬, 나머지는 랜덤으로 최대 6마리
+  const idx=k.mons.map((_,i)=>i),out=[];
+  if(k.mons.length){out.push(k.sel);idx.splice(idx.indexOf(k.sel),1)}
+  while(out.length<6&&idx.length){out.push(idx.splice(Math.floor(Math.random()*idx.length),1)[0])}
+  return out.map(i=>({id:k.mons[i].id,name:k.mons[i].name}));
+}
+function bdayStart(k){
+  const o=bdLoad();
+  o.run={name:k.name,start:Date.now(),guests:pickGuests(k),dancers:pickDancers(k),si:0,next:0};
+  bdSave(o);
+  o.run.guests.forEach((g,i)=>{jget(API+'pokemon-species/'+g.id).then(sp=>{g.name=koName(sp);const b=bdLoad();if(b.run&&b.run.guests[i]){b.run.guests[i].name=g.name;bdSave(b)}const e=document.getElementById('bdn'+i);if(e)e.textContent=g.name}).catch(()=>{})});
+  if(tab==='home'&&!busy)render();
+}
+function bdayStop(name){const o=bdLoad();o.done[name]=1;o.run=null;bdSave(o);try{if(window.speechSynthesis)speechSynthesis.cancel()}catch(e){}if(tab==='home'&&!busy)render()}
+function speakKo(text,pitch,rate){
+  try{
+    if(S.mute||!window.speechSynthesis||!window.SpeechSynthesisUtterance)return;
+    const u=new SpeechSynthesisUtterance(text);u.lang='ko-KR';u.pitch=pitch||1;u.rate=rate||.9;u.volume=1;
+    const v=(speechSynthesis.getVoices()||[]).filter(x=>/^ko/i.test(x.lang))[0];if(v)u.voice=v;
+    speechSynthesis.cancel();speechSynthesis.speak(u);
+  }catch(e){}
+}
+function bdayJingle(){                                   // 생일 축하 노래 (가락만)
+  try{
+    if(S.mute||!AC)return;
+    const N={C4:261.6,D4:293.7,E4:329.6,F4:349.2,G4:392,A4:440,B4f:466.2,C5:523.3},bt=.42;
+    const bars=[['C4',.75],['C4',.25],['D4',1],['C4',1],['F4',1],['E4',2],['C4',.75],['C4',.25],['D4',1],['C4',1],['G4',1],['F4',2],['C4',.75],['C4',.25],['C5',1],['A4',1],['F4',1],['E4',1],['D4',1],['B4f',.75],['B4f',.25],['A4',1],['F4',1],['G4',1],['F4',2]];
+    let t=AC.currentTime+.1;bars.forEach(([n,b])=>{bgmNote(N[n],t,b*bt*.9,.16);t+=b*bt});
+  }catch(e){}
+}
+const BD_PITCH=[1.5,1.0,1.25];
+function bdayTick(){
+  try{
+    const c=bdayCfg();if(!c.on)return;
+    let o=bdLoad(),r=o.run;
+    if(r&&Date.now()-r.start>=c.min*60000){bdayStop(r.name);return}
+    if(!r){
+      if(!bdAutoOn()||mornState()==='run')return;
+      const now=new Date(),mins=now.getHours()*60+now.getMinutes();
+      if(mins<hmMin(c.from)||mins>=21*60)return;
+      const k=S.kids.find(q=>isBirthday(q)&&!o.done[q.name]);
+      if(k)bdayStart(k);
+      return;
+    }
+    if(Date.now()<r.next)return;
+    const k=S.kids.find(q=>q.name===r.name);if(!k){bdayStop(r.name);return}
+    const lines=bdLines(k),line=lines[r.si%lines.length],gi=r.si%r.guests.length;
+    const idx=r.si%lines.length;r.si++;r.next=Date.now()+(r.si%lines.length===0?30000:8000);
+    bdSave(o);
+    for(let i=0;i<r.guests.length;i++){const b=document.getElementById('bdb'+i),g=document.getElementById('bdg'+i);if(b){b.textContent=i===gi?line:'';b.className='bdbub'+(i===gi?' show':'')}if(g)g.className='bdg'+(i===gi?' talk':'')}
+    if(c.voice)speakKo(line,BD_PITCH[gi%3],.92);
+    if(idx===0){sfx('win');bdayJingle()}
+    const le=document.getElementById('bdleft');if(le)le.textContent=Math.max(0,Math.ceil((c.min*60000-(Date.now()-r.start))/60000))+'분';
+  }catch(e){}
+}
+setInterval(bdayTick,2000);
+document.addEventListener('touchend',()=>{try{if(window.speechSynthesis&&window.SpeechSynthesisUtterance&&!window.__spkOk){window.__spkOk=1;const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}}catch(e){}},{passive:true});
+function birthdayView(){
+  const r=bdayRun(),k=S.kids.find(q=>q.name===r.name),c=bdayCfg(),a=bdAge(k);
+  const face=k.face&&IMG.mem[k.face]?`<img class="mface" style="width:72px;height:72px" src="${IMG.mem[k.face]}">`:`<img class="mface" style="width:72px;height:72px" src="${TRAINER(k.trainer)}">`;
+  let conf='';for(let i=0;i<24;i++)conf+=`<i class="bdc" style="left:${(i*41)%100}%;animation-duration:${4+(i*7)%5}s;animation-delay:-${(i*3)%6}s;font-size:${16+(i*5)%16}px">${['🎈','🎉','✨','🎊','⭐','🎁'][i%6]}</i>`;
+  return `<div class="dash"><div class="bday" id="bday"><div class="bdconf">${conf}</div>
+    <div class="bdhead"><div class="bdface">${face}<span class="bdcrown">👑</span></div>
+      <div class="bdt1">🎂 ${esc(k.name)}${josa(k.name)}, 생일 축하해! 🎉</div>
+      <div class="bdt2">${a>0&&a<=20?`${KNUM[a]} 살이 된 걸 축하해요!`:'오늘은 너의 날이에요!'}</div></div>
+    <div class="bdguests">${r.guests.map((g,i)=>`<div class="bdg" id="bdg${i}"><div class="bdbub" id="bdb${i}"></div><img class="bdgi" src="${ART(g.id)}"><small id="bdn${i}">${esc(g.name||'')}</small></div>`).join('')}</div>
+    <div class="bdcake">🎂</div>
+    <div class="bdmons">${r.dancers.map((m,i)=>`<img class="bdm d${i%3}" src="${ART(m.id)}" style="animation-delay:-${(i*0.37).toFixed(2)}s">`).join('')}</div>
+    <div class="acts"><button data-act="bdayclose">🎈 닫기</button><span class="small" style="margin-left:10px">축하 파티 남은 시간 <b id="bdleft">${Math.max(0,Math.ceil((c.min*60000-(Date.now()-r.start))/60000))}분</b></span></div></div></div>`;
+}
+function bdayBanner(){
+  const k=S.kids.find(isBirthday);if(!k||!bdayCfg().on)return '';
+  return `<div class="sec msgban" style="border-color:#ffb300"><div class="sh" style="--c:#ff8f00;color:#e65100">🎂 오늘은 ${esc(k.name)}${josa(k.name)}의 생일이에요! 🎉</div>
+    <div class="acts" style="justify-content:flex-start"><button class="go" data-act="bdaytest" data-i="${S.kids.indexOf(k)}">🎉 다시 축하해 주기</button></div></div>`;
 }
 /* ---- 💌 스티커 메시지 (글자 없이 아이콘으로 엄마·아빠·아이들끼리) ---- */
 const STK_KID=[['🍚','배고파요'],['💧','목말라요'],['🤒','아파요'],['😴','졸려요'],['🥰','보고싶어요'],['❤️','사랑해요'],['🎮','놀아줘요'],['🆘','도와줘요'],['🚽','화장실 가고 싶어요'],['🏠','언제 와요?'],['😢','속상해요'],['🙏','미안해요'],['📚','숙제 다 했어요'],['🎉','칭찬해 주세요'],['🍦','간식 먹고 싶어요'],['🛁','씻었어요']];
@@ -2180,6 +2310,13 @@ function setView(){
     <div class="row"><input type="time" data-dim="to" value="${dimCfg().to}"><span>에 가장 환하게</span></div>
     <div class="row"><span>그 전에 서서히 어두워지는 시간</span><select data-dim="ramp" style="width:110px">${[[0,'바로'],[60,'1시간'],[120,'2시간'],[180,'3시간']].map(([v,l])=>`<option value="${v}" ${+dimCfg().ramp===v?'selected':''}>${l}</option>`).join('')}</select></div>
     <p class="small">완전히 어두울 때 화면을 터치하면 1분 동안 보였다가 다시 어두워져요. 위쪽 🌙 버튼을 누르면 지금 바로 어둡게 해요.</p></div>
+  <div class="card"><h2>🎂 생일 축하 파티</h2>
+    <div class="row"><input type="checkbox" data-bdc="on" ${bdayCfg().on?'checked':''}><span>아이 생일에 홈 화면에서 포켓몬들이 축하해 줘요</span></div>
+    <div class="row"><span>시작 시각</span><input type="time" data-bdc="from" value="${esc(bdayCfg().from)}"><span>이후 처음 켜질 때</span></div>
+    <div class="row"><span>파티 시간</span><select data-bdc="min" style="width:100px">${[5,10,15,20].map(v=>`<option value="${v}" ${+bdayCfg().min===v?'selected':''}>${v}분</option>`).join('')}</select><input type="checkbox" data-bdc="voice" ${bdayCfg().voice?'checked':''}><span>목소리로 말해요</span></div>
+    <div class="row"><input type="checkbox" data-bdcdev ${bdAutoOn()?'checked':''}><span>이 기기에서 자동으로 시작해요 (이 기기에만 적용돼요)</span></div>
+    <div class="acts" style="justify-content:flex-start">${S.kids.map((q,i)=>`<button data-act="bdaytest" data-i="${i}">🎉 ${esc(q.name)} 축하 미리보기</button>`).join('')}</div>
+    <p class="small">아이 카드의 🎂 생일 날짜가 오늘이면 자동으로 시작돼요. 가진 포켓몬들이 춤추고, 아직 아무도 못 만난 전설·환상 포켓몬 3마리가 손님으로 와서 말로 축하해요. 소리는 화면을 한 번 눌러 준 뒤에 나와요. 🔇로 끄면 목소리도 꺼져요.</p></div>
   <div class="card"><h2>🌅 아침 준비 (등원 챌린지)</h2>
     <div class="row"><input type="checkbox" data-morn="on" ${morningCfg().on?'checked':''}><span>월~금 아침, 아이가 준비하는 모습을 달리기 게임으로 보여줘요</span></div>
     <div class="row"><span>누구?</span><select data-morn="kid" style="width:110px">${S.kids.map(q=>`<option ${q.name===morningCfg().kid?'selected':''}>${esc(q.name)}</option>`).join('')}</select><span>가는 곳</span><input data-morn="place" value="${esc(morningCfg().place)}" style="width:100px"></div>
@@ -2275,6 +2412,8 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.act==='train'){const m=k.mons[k.sel];if(m&&(m.lv||0)<MAX_LV&&k.coins>=trainCost(m)){k.coins-=trainCost(m);m.lv=(m.lv||0)+1;sfx('evo');toast(`💪 훈련 성공! ${m.name} Lv.${m.lv} ⚡${powerOf(m)}`)}}
   else if(t.dataset.act==='wild'){wildBattle(k);return}
   else if(t.dataset.fight!==undefined){friendBattle(k,ents().find(q=>q.name===t.dataset.fight));return}
+  else if(t.dataset.act==='bdayclose'){const r=bdayRun();if(r)bdayStop(r.name);return}
+  else if(t.dataset.act==='bdaytest'){const q=S.kids[+t.dataset.i];if(q){const o=bdLoad();delete o.done[q.name];o.run=null;bdSave(o);unlockAudio();bdayStart(q);tab='home'}}
   else if(t.dataset.act==='vsend'){
     const f=ents().find(q=>q.name===vSel.to&&q!==k)||ents().find(q=>q!==k),cur=outOf(k);
     if(f&&cur.length<3){
@@ -2453,6 +2592,8 @@ document.addEventListener('change',e=>{
     else if(q.bonusDate===today()){q.lastPerfect=today();q.prev={streak:Math.max(0,n-1),last:n>1?dkey(-1):''}}   // 오늘 이미 다 했으면 오늘까지 센 값
     else q.lastPerfect=dkey(-1);                                                                                   // 오늘 다 하면 n+1 이 돼요
   }
+  else if(D.bdc!==undefined){S.bdayCfg=Object.assign(bdayCfg(),{[D.bdc]:(D.bdc==='on'||D.bdc==='voice')?t.checked:D.bdc==='min'?+t.value:t.value})}
+  else if(D.bdcdev!==undefined){try{localStorage.setItem(BD_AUTO,t.checked?'on':'off')}catch(e){}return}
   else if(D.vsel!==undefined){vSel[D.vsel]=t.value;return}
   else if(D.morn!==undefined){S.morning=Object.assign(morningCfg(),{[D.morn]:D.morn==='on'?t.checked:t.value});if(D.morn==='kid')S.morning.chore=''}
   else if(D.bgm!==undefined){S.bgm=Object.assign(bgmCfg(),{[D.bgm]:D.bgm==='on'?t.checked:D.bgm==='vol'?+t.value:t.value});bgmNext=0}
