@@ -137,6 +137,16 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 .stk{display:block;text-align:center;padding:10px 4px;border-radius:16px}
 .stk span{display:block;font-size:40px;line-height:1.1}
 .stk b{display:block;font-size:14px;margin-top:2px}
+.arena{display:flex;align-items:flex-end;justify-content:center;max-width:90vw}
+.bside{width:120px;text-align:center}
+.bside img{width:110px;height:110px;object-fit:contain;transition:filter .1s}
+.bside img.hit{filter:brightness(2) saturate(2);animation:shake .25s}
+.bnm{font-weight:800;font-size:14px}
+.bvs{font-size:34px;margin:0 6px 40px}
+.bhp{height:12px;background:#ddd;border-radius:8px;overflow:hidden;margin-top:4px;border:2px solid #fff;box-shadow:0 0 0 1px #bbb}
+.bhp i{display:block;height:100%;background:#43a047;transition:width .5s}
+.bhp i.foe{background:#e53935}
+.blog{margin-top:10px;font-size:17px;font-weight:700;min-height:26px}
 .shopg{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));margin-top:8px}
 .shopg>*{margin:4px}
 .shopi{display:block;text-align:center;padding:8px 4px}
@@ -644,7 +654,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261119e';
+const BUILD='20261119f';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -880,7 +890,7 @@ async function hatchEgg(k,btn){
   const n=k.hatched+1,legend=n===7||n%20===0;   // 7번째, 그리고 20번째마다 (화면에는 알리지 않음)
   try{
     const p=legend?await rollLegend(k):await rollEgg(k);
-    k.coins-=S.eggCost;k.mons.push(p);k.dex[p.id]=1;k.hatched++;k.sel=k.mons.length-1;
+    k.coins-=S.eggCost;k.mons.push(p);ensureBst(p);k.dex[p.id]=1;k.hatched++;k.sel=k.mons.length-1;
     sfx('hatch');confetti();
     overlay((p.legend?'<h2>🌟 대박! 전설의 포켓몬이에요!</h2>':'')+'<h2>🎉 '+esc(p.name)+' 등장!</h2><img class="big" src="'+ART(p.id)+'">');
   }catch(err){overlay('<h2>인터넷 연결을 확인해주세요 😢</h2>')}
@@ -979,15 +989,15 @@ function closeOv(){document.getElementById('ov').classList.remove('show')}
 let tt;function toast(m,ms){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),ms||1400)}
 function clockHtml(){const d=new Date();return `${pad(d.getHours())}:${pad(d.getMinutes())}`}
 function dateHtml(){return new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})}
-const KIDTABS=['menu','outfit','todo','town','dex','rec'];
+const KIDTABS=['menu','outfit','todo','town','dex','battle','rec'];
 
 function render(){
-  document.getElementById('tabs').innerHTML=[['home','🏠 홈'],['menu','🍽 식단'],['outfit','👕 옷'],['todo','📝 미션'],['town','🌳 마을'],['dex','📖 도감'],['rec','📊 기록'],['msg','💌 메시지'+(unreadCount()?' ('+unreadCount()+')':'')],['set','⚙️ 설정']]
+  document.getElementById('tabs').innerHTML=[['home','🏠 홈'],['menu','🍽 식단'],['outfit','👕 옷'],['todo','📝 미션'],['town','🌳 마을'],['dex','📖 도감'],['battle','⚔️ 배틀'],['rec','📊 기록'],['msg','💌 메시지'+(unreadCount()?' ('+unreadCount()+')':'')],['set','⚙️ 설정']]
     .map(([k,l])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${l}</button>`).join('');
-  document.getElementById('mute').textContent=S.mute?'🔇':'🔊';  if(kid>=S.kids.length&&tab!=='town'&&tab!=='dex')kid=0;     // 엄마·아빠는 마을·도감에서만 골라요
-  document.getElementById('kids').innerHTML=KIDTABS.indexOf(tab)>=0?S.kids.concat(tab==='town'||tab==='dex'?S.parents:[]).map((k,i)=>`<button class="${i===kid?'on':''}" data-kid="${i}">${k.adult?'👪 ':''}${esc(k.name)}</button>`).join(''):'';
+  document.getElementById('mute').textContent=S.mute?'🔇':'🔊';  if(kid>=S.kids.length&&tab!=='town'&&tab!=='dex'&&tab!=='battle')kid=0;     // 엄마·아빠는 마을·도감에서만 골라요
+  document.getElementById('kids').innerHTML=KIDTABS.indexOf(tab)>=0?S.kids.concat(tab==='town'||tab==='dex'||tab==='battle'?S.parents:[]).map((k,i)=>`<button class="${i===kid?'on':''}" data-kid="${i}">${k.adult?'👪 ':''}${esc(k.name)}</button>`).join(''):'';
   const m=document.getElementById('main');
-  m.innerHTML=tab==='home'?homeView():tab==='menu'?menuView():tab==='outfit'?outfitView():tab==='todo'?todoView():tab==='town'?townView():tab==='dex'?dexView():tab==='rec'?recView():tab==='msg'?msgView():setView();
+  m.innerHTML=tab==='home'?homeView():tab==='menu'?menuView():tab==='outfit'?outfitView():tab==='todo'?todoView():tab==='town'?townView():tab==='dex'?dexView():tab==='battle'?battleView():tab==='rec'?recView():tab==='msg'?msgView():setView();
   const gh=document.getElementById('gohome');if(gh)gh.style.display=tab==='home'?'none':'block';
   if(tab==='dex')fillDex();
   paintCloud();
@@ -1546,7 +1556,7 @@ async function pullPhotos(){
   return got;
 }
 /* ---- 아이 기록(코인·포켓몬·할 일 체크 등) 기기 간 동기화: 아이별로 "나중에 바뀐 쪽"이 이겨요 ---- */
-const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev','deco','out'];
+const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev','deco','out','bw','bl','bday','bn'];
 const progOf=k=>{const o={};PF.forEach(f=>{if(k[f]!==undefined)o[f]=k[f]});return o};
 function sweepTodo(){                                       // 오늘이 아닌 날 체크된 할 일은 지워요
   let n=0;Object.keys(S.todoDone).forEach(x=>{const v=S.todoDone[x];if(x.indexOf('__ck|')!==0&&typeof v==='string'&&v!==today()){delete S.todoDone[x];n++}});return n}
@@ -1715,6 +1725,93 @@ function todoView(){
   ${p?`<div class="card hero"><img src="${ART(p.id)}"><div class="bar" style="justify-content:center">${esc(p.name)}</div></div>`:''}</div>`;
 }
 
+/* ---- ⚔️ 전투력 · 훈련 · 배틀 ---- */
+const MAX_LV=20,WILD_DAILY=5;
+const trainCost=m=>30*((m.lv||0)+1);
+const powerOf=m=>Math.round((m.bst>0?m.bst:300)*(1+0.06*(m.lv||0)));
+const bstTried={};
+async function ensureBst(m){                                // 종족값(기본 힘)을 한 번 읽어 두면 진화할 때 더 세져요
+  if(m.bst>0||bstTried[m.id])return;bstTried[m.id]=1;
+  try{m.bst=await bstOf(m.id)}catch(e){m.bst=-1}
+}
+function simBattle(pa,pb,rnd){                              // 순서대로 공격해요. 힘이 센 쪽이 먼저, 힘 차이가 클수록 더 아파요
+  rnd=rnd||Math.random;
+  const ea=pa*(.7+.6*rnd()),eb=pb*(.7+.6*rnd());                // 그날 컨디션: 조금 약한 쪽도 이길 수 있어요
+  let ha=100,hb=100,turn=ea===eb?(rnd()<.5?0:1):(ea>eb?0:1);const log=[];
+  for(let i=0;i<60&&ha>0&&hb>0;i++){
+    const att=turn===0?ea:eb,def=turn===0?eb:ea,crit=rnd()<.12;
+    const d=Math.max(2,Math.round(16*Math.pow(att/def,.5)*(.6+.8*rnd())*(crit?1.5:1)));
+    if(turn===0)hb=Math.max(0,hb-d);else ha=Math.max(0,ha-d);
+    log.push({by:turn,d,crit,ha,hb});turn=1-turn;
+  }
+  return {log,winner:ha>hb?0:hb>ha?1:(rnd()<.5?0:1)};
+}
+let fighting=false;
+function battleStart(me,mine,opp){                          // opp: {name,id,power,onEnd(win)}
+  fighting=true;
+  const pa=powerOf(mine),pb=opp.power,res=simBattle(pa,pb);
+  overlay(`<div class="arena"><div class="bside"><img id="bimgA" src="${ART(mine.id)}"><div class="bnm">${esc(mine.name)}<br><small>⚡${pa}</small></div><div class="bhp"><i id="bhpA" style="width:100%"></i></div></div>
+    <div class="bvs">⚔️</div>
+    <div class="bside"><img id="bimgB" src="${ART(opp.id)}" style="transform:scaleX(-1)"><div class="bnm">${esc(opp.name)}<br><small>⚡${pb}</small></div><div class="bhp"><i id="bhpB" class="foe" style="width:100%"></i></div></div></div>
+    <div class="blog" id="blog">⚔️ 배틀 시작!</div>`);
+  const $=id=>document.getElementById(id);
+  let i=0;
+  const step=()=>{
+    if(!$('blog'))return;                                   // 창을 닫으면 멈춰요 (결과는 이미 정해져 있어서 아래에서 바로 처리)
+    if(i>=res.log.length){return finish()}
+    const r=res.log[i++],nm=r.by===0?mine.name:opp.name;
+    $('blog').textContent=`${r.crit?'💥 급소! ':'✨ '}${nm}의 공격! ${r.d} 피해`;
+    $('bhpA').style.width=r.ha+'%';$('bhpB').style.width=r.hb+'%';
+    const tgt=$(r.by===0?'bimgB':'bimgA');if(tgt){tgt.classList.add('hit');setTimeout(()=>tgt.classList.remove('hit'),250)}
+    sfx(r.crit?'win':'coin');
+    setTimeout(step,750);
+  };
+  let done=false;
+  const finish=()=>{
+    if(done)return;done=true;fighting=false;
+    const win=res.winner===0;
+    if($('blog'))$('blog').innerHTML=win?`<b style="color:#2e7d32">🎉 ${esc(mine.name)} 승리!</b>${opp.winTxt?' '+opp.winTxt:''}`:`<b style="color:#c62828">😢 졌어요... 훈련해서 다시 도전해요!</b>`;
+    if(win){sfx('win');confetti()}
+    opp.onEnd(win);save();render();
+  };
+  setTimeout(step,600);
+  setTimeout(()=>{if(!done&&!$('blog'))finish()},res.log.length*750+3000);   // 중간에 창을 닫아도 결과는 반영돼요
+}
+async function wildBattle(k){
+  const m=k.mons[k.sel];if(!m||fighting)return;
+  if(k.bday!==today()){k.bday=today();k.bn=0}
+  if(k.bn>=WILD_DAILY){toast('오늘은 야생 배틀을 다 했어요! 내일 또 만나요 😊');return}
+  fighting=true;
+  await ensureBst(m);
+  k.bn++;
+  let id=1+Math.floor(Math.random()*151),name='야생 포켓몬';
+  try{const tot=await speciesCount();id=1+Math.floor(Math.random()*Math.min(tot,1000));name=koName(await jget(API+'pokemon-species/'+id))}catch(e){}
+  fighting=false;
+  const pw=Math.max(60,Math.round(powerOf(m)*(0.6+0.8*Math.random()))),gain=Math.max(10,Math.min(35,Math.round(15+10*(pw/Math.max(1,powerOf(m))-1)*2)));
+  battleStart(k,m,{name:'야생 '+name,id,power:pw,winTxt:`💰 +${gain}`,onEnd:win=>{if(win){k.coins+=gain;k.earned+=gain;k.bw=(k.bw||0)+1}else k.bl=(k.bl||0)+1}});
+}
+async function friendBattle(k,q){
+  const m=k.mons[k.sel],o=q&&q.mons[q.sel];if(!m||!o||fighting)return;
+  fighting=true;await ensureBst(m);await ensureBst(o);fighting=false;
+  battleStart(k,m,{name:`${q.name}의 ${o.name}`,id:o.id,power:powerOf(o),onEnd:win=>{if(win){k.bw=(k.bw||0)+1;q.bl=(q.bl||0)+1}else{k.bl=(k.bl||0)+1;q.bw=(q.bw||0)+1}}});
+}
+function battleView(){
+  const k=K(),m=k.mons[k.sel];
+  if(!m)return `<div class="stack"><div class="card"><h2>⚔️ 배틀</h2><p class="hero">포켓몬이 있어야 배틀할 수 있어요! 마을에서 알을 뽑아 보세요 🥚</p></div></div>`;
+  const lv=m.lv||0,left=k.bday===today()?Math.max(0,WILD_DAILY-(k.bn||0)):WILD_DAILY;
+  const friends=ents().filter(q=>q!==k&&q.mons[q.sel]);
+  const list=k.mons.map((q,i)=>({q,i})).sort((a,b)=>powerOf(b.q)-powerOf(a.q)).slice(0,24);
+  return `<div class="stack">
+  <div class="card hero"><div class="bar" style="justify-content:center"><b style="color:${k.color}">${esc(k.name)}</b>의 파이터 <span class="chip coin">💰 ${won(k.coins)}</span><span class="chip">🏆 ${k.bw||0}승 ${k.bl||0}패</span></div>
+    <img src="${ART(m.id)}"><div class="bar" style="justify-content:center">${esc(m.name)} <span class="chip">Lv.${lv}</span> <span class="chip" style="background:#fff3e0">⚡ 전투력 ${powerOf(m)}</span></div>
+    <div class="acts"><button class="go" data-act="train" ${lv>=MAX_LV||k.coins<trainCost(m)?'disabled':''}>${lv>=MAX_LV?'💪 최고 레벨이에요!':`💪 훈련하기 (💰${won(trainCost(m))})`}</button></div>
+    <div class="small">훈련하면 전투력이 올라가요. 진화하면 훨씬 더 세져요! ✨</div></div>
+  <div class="card"><h2>🌿 야생 포켓몬과 배틀</h2><div class="small">이기면 코인을 받아요 (오늘 남은 도전 ${left}번)</div>
+    <div class="acts"><button class="egg" data-act="wild" ${left<=0?'disabled':''}>⚔️ 도전!</button></div></div>
+  <div class="card"><h2>🤝 가족과 겨뤄요</h2><div class="small">상대가 고른 파이터와 겨뤄요 (코인은 걸리지 않아요)</div>
+    ${friends.length?friends.map(q=>{const o=q.mons[q.sel];return `<div class="giverow"><img src="${ART(o.id)}" style="width:44px;height:44px;object-fit:contain"><span style="flex:1;margin-left:6px"><b style="color:${q.color}">${esc(q.name)}</b>의 ${esc(o.name)} ⚡${powerOf(o)}</span><button class="go" data-fight="${esc(q.name)}">⚔️ 겨루기</button></div>`}).join(''):'<div class="small">겨룰 상대가 없어요</div>'}</div>
+  <div class="card"><h2>🐾 내 파이터 고르기 (전투력 순)</h2><div class="grid">${list.map(({q,i})=>`<div class="mon ${i===k.sel?'sel':''}" data-sel="${i}"><img src="${ART(q.id)}" loading="lazy"><div>${esc(q.name)}</div><small>⚡${powerOf(q)} · Lv.${q.lv||0}</small></div>`).join('')}</div></div></div>`;
+}
 /* ---- 마을 ---- */
 function skyPhase(){const d=new Date(),h=d.getHours()+d.getMinutes()/60;return h<5.5||h>=19.5?'night':h<7.5?'dawn':h<17?'day':'dusk'}
 function townWx(){                                         // 지금 날씨를 마을 하늘 종류로 바꿔요
@@ -1880,7 +1977,7 @@ function townView(){
   let hero='<p class="hero">아직 포켓몬이 없어요. 포켓코인으로 알을 뽑아 보세요! 🥚</p>';
   if(p){
     hero=`<div class="hero"><img src="${ART(p.id)}"><div class="bar" style="justify-content:center">${esc(p.name)} <span class="small">No.${p.id}</span></div>
-    <div class="small">${p.final?'최종 진화! 🏆':`진화 비용 💰${won(S.evoCost)}`}</div>
+    <div class="small">${p.final?'최종 진화! 🏆':`진화 비용 💰${won(S.evoCost)}`} · ⚡ 전투력 ${powerOf(p)}</div>
     <div class="acts"><button class="go" data-act="evo" ${p.final||k.coins<S.evoCost?'disabled':''}>✨ 진화시키기 (💰${won(S.evoCost)})</button><button data-act="tree">🌱 진화 계보</button></div></div>`;
   }
   return `<div class="stack">${sceneHtml(k)}
@@ -2101,6 +2198,9 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.msgto!==undefined){msgTo=t.dataset.msgto}
   else if(t.dataset.stk!==undefined){const fe=ents().find(q=>q.name===msgFrom),st=((fe&&fe.adult)?STK_ADULT:STK_KID)[+t.dataset.stk];if(fe&&st&&msgTo){sendMsg(msgFrom,msgTo,st[0],st[1]);sfx('coin');toast('💌 보냈어요! '+st[0]+' '+st[1])}}
   else if(t.dataset.act==='msgread'){markRead()}
+  else if(t.dataset.act==='train'){const m=k.mons[k.sel];if(m&&(m.lv||0)<MAX_LV&&k.coins>=trainCost(m)){k.coins-=trainCost(m);m.lv=(m.lv||0)+1;sfx('evo');toast(`💪 훈련 성공! ${m.name} Lv.${m.lv} ⚡${powerOf(m)}`)}}
+  else if(t.dataset.act==='wild'){wildBattle(k);return}
+  else if(t.dataset.fight!==undefined){friendBattle(k,ents().find(q=>q.name===t.dataset.fight));return}
   else if(t.dataset.act==='vsend'){
     const f=ents().find(q=>q.name===vSel.to&&q!==k)||ents().find(q=>q!==k),cur=outOf(k);
     if(f&&cur.length<3){
@@ -2117,7 +2217,7 @@ document.addEventListener('click',async e=>{
     const p=leadOf(k);if(!p||p.final||k.coins<S.evoCost)return;
     busy=true;t.disabled=true;t.textContent='진화 중...';
     try{const n=await evolve(p);
-      if(n){const old=p.name;k.coins-=S.evoCost;Object.assign(p,n);k.dex[p.id]=1;k.evos++;
+      if(n){const old=p.name;k.coins-=S.evoCost;Object.assign(p,n);p.bst=0;ensureBst(p).then(()=>{save();render()});k.dex[p.id]=1;k.evos++;
         sfx('evo');confetti();overlay(`<h2>✨ ${esc(old)} → ${esc(p.name)} 진화!</h2><img class="big" src="${ART(p.id)}">`)}
       else{p.final=true;toast('더 이상 진화하지 않아요 (코인은 그대로예요)')}}
     catch(err){overlay('<h2>인터넷 연결을 확인해주세요 😢</h2>')}
