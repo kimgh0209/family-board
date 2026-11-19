@@ -128,6 +128,15 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 @keyframes sway{0%,100%{transform:translateX(-50%) rotate(-3deg)}50%{transform:translateX(-50%) rotate(3deg)}}
 .scene .vwrap{position:absolute;z-index:4}
 .vtag{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:800;background:rgba(255,255,255,.85);border-radius:8px;padding:0 6px;white-space:nowrap}
+.msgi{display:flex;align-items:center;padding:6px 8px;border-radius:12px;margin-top:5px;background:#fafafa;border:2px solid var(--line)}
+.msgi.new{background:#fff3f8;border-color:#f48fb1}
+.msgi .mi{font-size:30px;margin-right:10px;flex:none}
+.msgi small{color:#888}
+.stkg{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));margin-top:6px}
+.stkg>*{margin:4px}
+.stk{display:block;text-align:center;padding:10px 4px;border-radius:16px}
+.stk span{display:block;font-size:40px;line-height:1.1}
+.stk b{display:block;font-size:14px;margin-top:2px}
 .shopg{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));margin-top:8px}
 .shopg>*{margin:4px}
 .shopi{display:block;text-align:center;padding:8px 4px}
@@ -563,7 +572,7 @@ function defaults(){
     todoDone:{},shopping:'우유\n사과\n식빵\n요거트',
     checklist:{title:'여행 준비물',sub:'',text:'여권\n충전기\n카메라\n간식\n세면도구\n비상약'},
     menu:`${dkey(0)} 점심 비빔밥, 계란국\n${dkey(0)} 저녁 김치찌개, 계란말이, 시금치나물\n${dkey(1)} 저녁 삼겹살, 쌈채소`,   // 예시예요. 설정에서 고쳐 쓰세요
-    thanks:{},thanksTo:'',closet:[],outfit:{},
+    thanks:{},thanksTo:'',closet:[],outfit:{},msgs:[],
     shift:{on:true,name:'아빠',anchor:'2026-11-17',seq:'휴 야 야 휴 휴 주 주 휴'},   // 4조 2교대: 기준일(휴)부터 휴·야·야·휴·휴·주·주·휴 를 반복
     shiftOv:{},
     autoPurge:true,                                  // 지난 날 입은 옷 사진은 다음날 자동 삭제
@@ -635,7 +644,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261119d';
+const BUILD='20261119e';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -973,12 +982,12 @@ function dateHtml(){return new Date().toLocaleDateString('ko-KR',{month:'long',d
 const KIDTABS=['menu','outfit','todo','town','dex','rec'];
 
 function render(){
-  document.getElementById('tabs').innerHTML=[['home','🏠 홈'],['menu','🍽 식단'],['outfit','👕 옷'],['todo','📝 미션'],['town','🌳 마을'],['dex','📖 도감'],['rec','📊 기록'],['set','⚙️ 설정']]
+  document.getElementById('tabs').innerHTML=[['home','🏠 홈'],['menu','🍽 식단'],['outfit','👕 옷'],['todo','📝 미션'],['town','🌳 마을'],['dex','📖 도감'],['rec','📊 기록'],['msg','💌 메시지'+(unreadCount()?' ('+unreadCount()+')':'')],['set','⚙️ 설정']]
     .map(([k,l])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${l}</button>`).join('');
   document.getElementById('mute').textContent=S.mute?'🔇':'🔊';  if(kid>=S.kids.length&&tab!=='town'&&tab!=='dex')kid=0;     // 엄마·아빠는 마을·도감에서만 골라요
   document.getElementById('kids').innerHTML=KIDTABS.indexOf(tab)>=0?S.kids.concat(tab==='town'||tab==='dex'?S.parents:[]).map((k,i)=>`<button class="${i===kid?'on':''}" data-kid="${i}">${k.adult?'👪 ':''}${esc(k.name)}</button>`).join(''):'';
   const m=document.getElementById('main');
-  m.innerHTML=tab==='home'?homeView():tab==='menu'?menuView():tab==='outfit'?outfitView():tab==='todo'?todoView():tab==='town'?townView():tab==='dex'?dexView():tab==='rec'?recView():setView();
+  m.innerHTML=tab==='home'?homeView():tab==='menu'?menuView():tab==='outfit'?outfitView():tab==='todo'?todoView():tab==='town'?townView():tab==='dex'?dexView():tab==='rec'?recView():tab==='msg'?msgView():setView();
   const gh=document.getElementById('gohome');if(gh)gh.style.display=tab==='home'?'none':'block';
   if(tab==='dex')fillDex();
   paintCloud();
@@ -1611,6 +1620,7 @@ async function syncNow(){
       try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}
     }
     await syncProgress();
+    try{await syncMsgs()}catch(e){}
     if(await pullPhotos()>0)render();
     if(!sc.ro){if(runPurge())render();await purgeRemote()}else gcPhotos();
     setSync('ok','마지막으로 맞춘 시각 '+apText(new Date())+' '+clockText(new Date()));
@@ -1691,7 +1701,7 @@ function homeView(){
   <div class="tri">
     <div class="col">${clockCard(now)}${calCard(evs)}${schedCard(evs)}</div>
     <div class="col">${weatherCard(now)}${shiftCard()}${outfitCard()}${menuCard()}</div>
-    <div class="col">${mornBanner()}${todoCard()}${kidsCard()}${upCard(evs)}</div>
+    <div class="col">${msgBanner()}${mornBanner()}${todoCard()}${kidsCard()}${upCard(evs)}</div>
   </div></div>`;
 }
 
@@ -1711,6 +1721,88 @@ function townWx(){                                         // 지금 날씨를 �
   const c=W?W.c:0,wind=W&&W.wind?W.wind:0;
   const kind=(c>=71&&c<=77)||c===85||c===86?'snow':(c>=51&&c<=67)||(c>=80&&c<=82)||c>=95?'rain':c===45||c===48?'fog':c>=3?'cloudy':'clear';
   return {kind,thunder:c>=95,windy:wind>=25}
+}
+/* ---- 💌 스티커 메시지 (글자 없이 아이콘으로 엄마·아빠·아이들끼리) ---- */
+const STK_KID=[['🍚','배고파요'],['💧','목말라요'],['🤒','아파요'],['😴','졸려요'],['🥰','보고싶어요'],['❤️','사랑해요'],['🎮','놀아줘요'],['🆘','도와줘요'],['🚽','화장실 가고 싶어요'],['🏠','언제 와요?'],['😢','속상해요'],['🙏','미안해요'],['📚','숙제 다 했어요'],['🎉','칭찬해 주세요'],['🍦','간식 먹고 싶어요'],['🛁','씻었어요']];
+const STK_ADULT=[['❤️','사랑해'],['👍','잘했어'],['🏠','곧 갈게'],['🚗','지금 가는 중'],['🍚','밥 먹자'],['📚','숙제하자'],['⏰','서둘러'],['😴','잘 시간이야'],['🎁','선물 있어'],['😊','고마워'],['🍦','간식 먹자'],['🙌','최고야']];
+let msgFrom='',msgTo='',msgSyncing=false,msgSeen=null;
+const ME_KEY='pkfam3_me';
+const meGet=()=>{try{return localStorage.getItem(ME_KEY)||''}catch(e){return ''}};
+const meSet=v=>{try{localStorage.setItem(ME_KEY,v)}catch(e){}};
+const msgTargets=m=>m.to==='부모'?S.parents.map(q=>q.name):m.to==='아이들'?S.kids.map(q=>q.name):[m.to];
+function meNames(){const me=meGet();return me==='아이들'?S.kids.map(q=>q.name):me?[me]:[]}
+const msgUnread=m=>{const me=meNames();return msgTargets(m).some(n=>me.indexOf(n)>=0&&(m.r||[]).indexOf(n)<0)};
+function unreadList(){return (S.msgs||[]).filter(msgUnread)}
+function unreadCount(){try{return unreadList().length}catch(e){return 0}}
+const msgTime=ts=>{const d=new Date(ts),t=`${pad(d.getHours())}:${pad(d.getMinutes())}`;return dstr(d)===today()?t:`${d.getMonth()+1}/${d.getDate()} ${t}`};
+const toLabel=m=>m.to==='부모'?'엄마·아빠':m.to==='아이들'?'아이들':m.to;
+function mergeMsgs(a,b){
+  const m={};[a,b].forEach(L=>(L||[]).forEach(x=>{const y=m[x.id];if(!y)m[x.id]=JSON.parse(JSON.stringify(x));else{y.r=y.r||[];(x.r||[]).forEach(n=>{if(y.r.indexOf(n)<0)y.r.push(n)})}}));
+  const cut=Date.now()-14*86400000;
+  return Object.keys(m).map(k=>m[k]).filter(x=>x.ts>cut).sort((p,q)=>p.ts-q.ts).slice(-120);
+}
+function kickMsgSync(){try{if(S.sync&&S.sync.on){clearTimeout(syncTimer);syncTimer=setTimeout(syncNow,1200)}}catch(e){}}
+function sendMsg(from,to,ic,tx){
+  S.msgs=mergeMsgs(S.msgs,[{id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),from,to,ic,tx,ts:Date.now(),r:[]}]);
+  save();kickMsgSync();
+}
+function markRead(){
+  const me=meNames();let n=0;
+  (S.msgs||[]).forEach(m=>{msgTargets(m).forEach(t=>{if(me.indexOf(t)>=0&&(m.r=m.r||[]).indexOf(t)<0){m.r.push(t);n++}})});
+  if(n){save();kickMsgSync()}
+}
+async function syncMsgs(){                              // messages.json: 서로 합쳐서(지우지 않고) 올려요
+  const sc=S.sync;if(!sc||!sc.on||!sc.token||!sc.repo||msgSyncing)return;
+  msgSyncing=true;
+  try{
+    const r=await ghReq('GET','messages.json');
+    let remote=[],sha=null;
+    if(r.status===200){const j=await r.json();sha=j.sha;remote=(JSON.parse(b64d(j.content))||{}).msgs||[]}
+    else if(r.status!==404)throw new Error(ghMsg(r.status));
+    const before=msgSeen||{};(S.msgs||[]).forEach(m=>{if(msgUnread(m))before[m.id]=1});
+    const merged=mergeMsgs(S.msgs,remote);
+    const changedLocal=JSON.stringify(merged)!==JSON.stringify(S.msgs||[]),changedRemote=JSON.stringify(merged)!==JSON.stringify(remote);
+    S.msgs=merged;
+    if(changedRemote){
+      const body={message:'msgs',content:b64e(JSON.stringify({msgs:merged}))};if(sha)body.sha=sha;
+      const w=await ghReq('PUT','messages.json',body);
+      if(!w.ok&&w.status!==409&&w.status!==422)throw new Error(ghMsg(w.status));
+    }
+    if(changedLocal){try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}}
+    const fresh=unreadList().filter(m=>!before[m.id]&&msgSeen);
+    msgSeen={};unreadList().forEach(m=>{msgSeen[m.id]=1});
+    if(fresh.length){sfx('hatch');toast('💌 새 메시지가 왔어요! '+fresh[0].ic+' '+fresh[0].tx,3000)}
+    if(changedLocal&&(tab==='home'||tab==='msg')&&!busy)render();
+  }finally{msgSyncing=false}
+}
+setInterval(()=>{try{if(S.sync&&S.sync.on)syncMsgs().catch(()=>{})}catch(e){}},20000);
+function msgBanner(){
+  const u=unreadList().slice(-3).reverse();if(!u.length)return '';
+  return `<div class="sec msgban"><div class="sh" style="--c:#d81b60;color:#ad1457">💌 새 메시지 ${u.length}개</div>
+    ${u.map(m=>`<div class="msgi new"><span class="mi">${m.ic}</span><div><b>${esc(m.from)}</b> → ${esc(toLabel(m))}<br>${esc(m.tx)}</div></div>`).join('')}
+    <div class="acts" style="justify-content:flex-start"><button class="go" data-act="msgread">✔ 읽었어요</button><button data-tab="msg">💌 답장하기</button></div></div>`;
+}
+function msgView(){
+  const me=meGet(),all=ents(),names=all.map(q=>q.name);
+  if(names.indexOf(msgFrom)<0)msgFrom=(me&&me!=='아이들'&&names.indexOf(me)>=0)?me:(names.indexOf(K().name)>=0?K().name:names[0]);
+  const fromE=all.find(q=>q.name===msgFrom),adult=!!fromE.adult,others=all.filter(q=>q!==fromE).map(q=>q.name);
+  const toOpts=others.concat([adult?'아이들':'부모']);
+  if(toOpts.indexOf(msgTo)<0)msgTo=adult?'아이들':'부모';
+  const lab=n=>n==='부모'?'👪 엄마·아빠 모두':n==='아이들'?'👧 아이들 모두':n;
+  const stk=(adult?STK_ADULT:STK_KID);
+  const feed=(S.msgs||[]).slice(-30).reverse();
+  return `<div class="stack">
+  <div class="card"><h2>📱 이 기기는 누구 거예요?</h2>
+    <div class="acts" style="justify-content:flex-start">${[['','잘 모르겠어요'],['아이들','👧 아이들 (거실 패드)']].concat(S.parents.map(q=>[q.name,'👤 '+q.name])).map(([v,l])=>`<button class="${me===v?'go':''}" data-me="${esc(v)}">${l}</button>`).join('')}</div>
+    <div class="small">${me?'이 기기로 온 메시지만 새 메시지로 알려 줘요.':'먼저 골라 주세요! 그래야 나에게 온 메시지를 알려 줘요.'} (이 기기에만 저장돼요)</div></div>
+  <div class="card"><h2>💌 스티커 보내기</h2>
+    <div class="small">보내는 사람</div><div class="acts" style="justify-content:flex-start">${names.map(n=>`<button class="${n===msgFrom?'go':''}" data-msgfrom="${esc(n)}">${esc(n)}</button>`).join('')}</div>
+    <div class="small">받는 사람</div><div class="acts" style="justify-content:flex-start">${toOpts.map(n=>`<button class="${n===msgTo?'go':''}" data-msgto="${esc(n)}">${esc(lab(n))}</button>`).join('')}</div>
+    <div class="stkg">${stk.map(([ic,tx],i)=>`<button class="stk" data-stk="${i}"><span>${ic}</span><b>${esc(tx)}</b></button>`).join('')}</div>
+    <div class="small">누르면 바로 ${esc(lab(msgTo))}에게 보내져요. 글자를 쓰지 않아도 돼요! 😊 (받는 사람은 앱을 열면 알림이 떠요)</div></div>
+  <div class="card"><h2>📬 주고받은 메시지</h2>
+    ${me?`<div class="acts" style="justify-content:flex-start"><button data-act="msgread" ${unreadCount()?'':'disabled'}>✔ 모두 읽음으로</button></div>`:''}
+    ${feed.length?feed.map(m=>`<div class="msgi ${msgUnread(m)?'new':''}"><span class="mi">${m.ic}</span><div><b>${esc(m.from)}</b> → ${esc(toLabel(m))} · ${esc(m.tx)}<small> ${msgTime(m.ts)}${(m.r||[]).length?' · 읽음':''}</small></div></div>`).join(''):'<div class="small">아직 메시지가 없어요</div>'}</div></div>`;
 }
 /* ---- 🚌 친구 마을에 놀러 가기 (포켓몬·트레이너) ---- */
 const vSel={to:'',who:'t',mode:'play'};
@@ -2004,6 +2096,11 @@ document.addEventListener('click',async e=>{
     await hatchEgg(k,t);
   }
   else if(t.dataset.starter){await hatchStarter(k,+t.dataset.starter)}
+  else if(t.dataset.me!==undefined){meSet(t.dataset.me);msgSeen=null;if(t.dataset.me==='아이들'||t.dataset.me==='')msgFrom='';else msgFrom=t.dataset.me;toast(t.dataset.me?'이 기기는 "'+t.dataset.me+'" 거예요':'선택을 풀었어요')}
+  else if(t.dataset.msgfrom!==undefined){msgFrom=t.dataset.msgfrom;msgTo=''}
+  else if(t.dataset.msgto!==undefined){msgTo=t.dataset.msgto}
+  else if(t.dataset.stk!==undefined){const fe=ents().find(q=>q.name===msgFrom),st=((fe&&fe.adult)?STK_ADULT:STK_KID)[+t.dataset.stk];if(fe&&st&&msgTo){sendMsg(msgFrom,msgTo,st[0],st[1]);sfx('coin');toast('💌 보냈어요! '+st[0]+' '+st[1])}}
+  else if(t.dataset.act==='msgread'){markRead()}
   else if(t.dataset.act==='vsend'){
     const f=ents().find(q=>q.name===vSel.to&&q!==k)||ents().find(q=>q!==k),cur=outOf(k);
     if(f&&cur.length<3){
