@@ -632,7 +632,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261119b';
+const BUILD='20261119c';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1900,6 +1900,7 @@ function setView(){
     <div class="row"><span>🔉 볼륨</span><select data-bgm="vol" style="width:120px">${[[.05,'아주 작게'],[.1,'작게'],[.2,'보통'],[.35,'크게']].map(([v,l])=>`<option value="${v}" ${+bgmCfg().vol===v?'selected':''}>${l}</option>`).join('')}</select></div>
     <p class="small">아이패드는 앱을 켠 뒤 화면을 한 번 눌러야 소리가 나요. 우측 위 🔊/🔇 버튼으로 끄면 음악도 꺼져요.</p></div>
   ${S.kids.map((k,i)=>`<div class="card"><div class="row"><input value="${esc(k.name)}" data-kname="${i}" style="font-weight:700"><button data-act="delkid" data-k="${i}" style="background:#ffcdd2">삭제</button></div>
+    <div class="row"><span>🔥 연속 성공 일수</span><input class="num" type="number" min="0" max="999" value="${curStreak(k)}" data-kstreak="${i}"><span>일 (코인은 그대로예요)</span></div>
     <div class="row"><span>🎂 생일</span><input type="date" data-bday="${i}" value="${esc(k.birthday||'')}"><select data-kcol="${i}" style="width:100px">${pal(k.color)}</select></div>
     <div class="small">미션 이름 · 받는 코인</div>
     ${k.chores.map((c,j)=>`<div class="row"><input value="${esc(c.t)}" data-ct="${i}.${j}"><input class="num" type="number" min="0" value="${c.c}" data-cc="${i}.${j}"><span>💰</span><button data-act="delchore" data-k="${i}" data-c="${j}">✕</button></div>`).join('')}
@@ -2121,6 +2122,13 @@ document.addEventListener('change',e=>{
   else if(D.legend!==undefined)S.legend=t.checked;
   else if(D.autopurge!==undefined)S.autoPurge=t.checked;
   else if(D.dim!==undefined){S.dim=Object.assign(dimCfg(),{[D.dim]:D.dim==='on'?t.checked:D.dim==='ramp'?+t.value:t.value});dimTick()}
+  else if(D.kstreak!==undefined){                          // 연속 성공 일수 바로잡기 (코인은 건드리지 않아요)
+    const q=S.kids[+D.kstreak],n=Math.max(0,Math.min(999,Math.round(+t.value)||0));
+    q.streak=n;q.best=Math.max(q.best||0,n);
+    if(n===0){q.lastPerfect=''}
+    else if(q.bonusDate===today()){q.lastPerfect=today();q.prev={streak:Math.max(0,n-1),last:n>1?dkey(-1):''}}   // 오늘 이미 다 했으면 오늘까지 센 값
+    else q.lastPerfect=dkey(-1);                                                                                   // 오늘 다 하면 n+1 이 돼요
+  }
   else if(D.morn!==undefined){S.morning=Object.assign(morningCfg(),{[D.morn]:D.morn==='on'?t.checked:t.value});if(D.morn==='kid')S.morning.chore=''}
   else if(D.bgm!==undefined){S.bgm=Object.assign(bgmCfg(),{[D.bgm]:D.bgm==='on'?t.checked:D.bgm==='vol'?+t.value:t.value});bgmNext=0}
   else if(D.shon!==undefined){S.shift.on=t.checked}
