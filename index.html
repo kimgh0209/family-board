@@ -682,6 +682,7 @@ function fixKid(k,i){
   ['evos','earned','streak','best','perfect','bought','bonusAmt','coins','sel'].forEach(f=>{if(typeof k[f]!=='number')k[f]=0});
   k.hist=k.hist||{};k.badges=k.badges||{};k.lastPerfect=k.lastPerfect||'';k.bonusDate=k.bonusDate||'';
   if(!Array.isArray(k.out))k.out=[];
+  if(typeof k.tix!=='number')k.tix=k.adult?0:2;                  // 종이 뽑기 무료권 (처음 개시 선물: 아이들 2장씩)
   if(!Array.isArray(k.deco)){k.deco=Object.keys(OLD_GIFT).filter(id=>k.mons.length>=OLD_GIFT[id])}   // 마을 상점에서 산 것
   const keys=Object.keys(k.hist).sort();while(keys.length>45)delete k.hist[keys.shift()];
 }
@@ -773,7 +774,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261120h';
+const BUILD='20261120i';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1724,7 +1725,7 @@ async function pullPhotos(){
   return got;
 }
 /* ---- 아이 기록(코인·포켓몬·할 일 체크 등) 기기 간 동기화: 아이별로 "나중에 바뀐 쪽"이 이겨요 ---- */
-const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev','deco','out','bw','bl','bday','bn','freeEgg'];
+const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev','deco','out','bw','bl','bday','bn','freeEgg','tix'];
 const progOf=k=>{const o={};PF.forEach(f=>{if(k[f]!==undefined)o[f]=k[f]});return o};
 function sweepTodo(){                                       // 오늘이 아닌 날 체크된 할 일은 지워요
   let n=0;Object.keys(S.todoDone).forEach(x=>{const v=S.todoDone[x];if(x.indexOf('__ck|')!==0&&typeof v==='string'&&v!==today()){delete S.todoDone[x];n++}});return n}
@@ -2042,7 +2043,7 @@ function drawView(){
   const pend=tabs.map((t,i)=>({t,i})).filter(x=>x.t.open&&!drawBlank(x.t.p)&&!drawCoin(x.t.p)&&!x.t.paid);
   const sz=tabs.length>80?'s':tabs.length>40?'m':'l';
   return `<div class="dboard">
-    <div class="dhead"><b style="font-size:20px">🎟 종이 뽑기</b> <span class="chip coin">한 장 💰${won(c.price)}</span> <span class="chip">남은 종이 ${left}/${tabs.length}</span> <span class="chip coin" style="margin-left:auto">${esc(k.name)} 💰${won(k.coins)}</span></div>
+    <div class="dhead"><b style="font-size:20px">🎟 종이 뽑기</b> <span class="chip coin">한 장 💰${won(c.price)}</span> <span class="chip">남은 종이 ${left}/${tabs.length}</span> <span class="chip" style="background:#e8f5e9">🎫 무료권 ${k.tix||0}장</span> <span class="chip coin" style="margin-left:auto">${esc(k.name)} 💰${won(k.coins)}</span></div>
     ${Object.keys(rem).length?`<div class="drem">🎁 남은 상품: ${Object.keys(rem).map(n=>`<span>${esc(n)} <b>${rem[n]}</b></span>`).join('')}</div>`:''}
     <div class="dgrid ${sz}">${tabs.map((t,i)=>t.open?`<div class="dtab open"><span>${drawBlank(t.p)?'💨':drawCoin(t.p)?'💰':'🎁'}</span><small>${esc(t.by||'')}</small></div>`:`<button class="dtab" data-draw="${i}"><i class="stp"></i><b>${i+1}</b></button>`).join('')}</div>
     ${left?'':'<div class="small" style="text-align:center;margin:8px">모두 뽑혔어요! 부모님께 새 판을 부탁해요</div>'}
@@ -2051,15 +2052,17 @@ function drawView(){
 function drawConfirm(k,i){
   const c=drawCfg(),t=S.drawBoard&&S.drawBoard.tabs[i];
   if(!t||t.open)return;
-  if(k.coins<c.price){toast(`코인이 모자라요 (💰${c.price} 필요)`,2500);return}
+  if(k.coins<c.price&&!(k.tix>0)){toast(`코인이 모자라요 (💰${c.price} 필요)`,2500);return}
   overlay(`<h2>🎟 ${i+1}번 종이를 뜯을까요?</h2><div class="tearbox"><div class="prz">❓</div><div class="tearp"></div></div>
-    <div class="acts"><button class="go" data-act="drawgo" data-i="${i}">✂️ 뜯기! (💰${won(c.price)})</button></div>`);
+    <div class="acts"><button class="go" data-act="drawgo" data-i="${i}">✂️ 뜯기! (${k.tix>0?`🎫 무료권 ${k.tix}장`:`💰${won(c.price)}`})</button></div>`);
   const tp=document.querySelector('#ovbox .tearp');if(tp)tp.style.animation='none';
 }
 function drawGo(k,i){
   const c=drawCfg(),t=S.drawBoard&&S.drawBoard.tabs[i];
-  if(!t||t.open||k.coins<c.price)return;
-  k.coins-=c.price;t.open={};t.by=k.name;t.ts=Date.now();
+  const free=k.tix>0;
+  if(!t||t.open||(!free&&k.coins<c.price))return;
+  if(free)k.tix--;else k.coins-=c.price;
+  t.open={};t.by=k.name;t.ts=Date.now();
   const cn=drawCoin(t.p),blank=drawBlank(t.p);
   if(cn){k.coins+=cn}
   S.drawBoard=Object.assign({},S.drawBoard);
