@@ -261,7 +261,16 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 @keyframes rkflash{from{box-shadow:0 0 0 rgba(229,57,53,0)}to{box-shadow:0 0 28px rgba(229,57,53,.9)}}
 .rkhead{font-size:34px;font-weight:900}
 .rkR{display:inline-block;width:46px;height:46px;line-height:46px;border-radius:50%;background:#e53935;border:3px solid #fff;font-size:30px;margin-right:6px}
-.rkbig{font-size:80px;line-height:1.1;animation:bob 1s infinite ease-in-out}
+.rkcrew{display:flex;justify-content:center;align-items:flex-end;margin:4px 0}
+.rkp{position:relative;width:31%;max-width:190px;text-align:center;padding-top:50px}
+.rkp b{display:block;font-size:20px}
+.rkchar{width:100%;max-width:150px;height:auto;animation:bob 1.1s infinite ease-in-out}
+.rkchar.sp{image-rendering:pixelated;background:radial-gradient(circle,rgba(255,255,255,.85) 0,rgba(255,255,255,.55) 45%,rgba(255,255,255,0) 72%);border-radius:50%;-webkit-filter:drop-shadow(0 0 3px #fff);filter:drop-shadow(0 0 3px #fff)}
+.rkp:nth-child(3) .rkchar{animation-delay:-.5s}
+.rkcat{width:100%;max-width:150px;animation:bob .9s infinite ease-in-out}
+.rkp.mid{padding-top:56px}
+.rkballoon{position:absolute;left:50%;top:20px;margin-left:-60px;font-size:42px;transform:rotate(-15deg)}
+.rkbub{position:absolute;left:50%;top:0;transform:translateX(-50%);background:#fff;color:#4a148c;border-radius:14px;padding:3px 8px;font-size:13px;font-weight:800;white-space:normal;width:max-content;max-width:94%;line-height:1.25;box-shadow:0 2px 6px rgba(0,0,0,.3)}
 .rkmsg{font-size:20px;font-weight:800;margin:2px 0}
 .rkt{font-size:24px;font-weight:800;margin:6px 0}
 .rkt b{font-size:44px;color:#ffeb3b}
@@ -792,7 +801,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261120m';
+const BUILD='20261120p';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -2145,7 +2154,7 @@ function rockTick(){
       const lost=[],done=Object.assign({},q.done);
       q.targets.forEach(n=>{if(done[n])return;if(q.practice){done[n]='practice';return}const k=S.kids.find(x=>x.name===n);const m=k&&rockSteal(k,q);if(m)lost.push(`${n}의 ${m.name}`);done[n]=m?'stolen':'safe'});
       S.rocket=Object.assign({},q,{done,fin:true});save();
-      if(lost.length){sfx('buy');overlay(`<h2>😿 로켓단이 훔쳐 갔어요!</h2><div style="font-size:50px">😼🎈</div><p>${lost.map(esc).join(', ')}<br>마을 탭의 <b>로켓단 아지트</b>에서 되찾을 수 있어요!</p>`)}
+      if(lost.length){sfx('buy');overlay(`<h2>😿 로켓단이 훔쳐 갔어요!</h2><div class="rkcrew" style="color:#333"><div class="rkp">${RK_JESSIE}<b>로사</b></div><div class="rkp"><img class="rkcat" src="${ART(52)}"><b>나옹</b></div><div class="rkp">${RK_JAMES}<b>로이</b></div></div><p>${lost.map(esc).join(', ')}<br>마을 탭의 <b>로켓단 아지트</b>에서 되찾을 수 있어요!</p>`)}
       render();return;
     }
     // 3) 습격 중 화면 갱신
@@ -2166,6 +2175,9 @@ function rockSiren(){                                      // 삐뽀삐뽀 소�
     [620,820,620,820].forEach(f=>{const o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=f;g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.0001,t+.22);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+.24);t+=.24});
   }catch(e){}
 }
+/* 로사·로이: 다른 트레이너 그림과 같은 곳(포켓몬 쇼다운)의 로켓단 그림을 써요 */
+const RK_JESSIE=`<img class="rkchar sp" src="${TRAINER('rocketgruntf')}" alt="로사">`;
+const RK_JAMES=`<img class="rkchar sp" src="${TRAINER('rocketgrunt')}" alt="로이">`;
 function rocketView(){
   const r=rockActive(),rem=Math.max(0,r.dl-Date.now());
   const rows=r.targets.map((n,i)=>{
@@ -2175,8 +2187,11 @@ function rocketView(){
   }).join('');
   return `<div class="dash"><div class="rock" id="rock">
     <div class="rkhead"><span class="rkR">R</span> 로켓단 등장!</div>
-    <div class="rkbig">🎈😼</div>
-    <div class="rkmsg">"마을 포켓몬을 훔치러 왔다냐옹~!"</div>
+    <div class="rkcrew">
+      <div class="rkp"><div class="rkbub">포켓몬은 내놔라~!</div>${RK_JESSIE}<b>로사</b></div>
+      <div class="rkp mid"><div class="rkbub">나옹~! 훔치러 왔다옹!</div><div class="rkballoon">🎈</div><img class="rkcat" src="${ART(52)}"><b>나옹</b></div>
+      <div class="rkp"><div class="rkbub">일찍 일어나면 막을 수 있을걸?</div>${RK_JAMES}<b>로이</b></div>
+    </div>
     <div class="rkt">남은 시간 <b id="rktime">${pad(Math.floor(rem/60000))}:${pad(Math.floor(rem%60000/1000))}</b></div>
     <div class="rkhelp">${r.practice?'🎮 연습이에요! ':''}일어나서 이름 버튼을 ${RK_TAPS}번 눌러 막아요! 못 막으면 마을의 포켓몬을 한 마리 뺏겨요 😿</div>
     <div class="rkbtns">${rows}</div></div></div>`;
@@ -2195,7 +2210,7 @@ async function rockRescue(k,i){
   if((k.rn||0)>=RK_TRIES){toast('오늘은 3번 도전했어요. 내일 또 와요!');return}
   k.rn=(k.rn||0)+1;
   fighting=true;await ensureBst(my);fighting=false;
-  battleStart(k,my,{name:'로켓단 냐옹이',id:52,power:Math.max(100,Math.round(powerOf(my)*0.92)),winTxt:`${st.mon.name} 되찾았어요! 🎉`,onEnd:win=>{
+  battleStart(k,my,{name:'로켓단 나옹',id:52,power:Math.max(100,Math.round(powerOf(my)*0.92)),winTxt:`${st.mon.name} 되찾았어요! 🎉`,onEnd:win=>{
     if(win&&(k.stolen||[])[i]&&k.stolen[i].day===st.day){const m=monCopy(st.mon);k.mons.push(m);k.stolen.splice(i,1);k.dex=k.dex||{};k.dex[m.id]=1}
   }});
 }
