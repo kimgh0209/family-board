@@ -257,6 +257,22 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 .pball{position:absolute;left:6px;top:6px;width:18px;height:18px;border-radius:50%;border:2px solid #37474f;background:linear-gradient(#e53935 46%,#37474f 46%,#37474f 54%,#fff 54%);z-index:1}
 .pball:after{content:'';position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff;border:2px solid #37474f}
 .twe{width:1.1em;height:1.1em;vertical-align:-0.15em;display:inline-block;margin:0 .02em}
+.rock{border-radius:18px;padding:14px;text-align:center;color:#fff;background:radial-gradient(#6a1b9a,#311b92 75%);border:4px solid #e53935;animation:rkflash 1s infinite alternate}
+@keyframes rkflash{from{box-shadow:0 0 0 rgba(229,57,53,0)}to{box-shadow:0 0 28px rgba(229,57,53,.9)}}
+.rkhead{font-size:34px;font-weight:900}
+.rkR{display:inline-block;width:46px;height:46px;line-height:46px;border-radius:50%;background:#e53935;border:3px solid #fff;font-size:30px;margin-right:6px}
+.rkbig{font-size:80px;line-height:1.1;animation:bob 1s infinite ease-in-out}
+.rkmsg{font-size:20px;font-weight:800;margin:2px 0}
+.rkt{font-size:24px;font-weight:800;margin:6px 0}
+.rkt b{font-size:44px;color:#ffeb3b}
+.rkhelp{font-size:17px;font-weight:700;background:rgba(0,0,0,.35);border-radius:12px;padding:6px 10px;margin:6px 0}
+.rkbtns{display:flex;flex-wrap:wrap;justify-content:center}
+.rkbtn{position:relative;display:flex;flex-wrap:wrap;align-items:center;width:calc(33% - 8px);min-width:200px;margin:6px 4px;padding:10px;border-radius:18px;background:#fff;color:#4a148c;font-size:20px;text-align:left}
+.rkbtn img{width:64px;height:64px;object-fit:contain;margin-right:8px}
+.rkbtn small{display:block;font-size:13px;color:#7b1fa2}
+.rkbar{width:100%;height:14px;background:#e1bee7;border-radius:8px;overflow:hidden;margin-top:6px}
+.rkbar i{display:block;height:100%;background:linear-gradient(#ff7043,#e53935);transition:width .1s}
+.rkdone{width:calc(33% - 8px);min-width:200px;margin:6px 4px;padding:18px 10px;border-radius:18px;background:#c8e6c9;color:#1b5e20;font-size:22px;font-weight:800}
 .shopg{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));margin-top:8px}
 .shopg>*{margin:4px}
 .shopi{display:block;text-align:center;padding:8px 4px}
@@ -683,6 +699,7 @@ function fixKid(k,i){
   ['evos','earned','streak','best','perfect','bought','bonusAmt','coins','sel'].forEach(f=>{if(typeof k[f]!=='number')k[f]=0});
   k.hist=k.hist||{};k.badges=k.badges||{};k.lastPerfect=k.lastPerfect||'';k.bonusDate=k.bonusDate||'';
   if(!Array.isArray(k.out))k.out=[];
+  if(!Array.isArray(k.stolen))k.stolen=[];
   if(typeof k.tix!=='number')k.tix=k.adult?0:2;                  // 종이 뽑기 무료권 (처음 개시 선물: 아이들 2장씩)
   if(!Array.isArray(k.deco)){k.deco=Object.keys(OLD_GIFT).filter(id=>k.mons.length>=OLD_GIFT[id])}   // 마을 상점에서 산 것
   const keys=Object.keys(k.hist).sort();while(keys.length>45)delete k.hist[keys.shift()];
@@ -775,7 +792,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261120j';
+const BUILD='20261120m';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1669,13 +1686,13 @@ const b64d=s=>decodeURIComponent(escape(atob(String(s).replace(/\s/g,''))));
 // 부모가 정하는 설정 (아이 기록은 아래 progress.json 으로 따로 맞춰요)
 function cfgOf(){
   return {pin:S.pin,lat:S.lat,lon:S.lon,notices:S.notices,events:S.events,menu:S.menu,todoText:S.todoText,shopping:S.shopping,checklist:S.checklist,
-    people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,autoPurge:S.autoPurge,bgm:S.bgm,dim:S.dim,morning:S.morning,bdayCfg:S.bdayCfg,family:S.family,drawCfg:S.drawCfg,
+    people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,autoPurge:S.autoPurge,bgm:S.bgm,dim:S.dim,morning:S.morning,bdayCfg:S.bdayCfg,family:S.family,drawCfg:S.drawCfg,rocketCfg:S.rocketCfg,
     kids:S.kids.map(k=>({name:k.name,chores:k.chores,birthday:k.birthday,color:k.color,face:k.face||''})),closet:S.closet,outfit:S.outfit};
 }
 const cfgHash=()=>JSON.stringify(cfgOf());
 lastCfgHash=cfgHash();
 function applyCfg(c){
-  ['pin','lat','lon','notices','events','menu','todoText','shopping','checklist','people','eggCost','evoCost','bonus','legend','closet','outfit','shift','shiftOv','autoPurge','bgm','dim','morning','bdayCfg','family','drawCfg'].forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});
+  ['pin','lat','lon','notices','events','menu','todoText','shopping','checklist','people','eggCost','evoCost','bonus','legend','closet','outfit','shift','shiftOv','autoPurge','bgm','dim','morning','bdayCfg','family','drawCfg','rocketCfg'].forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});
   if(Array.isArray(c.kids)){
     c.kids.forEach((kc,i)=>{
       let k=S.kids[i];
@@ -1726,11 +1743,11 @@ async function pullPhotos(){
   return got;
 }
 /* ---- 아이 기록(코인·포켓몬·할 일 체크 등) 기기 간 동기화: 아이별로 "나중에 바뀐 쪽"이 이겨요 ---- */
-const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev','deco','out','bw','bl','bday','bn','freeEgg','tix'];
+const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev','deco','out','bw','bl','bday','bn','freeEgg','tix','fday','fn','stolen','rday','rn'];
 const progOf=k=>{const o={};PF.forEach(f=>{if(k[f]!==undefined)o[f]=k[f]});return o};
 function sweepTodo(){                                       // 오늘이 아닌 날 체크된 할 일은 지워요
   let n=0;Object.keys(S.todoDone).forEach(x=>{const v=S.todoDone[x];if(x.indexOf('__ck|')!==0&&typeof v==='string'&&v!==today()){delete S.todoDone[x];n++}});return n}
-const progG=()=>({todoDone:S.todoDone,thanks:S.thanks,mrun:S.mrun||null,draw:S.drawBoard||null});
+const progG=()=>({todoDone:S.todoDone,thanks:S.thanks,mrun:S.mrun||null,draw:S.drawBoard||null,trades:S.trades||[],rocket:S.rocket||null,bday:S.bdayDone||null});
 let lastPH=[],lastPP=[],lastGH='';
 function progMark(init){                                  // 바뀐 아이가 있으면 시각을 새로 찍어요
   let dirty=false;
@@ -1758,7 +1775,7 @@ async function syncProgress(){
     else if(lp>(x?x.pts:0))push=true;
   }));
   if(rg&&rg.pts>(S.gpts||0)){
-    if(!busy){S.todoDone=JSON.parse(JSON.stringify(rg.d.todoDone||{}));S.thanks=JSON.parse(JSON.stringify(rg.d.thanks||{}));S.mrun=rg.d.mrun?JSON.parse(JSON.stringify(rg.d.mrun)):null;S.drawBoard=rg.d.draw?JSON.parse(JSON.stringify(rg.d.draw)):null;S.gpts=rg.pts;lastGH=JSON.stringify(progG());pulled=true;if(sweepTodo()){S.gpts=now;lastGH=JSON.stringify(progG());push=true}}
+    if(!busy){S.todoDone=JSON.parse(JSON.stringify(rg.d.todoDone||{}));S.thanks=JSON.parse(JSON.stringify(rg.d.thanks||{}));S.mrun=rg.d.mrun?JSON.parse(JSON.stringify(rg.d.mrun)):null;S.drawBoard=rg.d.draw?JSON.parse(JSON.stringify(rg.d.draw)):null;S.trades=rg.d.trades?JSON.parse(JSON.stringify(rg.d.trades)):[];S.rocket=rg.d.rocket?JSON.parse(JSON.stringify(rg.d.rocket)):null;S.bdayDone=rg.d.bday?JSON.parse(JSON.stringify(rg.d.bday)):null;S.gpts=rg.pts;lastGH=JSON.stringify(progG());pulled=true;if(sweepTodo()){S.gpts=now;lastGH=JSON.stringify(progG());push=true}}
   }else if(!rg&&!(S.gpts)){S.gpts=now;push=true}
   else if((S.gpts||0)>(rg?rg.pts:0))push=true;
   if(pulled){try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}render()}
@@ -1875,13 +1892,14 @@ function shPreview(n){
 function homeView(){
   const now=new Date(),evs=parseEv();
   const rn=B?lines(B.notices):[],notices=rn.length?rn:lines(S.notices),ms=mornState();
+  if(rockActive())return rocketView();                    // 로켓단이 나타나면 가장 먼저 보여요
   if(ms==='run'||ms==='done')return `<div class="dash">${morningView()}</div>`;
   if(bdayCfg().on&&bdayRun())return birthdayView();
   return `<div class="dash">
   <div class="tri">
     <div class="col">${clockCard(now)}${calCard(evs)}${schedCard(evs)}</div>
     <div class="col">${weatherCard(now)}${shiftCard()}${outfitCard()}${menuCard()}</div>
-    <div class="col">${bdayBanner()}${mornBanner()}${todoCard()}${kidsCard()}${upCard(evs)}</div>
+    <div class="col">${rockBanner()}${bdayBanner()}${mornBanner()}${todoCard()}${kidsCard()}${upCard(evs)}</div>
   </div></div>`;
 }
 
@@ -1896,7 +1914,7 @@ function todoView(){
 }
 
 /* ---- ⚔️ 전투력 · 훈련 · 배틀 ---- */
-const MAX_LV=20,WILD_DAILY=3;
+const MAX_LV=20,WILD_DAILY=3,FRIEND_DAILY=2;
 const trainCost=m=>30*((m.lv||0)+1);
 const powerOf=m=>Math.round((m.bst>0?m.bst:300)*(1+0.06*(m.lv||0)));
 const bstTried={};
@@ -2004,6 +2022,9 @@ async function wildBattle(k){
 }
 async function friendBattle(k,q){
   const m=k.mons[k.sel],o=q&&q.mons[q.sel];if(!m||!o||fighting)return;
+  if(k.fday!==today()){k.fday=today();k.fn=0}
+  if((k.fn||0)>=FRIEND_DAILY){toast('오늘은 가족 배틀을 다 했어요! 내일 또 겨뤄요 😊');return}
+  k.fn=(k.fn||0)+1;
   fighting=true;await ensureBst(m);await ensureBst(o);fighting=false;
   battleStart(k,m,{name:`${q.name}의 ${o.name}`,id:o.id,power:powerOf(o),onEnd:win=>{if(win){k.bw=(k.bw||0)+1;q.bl=(q.bl||0)+1}else{k.bl=(k.bl||0)+1;q.bw=(q.bw||0)+1}}});
 }
@@ -2016,7 +2037,7 @@ function battleCards(k){                                    // 마을 화면 안
     <div class="giverow"><img src="${ART(m.id)}" style="width:64px;height:64px;object-fit:contain"><span style="flex:1;margin-left:8px"><b>${esc(m.name)}</b> <span class="chip">Lv.${lv}</span> <span class="chip" style="background:#fff3e0">⚡ ${powerOf(m)}</span><br><span class="small">🏆 ${k.bw||0}승 ${k.bl||0}패 · 아래 "내 포켓몬"에서 싸울 친구를 골라요</span></span></div>
     <div class="acts"><button class="go" data-act="train" ${lv>=MAX_LV||k.coins<trainCost(m)?'disabled':''}>${lv>=MAX_LV?'💪 최고 레벨이에요!':`💪 훈련하기 (💰${won(trainCost(m))})`}</button><button class="egg" data-act="wild" ${left<=0?'disabled':''}>🌿 야생 배틀 (오늘 ${left}번)</button></div>
     <div class="small" style="text-align:center">훈련하면 전투력이 올라가요. 진화하면 훨씬 더 세져요! 야생 배틀에서 이기면 코인을 받아요.</div>
-    ${friends.length?`<div class="small" style="margin-top:8px"><b>🤝 가족과 겨뤄요</b> (코인은 걸리지 않아요)</div>`+friends.map(q=>{const o=q.mons[q.sel];return `<div class="giverow"><img src="${ART(o.id)}" style="width:44px;height:44px;object-fit:contain"><span style="flex:1;margin-left:6px"><b style="color:${q.color}">${esc(q.name)}</b>의 ${esc(o.name)} ⚡${powerOf(o)}</span><button class="go" data-fight="${esc(q.name)}">⚔️ 겨루기</button></div>`}).join(''):''}</div>`;
+    ${friends.length?`<div class="small" style="margin-top:8px"><b>🤝 가족과 겨뤄요</b> (코인은 걸리지 않아요 · 오늘 남은 ${k.fday===today()?Math.max(0,FRIEND_DAILY-(k.fn||0)):FRIEND_DAILY}번)</div>`+friends.map(q=>{const o=q.mons[q.sel];return `<div class="giverow"><img src="${ART(o.id)}" style="width:44px;height:44px;object-fit:contain"><span style="flex:1;margin-left:6px"><b style="color:${q.color}">${esc(q.name)}</b>의 ${esc(o.name)} ⚡${powerOf(o)}</span><button class="go" data-fight="${esc(q.name)}">⚔️ 겨루기</button></div>`}).join(''):''}</div>`;
 }
 /* ---- 🎟 종이 뽑기: 옛날 문방구 뽑기처럼 종이를 뜯어서 안에 적힌 상품을 확인해요 (상품은 부모가 정해요) ---- */
 const DRAW_DEF={on:false,price:30,size:120,items:[{n:'아이스크림',c:4},{n:'게임 30분',c:4},{n:'스티커',c:10},{n:'코인 50',c:6}]};
@@ -2070,6 +2091,174 @@ function drawGo(k,i){
   overlay(`<h2>🎟 ${i+1}번 종이</h2><div class="tearbox"><div class="prz show">${blank?'💨<br>꽝!<br><small>아쉬워요 😢</small>':cn?`💰<br>코인 ${cn}개!`:`🎁<br>${esc(t.p)}<br><small>축하해요!</small>`}</div><div class="tearp"></div></div>`);
   if(blank)sfx('buy');else{sfx('win');confetti()}
 }
+/* ---- 🚀 로켓단 습격: 정해진 시간에 나타나요. 아이들이 일어나서 버튼을 눌러 막지 못하면 마을 포켓몬 한 마리를 훔쳐가요 (아지트에서 되찾을 수 있어요) ---- */
+const RK_DEF={on:false,time:'07:50',grace:10,weekdays:true,reward:10,kids:null};
+const RK_TAPS=10,RK_RANSOM=150,RK_TRIES=3;
+const rockCfg=()=>Object.assign({},RK_DEF,S.rocketCfg||{});
+const rkTargets=()=>{const c=rockCfg();return S.kids.filter(k=>!c.kids||c.kids.indexOf(k.name)>=0).map(k=>k.name)};
+let rkTap={};
+function rockActive(){                                     // 지금 습격 중이면 그 정보
+  const r=S.rocket;if(!r||r.day!==today()||r.fin)return null;
+  if(Date.now()>=r.dl)return null;
+  return r.targets.some(n=>!(r.done||{})[n])?r:null;
+}
+function removeMonAt(k,i){                                 // 번호가 어긋나지 않게 정리해서 빼기
+  k.mons.splice(i,1);
+  if(k.sel>i)k.sel--;else if(k.sel===i)k.sel=0;
+  k.out=(k.out||[]).filter(o=>o.m<0||o.m!==i).map(o=>(o.m>i?Object.assign({},o,{m:o.m-1}):o));
+}
+const rkHash=str=>{let h=7;for(let i=0;i<str.length;i++)h=(h*31+str.charCodeAt(i))%100003;return h};
+function rockSteal(k,r){                                   // 같은 날, 같은 포켓몬이 정해져서 기기 두 곳에서 실행해도 한 마리만 가져가요
+  if((k.stolen||[]).some(x=>x.day===r.day))return null;
+  const cand=[];k.mons.forEach((m,i)=>{if(!m.box&&!isAway(k,i)&&i!==k.sel)cand.push(i)});
+  if(k.mons.length<2||!cand.length)return null;
+  const i=cand[rkHash(r.day+k.name)%cand.length],m=k.mons[i];
+  k.stolen=(k.stolen||[]).concat([{day:r.day,mon:monCopy(m)}]);removeMonAt(k,i);
+  return m;
+}
+function rockBlock(name){
+  const r=S.rocket;if(!r||(r.done||{})[name])return;
+  const k=S.kids.find(q=>q.name===name);
+  const done=Object.assign({},r.done);done[name]='blocked';
+  S.rocket=Object.assign({},r,{done,blocked:Object.assign({},r.blocked,{[name]:Date.now()})});
+  if(k&&!r.practice){const g=Math.max(0,+rockCfg().reward||0);if(g){k.coins+=g;k.earned+=g}}
+  sfx('win');confetti();
+  const left=S.rocket.targets.filter(n=>!S.rocket.done[n]);
+  toast(`🛡 ${name}이(가) 로켓단을 막았어요!${!r.practice&&+rockCfg().reward?` 💰+${rockCfg().reward}`:''}`,3000);
+  if(!left.length){S.rocket=Object.assign({},S.rocket,{fin:true});overlay(`<h2>🎉 로켓단 격퇴!</h2><div style="font-size:60px">😼💨</div><p>모두 제시간에 일어나서 로켓단을 막았어요!<br>으아악~ 바이바이 로켓단~ ✨</p>`)}
+  save();render();
+}
+function rockTick(){
+  try{
+    const c=rockCfg(),now=Date.now(),r=S.rocket;
+    // 1) 시간이 되면 습격 시작 (이미 시작됐으면 그대로)
+    if(c.on&&!(r&&r.day===today())){
+      const d=new Date(),wd=d.getDay(),t0=new Date();t0.setHours(0,0,0,0);const sched=t0.getTime()+hmMin(c.time)*60000;
+      if((!c.weekdays||(wd>=1&&wd<=5))&&now>=sched&&now<sched+c.grace*60000&&rkTargets().length){
+        S.rocket={day:today(),start:sched,dl:sched+c.grace*60000,targets:rkTargets(),done:{},blocked:{},practice:false};rkTap={};
+        save();if(tab==='home'||tab==='town')render();
+      }
+    }
+    // 2) 시간이 지났으면 결과 처리
+    const q=S.rocket;
+    if(q&&q.day===today()&&!q.fin&&now>=q.dl){
+      const lost=[],done=Object.assign({},q.done);
+      q.targets.forEach(n=>{if(done[n])return;if(q.practice){done[n]='practice';return}const k=S.kids.find(x=>x.name===n);const m=k&&rockSteal(k,q);if(m)lost.push(`${n}의 ${m.name}`);done[n]=m?'stolen':'safe'});
+      S.rocket=Object.assign({},q,{done,fin:true});save();
+      if(lost.length){sfx('buy');overlay(`<h2>😿 로켓단이 훔쳐 갔어요!</h2><div style="font-size:50px">😼🎈</div><p>${lost.map(esc).join(', ')}<br>마을 탭의 <b>로켓단 아지트</b>에서 되찾을 수 있어요!</p>`)}
+      render();return;
+    }
+    // 3) 습격 중 화면 갱신
+    const a=rockActive();
+    if(a&&tab==='home'){
+      const e=document.getElementById('rktime');
+      if(e){const rem=Math.max(0,a.dl-now);e.textContent=pad(Math.floor(rem/60000))+':'+pad(Math.floor(rem%60000/1000))}
+      else if(!document.getElementById('rock'))render();
+      if(now-(rockTick.sir||0)>7000){rockTick.sir=now;rockSiren()}
+    }else if(!a&&document.getElementById('rock')&&tab==='home')render();
+  }catch(e){}
+}
+setInterval(rockTick,1000);
+function rockSiren(){                                      // 삐뽀삐뽀 소리
+  try{
+    if(S.mute||!AC)return;
+    let t=AC.currentTime+.02;
+    [620,820,620,820].forEach(f=>{const o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=f;g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.0001,t+.22);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+.24);t+=.24});
+  }catch(e){}
+}
+function rocketView(){
+  const r=rockActive(),rem=Math.max(0,r.dl-Date.now());
+  const rows=r.targets.map((n,i)=>{
+    if((r.done||{})[n]==='blocked')return `<div class="rkdone">✅ ${esc(n)} 막았어요!</div>`;
+    const k=S.kids.find(q=>q.name===n),pc=Math.min(100,Math.round((rkTap[n]||0)/RK_TAPS*100)),ch=k&&k.mons.length?(k.mons[k.sel]||k.mons[0]).id:25;
+    return `<button class="rkbtn" data-rkblock="${i}"><img src="${ART(ch)}"><span><b>🛡 ${esc(n)} 막기!</b><small> ${RK_TAPS}번 눌러요!</small></span><div class="rkbar"><i id="rkb${i}" style="width:${pc}%"></i></div></button>`;
+  }).join('');
+  return `<div class="dash"><div class="rock" id="rock">
+    <div class="rkhead"><span class="rkR">R</span> 로켓단 등장!</div>
+    <div class="rkbig">🎈😼</div>
+    <div class="rkmsg">"마을 포켓몬을 훔치러 왔다냐옹~!"</div>
+    <div class="rkt">남은 시간 <b id="rktime">${pad(Math.floor(rem/60000))}:${pad(Math.floor(rem%60000/1000))}</b></div>
+    <div class="rkhelp">${r.practice?'🎮 연습이에요! ':''}일어나서 이름 버튼을 ${RK_TAPS}번 눌러 막아요! 못 막으면 마을의 포켓몬을 한 마리 뺏겨요 😿</div>
+    <div class="rkbtns">${rows}</div></div></div>`;
+}
+function rocketCard(k){                                    // 마을 탭: 뺏긴 포켓몬이 있을 때만 보여요
+  const st=k.stolen||[];if(!st.length)return '';
+  const my=k.mons[k.sel],left=k.rday===today()?Math.max(0,RK_TRIES-(k.rn||0)):RK_TRIES;
+  return `<div class="card" style="border-color:#7b1fa2"><h2>🚀 로켓단 아지트</h2><div class="small">로켓단에게 뺏긴 포켓몬이에요. 되찾으러 가요!</div>
+    ${st.map((x,i)=>`<div class="giverow"><img src="${ART(x.mon.id)}" style="width:54px;height:54px;object-fit:contain;filter:grayscale(.7)"><span style="flex:1;margin-left:6px"><b>${esc(x.mon.name)}</b> <span class="chip">⚡${powerOf(x.mon)}</span><br><span class="small">${esc(x.day)}에 뺏겼어요</span></span>
+      <button class="go" data-act="rkrescue" data-i="${i}" ${my&&left>0?'':'disabled'}>⚔️ 되찾기 (오늘 ${left}번)</button><button data-act="rkransom" data-i="${i}" ${k.coins>=RK_RANSOM?'':'disabled'}>💰${RK_RANSOM}</button></div>`).join('')}
+    <div class="small">⚔️ 내 대표 포켓몬으로 로켓단과 배틀해서 이기면 돌아와요. 💰코인으로 바로 되찾을 수도 있어요.</div></div>`;
+}
+async function rockRescue(k,i){
+  const st=(k.stolen||[])[i],my=k.mons[k.sel];if(!st||!my||fighting)return;
+  if(k.rday!==today()){k.rday=today();k.rn=0}
+  if((k.rn||0)>=RK_TRIES){toast('오늘은 3번 도전했어요. 내일 또 와요!');return}
+  k.rn=(k.rn||0)+1;
+  fighting=true;await ensureBst(my);fighting=false;
+  battleStart(k,my,{name:'로켓단 냐옹이',id:52,power:Math.max(100,Math.round(powerOf(my)*0.92)),winTxt:`${st.mon.name} 되찾았어요! 🎉`,onEnd:win=>{
+    if(win&&(k.stolen||[])[i]&&k.stolen[i].day===st.day){const m=monCopy(st.mon);k.mons.push(m);k.stolen.splice(i,1);k.dex=k.dex||{};k.dex[m.id]=1}
+  }});
+}
+function rockRansom(k,i){
+  const st=(k.stolen||[])[i];if(!st||k.coins<RK_RANSOM)return;
+  k.coins-=RK_RANSOM;const m=monCopy(st.mon);k.mons.push(m);k.stolen.splice(i,1);k.dex=k.dex||{};k.dex[m.id]=1;
+  sfx('hatch');toast(`💰 ${m.name}을(를) 되찾았어요!`);
+}
+function rockBanner(){                                     // 오늘 뺏긴 게 있으면 홈에 알려요
+  const out=[];S.kids.forEach(k=>(k.stolen||[]).forEach(x=>{if(x.day===today())out.push(`${k.name}의 ${x.mon.name}`)}));
+  if(!out.length)return '';
+  return `<div class="sec msgban" style="border-color:#7b1fa2"><div class="sh" style="--c:#7b1fa2;color:#6a1b9a">🚀 로켓단이 훔쳐 갔어요 😿</div><div class="small">${out.map(esc).join(', ')} · 마을 탭의 로켓단 아지트에서 되찾아요!</div></div>`;
+}
+/* ---- 🔄 포켓몬 교환: 한 명이 신청하면 상대가 수락해서 서로 바꿔요 ---- */
+const tSel={to:'',mine:'',theirs:''},TRADE_TTL=3*86400000;
+const monCopy=m=>JSON.parse(JSON.stringify(m));
+function tradesOpen(){S.trades=(S.trades||[]).filter(t=>Date.now()-t.ts<TRADE_TTL);return S.trades}
+const entByName=n=>ents().find(q=>q.name===n);
+function findMonIdx(q,ref){                                 // 신청할 때 정한 포켓몬을 지금도 가지고 있는지 찾아요
+  if(q.mons[ref.i]&&q.mons[ref.i].id===ref.id&&!isAway(q,ref.i))return ref.i;
+  for(let i=0;i<q.mons.length;i++)if(q.mons[i].id===ref.id&&!isAway(q,i))return i;
+  return -1;
+}
+function tradeCard(k){
+  const others=ents().filter(q=>q!==k);if(!others.length||!k.mons.length)return '';
+  const to=others.some(q=>q.name===tSel.to)?tSel.to:others[0].name,partner=entByName(to);
+  const mine=String(tSel.mine!==''&&k.mons[+tSel.mine]?tSel.mine:0),theirs=String(tSel.theirs!==''&&partner.mons[+tSel.theirs]?tSel.theirs:0);
+  const opt=(q,sel)=>q.mons.map((m,i)=>isAway(q,i)?'':`<option value="${i}" ${String(i)===String(sel)?'selected':''}>${esc(m.name)} ⚡${powerOf(m)}${m.lv?' Lv.'+m.lv:''}</option>`).join('');
+  const tr=tradesOpen(),inbox=tr.filter(t=>t.to===k.name),sent=tr.filter(t=>t.from===k.name);
+  const row=(t,mode)=>{const A=t.fm,B=t.tm;return `<div class="giverow"><img src="${ART(A.id)}" style="width:40px;height:40px;object-fit:contain"><span style="margin:0 4px">🔄</span><img src="${ART(B.id)}" style="width:40px;height:40px;object-fit:contain"><span style="flex:1;margin-left:6px;font-size:14px">${mode==='in'?`<b>${esc(t.from)}</b>의 ${esc(A.name)} ↔ 내 ${esc(B.name)}`:`내 ${esc(A.name)} ↔ <b>${esc(t.to)}</b>의 ${esc(B.name)}`}</span>${mode==='in'?`<button class="go" data-act="tradeok" data-id="${t.id}">✔ 수락</button><button data-act="tradeno" data-id="${t.id}">거절</button>`:`<button data-act="tradeno" data-id="${t.id}">취소</button>`}</div>`};
+  return `<div class="card"><h2>🔄 포켓몬 교환</h2>
+    ${inbox.length?`<div class="small" style="color:#d84315"><b>📩 받은 교환 신청 ${inbox.length}개</b></div>${inbox.map(t=>row(t,'in')).join('')}`:''}
+    <div class="row"><span>누구랑?</span><select data-tsel="to" style="width:120px">${others.map(q=>`<option ${q.name===to?'selected':''}>${esc(q.name)}</option>`).join('')}</select></div>
+    <div class="row"><span>내 포켓몬</span><select data-tsel="mine" style="width:200px">${opt(k,mine)}</select></div>
+    <div class="row"><span>${esc(to)}의 포켓몬</span><select data-tsel="theirs" style="width:200px">${partner.mons.length?opt(partner,theirs):'<option>(없어요)</option>'}</select></div>
+    <div class="acts" style="justify-content:flex-start"><button class="go" data-act="tradesend" ${partner.mons.length?'':'disabled'}>🔄 교환 신청하기</button></div>
+    ${sent.length?`<div class="small" style="margin-top:6px"><b>📤 보낸 교환 신청</b> (상대가 수락하면 바뀌어요)</div>${sent.map(t=>row(t,'out')).join('')}`:''}
+    <div class="small">상대가 자기 이름 버튼에서 "받은 교환 신청"을 수락하면 두 포켓몬이 서로 바뀌어요. 3일이 지나면 자동으로 사라져요.</div></div>`;
+}
+function tradeSend(k){
+  const names=ents().filter(q=>q!==k).map(q=>q.name),partner=entByName(names.indexOf(tSel.to)>=0?tSel.to:names[0]);
+  if(!partner||partner===k)return;
+  const mi=+(tSel.mine===''?0:tSel.mine),ti=+(tSel.theirs===''?0:tSel.theirs),a=k.mons[mi],b=partner.mons[ti];
+  if(!a||!b||isAway(k,mi)||isAway(partner,ti)){toast('바꿀 포켓몬을 다시 골라 주세요');return}
+  const tr=tradesOpen();
+  if(tr.some(t=>t.from===k.name&&t.to===partner.name&&t.fm.id===a.id&&t.tm.id===b.id)){toast('이미 보낸 신청이에요');return}
+  if(tr.filter(t=>t.from===k.name).length>=5){toast('한 번에 5개까지 신청할 수 있어요');return}
+  S.trades=tr.concat([{id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),from:k.name,to:partner.name,fm:{id:a.id,name:a.name,i:mi},tm:{id:b.id,name:b.name,i:ti},ts:Date.now()}]);
+  sfx('coin');toast(`🔄 ${partner.name}에게 교환을 신청했어요!`);
+}
+function tradeAccept(k,id){
+  const t=tradesOpen().find(x=>x.id===id);if(!t||t.to!==k.name)return;
+  const A=entByName(t.from),B=k;
+  const ia=A?findMonIdx(A,t.fm):-1,ib=findMonIdx(B,t.tm);
+  if(ia<0||ib<0){S.trades=S.trades.filter(x=>x.id!==id);toast('포켓몬이 바뀌어서 교환할 수 없어요. 신청을 지웠어요');return}
+  const ma=monCopy(A.mons[ia]),mb=monCopy(B.mons[ib]);
+  delete ma.box;delete mb.box;                                // 새로 온 친구는 마을에 나타나요
+  A.mons[ia]=mb;B.mons[ib]=ma;                                // 자리를 그대로 바꿔요 (번호가 어긋나지 않게)
+  A.dex=A.dex||{};B.dex=B.dex||{};A.dex[mb.id]=1;B.dex[ma.id]=1;
+  S.trades=S.trades.filter(x=>x.id!==id);
+  sfx('hatch');confetti();
+  overlay(`<h2>🔄 교환 성공!</h2><div style="display:flex;align-items:center;justify-content:center"><div style="text-align:center"><img class="big" style="width:110px" src="${ART(mb.id)}"><br><b>${esc(mb.name)}</b><br><small>→ ${esc(A.name)}</small></div><span style="font-size:30px;margin:0 8px">🔄</span><div style="text-align:center"><img class="big" style="width:110px" src="${ART(ma.id)}"><br><b>${esc(ma.name)}</b><br><small>→ ${esc(B.name)}</small></div></div>`);
+}
 /* ---- 마을 ---- */
 function skyPhase(){const d=new Date(),h=d.getHours()+d.getMinutes()/60;return h<5.5||h>=19.5?'night':h<7.5?'dawn':h<17?'day':'dusk'}
 function townWx(){                                         // 지금 날씨를 마을 하늘 종류로 바꿔요
@@ -2118,7 +2307,8 @@ function bdayStart(k){
   o.run.guests.forEach((g,i)=>{jget(API+'pokemon-species/'+g.id).then(sp=>{g.name=koName(sp);const b=bdLoad();if(b.run&&b.run.guests[i]){b.run.guests[i].name=g.name;bdSave(b)}const e=document.getElementById('bdn'+i);if(e)e.textContent=g.name}).catch(()=>{})});
   if(tab==='home'&&!busy)render();
 }
-function bdayStop(name){const o=bdLoad();o.done[name]=1;o.run=null;bdSave(o);try{if(window.speechSynthesis)speechSynthesis.cancel()}catch(e){}if(tab==='home'&&!busy)render()}
+function bdayStop(name){const o=bdLoad();o.done[name]=1;o.run=null;bdSave(o);const gd=S.bdayDone&&S.bdayDone.day===today()?S.bdayDone.names:{};S.bdayDone={day:today(),names:Object.assign({},gd,{[name]:1})};save();   // 한 기기에서 축하했으면 다른 기기에서는 또 하지 않아요
+  try{if(window.speechSynthesis)speechSynthesis.cancel()}catch(e){}if(tab==='home'&&!busy)render()}
 function speakKo(text,pitch,rate){
   try{
     if(S.mute||!window.speechSynthesis||!window.SpeechSynthesisUtterance)return;
@@ -2145,7 +2335,8 @@ function bdayTick(){
       if(!bdAutoOn()||mornState()==='run')return;
       const now=new Date(),mins=now.getHours()*60+now.getMinutes();
       if(mins<hmMin(c.from)||mins>=21*60)return;
-      const k=S.kids.find(q=>isBirthday(q)&&!o.done[q.name]);
+      const gd=S.bdayDone&&S.bdayDone.day===today()?S.bdayDone.names:{};
+      const k=S.kids.find(q=>isBirthday(q)&&!o.done[q.name]&&!gd[q.name]);
       if(k)bdayStart(k);
       return;
     }
@@ -2338,7 +2529,7 @@ function townView(){
   <div class="card"><div class="stats"><span class="chip coin">💰 ${won(k.coins)}</span><button data-act="pickTrainer" style="padding:6px 12px">🧢 트레이너 바꾸기</button></div>${hero}
   <div class="acts"><button class="egg" data-act="egg" ${k.coins<S.eggCost&&!(k.freeEgg>0)?'disabled':''}>${k.freeEgg>0?'🎁 선물 알 열기 (무료!)':`${k.hatched===0&&!k.adult?'🥚 첫 알 뽑기 · 친구 고르기':'🥚 알 뽑기'} (💰${won(S.eggCost)})`}</button></div>
   <div class="small" style="text-align:center;margin-top:4px">${k.hatched===0&&!k.adult?'첫 알은 피카츄·꼬부기·파이리·이상해씨 중에서 골라요':`지금까지 알 ${k.hatched}개`}</div></div>
-  ${battleCards(k)}
+  ${rocketCard(k)}${battleCards(k)}${tradeCard(k)}
   ${monsCard(k)}</div>`;
 }
 
@@ -2459,6 +2650,14 @@ function setView(){
     <div class="row"><input type="time" data-dim="to" value="${dimCfg().to}"><span>에 가장 환하게</span></div>
     <div class="row"><span>그 전에 서서히 어두워지는 시간</span><select data-dim="ramp" style="width:110px">${[[0,'바로'],[60,'1시간'],[120,'2시간'],[180,'3시간']].map(([v,l])=>`<option value="${v}" ${+dimCfg().ramp===v?'selected':''}>${l}</option>`).join('')}</select></div>
     <p class="small">완전히 어두울 때 화면을 터치하면 1분 동안 보였다가 다시 어두워져요. 위쪽 🌙 버튼을 누르면 지금 바로 어둡게 해요.</p></div>
+  <div class="card"><h2>🚀 로켓단 (일찍 일어나기 챌린지)</h2>
+    <div class="row"><input type="checkbox" data-rkc="on" ${rockCfg().on?'checked':''}><span>정해진 시간에 로켓단이 나타나요</span></div>
+    <div class="row"><span>나타나는 시각</span><input type="time" data-rkc="time" value="${esc(rockCfg().time)}"><span>부터</span><select data-rkc="grace" style="width:100px">${[5,10,15,20,30].map(v=>`<option value="${v}" ${+rockCfg().grace===v?'selected':''}>${v}분 동안</option>`).join('')}</select></div>
+    <div class="row"><input type="checkbox" data-rkc="weekdays" ${rockCfg().weekdays?'checked':''}><span>월~금만 (끄면 주말에도)</span></div>
+    <div class="row"><span>막으면 받는 코인</span><input class="num" type="number" min="0" value="${rockCfg().reward}" data-rkc="reward"><span>코인</span></div>
+    <div class="row" style="flex-wrap:wrap"><span>막아야 하는 아이</span>${S.kids.map(q=>`<label style="margin-right:10px"><input type="checkbox" data-rkk="${esc(q.name)}" ${(!rockCfg().kids||rockCfg().kids.indexOf(q.name)>=0)?'checked':''}> ${esc(q.name)}</label>`).join('')}</div>
+    <div class="acts" style="justify-content:flex-start"><button class="go" data-act="rkpractice">🎮 로켓단 불러보기 (연습 · 포켓몬은 안 뺏겨요)</button></div>
+    <p class="small">정해진 시각이 되면 이 앱이 켜져 있는 화면(거실 패드 등)에 로켓단이 나타나요. 일어난 아이가 자기 이름 버튼을 ${RK_TAPS}번 누르면 막을 수 있고, 막으면 코인을 받아요. 시간 안에 못 막으면 그 아이가 마을에 데리고 있는 포켓몬이 <b>한 마리</b> 뺏겨요. 뺏긴 포켓몬은 마을 탭의 <b>로켓단 아지트</b>에서 배틀로 이기거나 코인(💰${RK_RANSOM})으로 되찾을 수 있어요. 대표 포켓몬, 보관함, 놀러 간 포켓몬은 뺏기지 않고, 포켓몬이 한 마리뿐이면 아무것도 뺏기지 않아요. 앱이 꺼져 있어서 로켓단이 나타나지 못한 날은 뺏기지 않아요.</p></div>
   <div class="card"><h2>🎟 종이 뽑기 (상품은 우리가 정해요)</h2>
     <div class="row"><input type="checkbox" data-drw="on" ${drawCfg().on?'checked':''}><span>위쪽에 "🎟 뽑기" 메뉴를 보여줘요</span></div>
     <div class="row"><span>한 장 뜯는 값</span><input class="num" type="number" min="0" value="${drawCfg().price}" data-drw="price"><span>코인</span></div>
@@ -2587,6 +2786,18 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.act==='dpadd'){const c=drawCfg();S.drawCfg=Object.assign(c,{items:c.items.concat([{n:'새 상품',c:1}])})}
   else if(t.dataset.act==='dpdel'){const c=drawCfg();S.drawCfg=Object.assign(c,{items:c.items.filter((_,j)=>j!==+t.dataset.i)})}
   else if(t.dataset.act==='drawnew'){if(confirm('새 판을 깔면 지금 판은 사라져요. 계속할까요?')){drawBuild();toast('🎟 새 뽑기판을 깔았어요!')}}
+  else if(t.dataset.rkblock!==undefined){
+    const r=rockActive();if(!r)return;const n=r.targets[+t.dataset.rkblock];if(!n||(r.done||{})[n])return;
+    rkTap[n]=(rkTap[n]||0)+1;sfx('coin');
+    const bar=document.getElementById('rkb'+t.dataset.rkblock);if(bar)bar.style.width=Math.min(100,Math.round(rkTap[n]/RK_TAPS*100))+'%';
+    if(rkTap[n]>=RK_TAPS)rockBlock(n);
+    return}
+  else if(t.dataset.act==='rkrescue'){rockRescue(k,+t.dataset.i);return}
+  else if(t.dataset.act==='rkransom'){rockRansom(k,+t.dataset.i)}
+  else if(t.dataset.act==='rkpractice'){const t0=Date.now();rkTap={};S.rocket={day:today(),start:t0,dl:t0+3*60000,targets:rkTargets(),done:{},blocked:{},practice:true};tab='home';unlockAudio()}
+  else if(t.dataset.act==='tradesend'){tradeSend(k)}
+  else if(t.dataset.act==='tradeok'){tradeAccept(k,t.dataset.id)}
+  else if(t.dataset.act==='tradeno'){S.trades=tradesOpen().filter(x=>x.id!==t.dataset.id);toast('교환 신청을 지웠어요')}
   else if(t.dataset.act==='vsend'){
     const f=ents().find(q=>q.name===vSel.to&&q!==k)||ents().find(q=>q!==k),cur=outOf(k);
     if(f&&cur.length<3){
@@ -2770,12 +2981,15 @@ document.addEventListener('change',e=>{
     else if(q.bonusDate===today()){q.lastPerfect=today();q.prev={streak:Math.max(0,n-1),last:n>1?dkey(-1):''}}   // 오늘 이미 다 했으면 오늘까지 센 값
     else q.lastPerfect=dkey(-1);                                                                                   // 오늘 다 하면 n+1 이 돼요
   }
+  else if(D.rkc!==undefined){S.rocketCfg=Object.assign(rockCfg(),{[D.rkc]:(D.rkc==='on'||D.rkc==='weekdays')?t.checked:D.rkc==='grace'?+t.value:D.rkc==='reward'?Math.max(0,Math.round(+t.value)||0):t.value})}
+  else if(D.rkk!==undefined){const c=rockCfg(),all=S.kids.map(q=>q.name);let list=c.kids?c.kids.slice():all.slice();const i=list.indexOf(D.rkk);if(t.checked&&i<0)list.push(D.rkk);if(!t.checked&&i>=0)list.splice(i,1);S.rocketCfg=Object.assign(c,{kids:list})}
   else if(D.drw!==undefined){S.drawCfg=Object.assign(drawCfg(),{[D.drw]:D.drw==='on'?t.checked:Math.max(D.drw==='size'?1:0,Math.min(D.drw==='size'?150:99999,Math.round(+t.value)||0))});render()}
   else if(D.dpn!==undefined){const c=drawCfg(),it=c.items.map(x=>Object.assign({},x));if(it[+D.dpn])it[+D.dpn].n=t.value;S.drawCfg=Object.assign(c,{items:it})}
   else if(D.dpc!==undefined){const c=drawCfg(),it=c.items.map(x=>Object.assign({},x));if(it[+D.dpc])it[+D.dpc].c=Math.max(0,Math.min(150,Math.round(+t.value)||0));S.drawCfg=Object.assign(c,{items:it})}
   else if(D.bdc!==undefined){S.bdayCfg=Object.assign(bdayCfg(),{[D.bdc]:(D.bdc==='on'||D.bdc==='voice')?t.checked:D.bdc==='min'?+t.value:t.value})}
   else if(D.bdcdev!==undefined){try{localStorage.setItem(BD_AUTO,t.checked?'on':'off')}catch(e){}return}
   else if(D.vsel!==undefined){vSel[D.vsel]=t.value;return}
+  else if(D.tsel!==undefined){tSel[D.tsel]=t.value;if(D.tsel==='to'){tSel.theirs=''}render();return}
   else if(D.morn!==undefined){S.morning=Object.assign(morningCfg(),{[D.morn]:D.morn==='on'?t.checked:t.value});if(D.morn==='kid')S.morning.chore=''}
   else if(D.bgm!==undefined){S.bgm=Object.assign(bgmCfg(),{[D.bgm]:D.bgm==='on'?t.checked:D.bgm==='vol'?+t.value:t.value});bgmNext=0}
   else if(D.shon!==undefined){S.shift.on=t.checked}
