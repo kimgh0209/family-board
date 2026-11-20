@@ -120,7 +120,7 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 .mstep.done b{text-decoration:line-through;opacity:.65}
 .mfin{font-size:22px;padding:12px 22px}
 .mres{text-align:center;font-size:20px;font-weight:800;color:#2e7d32;margin:8px 0}
-.scene{position:relative;height:380px;border-radius:18px;overflow:hidden;background:linear-gradient(#8ed1fc,#d9f3ff 62%);border:3px solid var(--line)}
+.scene{position:relative;height:420px;border-radius:18px;overflow:hidden;background:linear-gradient(#8ed1fc,#d9f3ff 62%);border:3px solid var(--line)}
 .scene.ph-night{background:linear-gradient(#0d1b3e,#3b4f86 70%)}
 .scene.ph-dawn{background:linear-gradient(#f8b7a0,#ffe9c7 65%)}
 .scene.ph-dusk{background:linear-gradient(#5b6fb5,#f4a261 72%)}
@@ -238,6 +238,24 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 .tearp{position:absolute;left:0;top:0;right:0;bottom:0;background:repeating-linear-gradient(45deg,#fff3c4,#fff3c4 10px,#ffe69a 10px,#ffe69a 20px);border:3px solid #f9a825;border-radius:12px;transform-origin:0 0;animation:tearoff 1.1s .2s forwards}
 .tearp:before{content:'';position:absolute;left:50%;top:6px;width:30px;height:7px;margin-left:-15px;background:#9e9e9e;border-radius:3px}
 @keyframes tearoff{0%{transform:none}35%{transform:rotate(-6deg) translateY(-4px)}100%{transform:rotate(-80deg) translate(-60px,-150px);opacity:0}}
+.scene .wm.h-sky{animation-name:skydrift}
+.scene .wm.h-lake,.scene .wm.h-sea{animation-name:swim}
+.scene .wm.h-mountain,.scene .wm.h-volcano,.scene .wm.h-forest{animation-name:wander2}
+.scene .wm.h-lake img,.scene .wm.h-sea img{-webkit-clip-path:inset(0 0 24% 0);clip-path:inset(0 0 24% 0)}
+@keyframes skydrift{0%{transform:translate(0,0) scaleX(1)}25%{transform:translate(40px,-12px) scaleX(1)}49%{transform:translate(80px,4px) scaleX(1)}51%{transform:translate(80px,4px) scaleX(-1)}75%{transform:translate(40px,-12px) scaleX(-1)}99%{transform:translate(0,0) scaleX(-1)}100%{transform:translate(0,0) scaleX(1)}}
+@keyframes swim{0%{transform:translate(0,0) scaleX(1)}25%{transform:translate(18px,-5px) scaleX(1)}48%{transform:translate(36px,0) scaleX(1)}50%{transform:translate(36px,0) scaleX(-1)}75%{transform:translate(18px,-5px) scaleX(-1)}98%{transform:translate(0,0) scaleX(-1)}100%{transform:translate(0,0) scaleX(1)}}
+@keyframes wander2{0%{transform:translateX(0) scaleX(1)}48%{transform:translateX(26px) scaleX(1)}50%{transform:translateX(26px) scaleX(-1)}98%{transform:translateX(0) scaleX(-1)}100%{transform:translateX(0) scaleX(1)}}
+.scene .smk{animation:smk 4s ease-in-out infinite}
+.scene .smk.s2{animation-delay:-1.3s}
+.scene .smk.s3{animation-delay:-2.6s}
+@keyframes smk{0%,100%{opacity:.15}50%{opacity:.65}}
+.mon{position:relative}
+.mon.boxed{background:#eceff1;border-color:#b0bec5}
+.mon.boxed img{opacity:.85}
+.mon.marked{border-color:#1e88e5;background:#e3f2fd}
+.mon .mk{position:absolute;right:6px;top:4px;color:#1e88e5;font-size:20px}
+.pball{position:absolute;left:6px;top:6px;width:18px;height:18px;border-radius:50%;border:2px solid #37474f;background:linear-gradient(#e53935 46%,#37474f 46%,#37474f 54%,#fff 54%);z-index:1}
+.pball:after{content:'';position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff;border:2px solid #37474f}
 .shopg{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));margin-top:8px}
 .shopg>*{margin:4px}
 .shopi{display:block;text-align:center;padding:8px 4px}
@@ -755,7 +773,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261120e';
+const BUILD='20261120h';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1882,7 +1900,7 @@ const powerOf=m=>Math.round((m.bst>0?m.bst:300)*(1+0.06*(m.lv||0)));
 const bstTried={};
 async function ensureBst(m){                                // 종족값(기본 힘)을 한 번 읽어 두면 진화할 때 더 세져요
   if(m.bst>0||bstTried[m.id])return;bstTried[m.id]=1;
-  try{m.bst=await bstOf(m.id)}catch(e){m.bst=-1}
+  try{m.bst=await bstOf(m.id);if(typeCache[m.id])m.ty=typeCache[m.id].slice()}catch(e){m.bst=-1}
 }
 /* 타입 상성: 굉장함 ×1.25 / 별로 ×0.85 */
 const T_SE={fire:'grass ice bug steel',water:'fire ground rock',electric:'water flying',grass:'water ground rock',ice:'grass ground flying dragon',fighting:'normal ice rock dark steel',poison:'grass fairy',ground:'fire electric poison rock steel',flying:'grass fighting bug',psychic:'fighting poison',bug:'grass psychic dark',rock:'fire ice flying bug',ghost:'psychic ghost',dragon:'dragon',dark:'psychic ghost',steel:'ice rock fairy',fairy:'fighting dragon dark'};
@@ -2178,39 +2196,99 @@ function visitCard(k){
     ${rows}${vis.length?`<div class="small" style="margin-top:6px">🎈 우리 마을에 놀러 온 친구: ${vis.map(v=>`${esc(v.q.name)}의 ${v.o.m<0?'트레이너':esc(v.q.mons[v.o.m].name)}`).join(', ')}</div>`:''}
     <div class="small" style="margin-top:4px">한 번에 3개까지 보낼 수 있어요. 놀러 간 친구는 우리 마을에서 잠시 안 보여요.</div></div>`;
 }
+/* ---- 포켓몬은 사는 곳에 가 있어요: 바다·호수·하늘·산·화산·숲·들판 ---- */
+const tyTried={};let tyBusy=false;
+async function fillTypes(list){                            // 아직 타입을 모르는 포켓몬은 조용히 알아 와요
+  if(tyBusy)return;
+  const need=[];list.forEach(q=>q.mons.forEach(m=>{if(!(m.ty&&m.ty.length)&&!tyTried[m.id])need.push(m)}));
+  if(!need.length)return;
+  tyBusy=true;let ch=false;
+  try{for(const m of need.slice(0,40)){tyTried[m.id]=1;const t=await typesOf(m.id);if(t&&t.length){m.ty=t.slice();ch=true}}}catch(e){}
+  tyBusy=false;
+  if(ch){save();if(tab==='town'&&!busy)render()}
+}
+function habitatOf(m){
+  const t=m.ty||[];if(!t.length)return 'meadow';
+  const has=x=>t.indexOf(x)>=0;
+  if(has('water'))return (m.id%2)?'lake':'sea';
+  if(has('flying'))return 'sky';
+  if(has('fire'))return 'volcano';
+  if(['rock','ground','steel','fighting','ice','dragon'].some(has))return 'mountain';
+  if(['ghost','dark','poison','bug','grass'].some(has))return 'forest';
+  return 'meadow';
+}
+const HAB_KO={sky:'☁️ 하늘',mountain:'⛰️ 산',volcano:'🌋 화산',forest:'🌲 숲',meadow:'🌿 들판',lake:'🏞️ 호수',sea:'🌊 바다'};
+function habPos(h,j){                                      // 같은 곳에 사는 j번째 포켓몬의 자리
+  switch(h){
+    case 'sky':return {x:6+((j*43)%84),top:24+((j*37)%90),w:58};
+    case 'mountain':return {x:7+((j*29)%27),bt:100+((j*41)%100),w:56};
+    case 'volcano':return {x:2+((j*13)%12),bt:80+((j*31)%70),w:54};
+    case 'forest':return {x:35+((j*17)%13),bt:66+((j*29)%70),w:56};
+    case 'lake':return {x:45+((j*19)%16),bt:4+((j*13)%22),w:60};
+    case 'sea':return {x:79+((j*17)%15),bt:28+((j*43)%96),w:62};
+    default:return {x:44+((j*23)%20),bt:10+((j*37)%52),w:62};
+  }
+}
 function sceneHtml(k){
   const n=k.mons.length,d0=new Date(),hr=d0.getHours()+d0.getMinutes()/60,ph=skyPhase(),night=ph==='night',wx=townWx();
+  fillTypes([k].concat(visitorsOf(k).map(v=>v.q)));
+  // 꾸미기 (바다 쪽으로 가면 해변 쪽으로 접어서 물 위에 놓이지 않게 해요)
   const items=FREE_DECOR.concat(SHOP.filter(d=>(k.deco||[]).indexOf(d.id)>=0));
-  const decor=items.map(d=>`<div class="dc" style="left:${d.x}%;bottom:${Math.round(d.b*1.25)}px;font-size:${Math.round(d.s*1.2)}px">${d.e}</div>`).join('');
-  const from=Math.max(0,n-12);
-  let wm='';
-  for(let i=from;i<n;i++){
-    if(isAway(k,i))continue;
-    const x=14+((i*37)%66),bt=6+((i*53)%48),s=Math.round((48+(54-bt)*0.5)*1.15),dur=7+((i*13)%9),dl=(i*3)%7;
-    wm+=`<div class="wm ${i===k.sel?'sel':''}" data-sel="${i}" style="left:${x}%;bottom:${Math.round(bt*1.25)}px;width:${s}px;animation-duration:${dur}s;animation-delay:-${dl}s"><img src="${ART(k.mons[i].id)}"></div>`;
-  }
+  const decor=items.map(d=>{const x=d.x>74?74-(d.x-74)*0.9:d.x;return `<div class="dc" style="left:${Math.round(x)}%;bottom:${Math.round(d.b*1.25)}px;font-size:${Math.round(d.s*1.2)}px">${d.e}</div>`}).join('');
+  // 포켓몬: 사는 곳별로 자리 잡기
+  const from=Math.max(0,n-22),cnt={};let wm='';
+  const order=[];for(let i=0;i<n;i++)if(!k.mons[i].box)order.push(i);
+  while(order.length>22)order.shift();                  // 마을에는 최근 22마리까지만 (나머지는 보관함에 넣어 두세요)
+  if(!k.mons[k.sel]||k.mons[k.sel].box){}else if(order.indexOf(k.sel)<0){if(order.length>=22)order.pop();order.unshift(k.sel)}
+  order.forEach(i=>{
+    if(isAway(k,i)||k.mons[i].box)return;
+    const m=k.mons[i],h=habitatOf(m);cnt[h]=(cnt[h]||0)+1;
+    const ps=habPos(h,cnt[h]),dur=7+((i*13)%9),dl=(i*3)%7,pos=ps.top!==undefined?`top:${ps.top}px`:`bottom:${ps.bt}px`;
+    wm+=`<div class="wm h-${h} ${i===k.sel?'sel':''}" data-sel="${i}" style="left:${ps.x}%;${pos};width:${ps.w}px;animation-duration:${dur}s;animation-delay:-${dl}s"><img src="${ART(m.id)}"></div>`;
+  });
   // 해·달: 시간에 따라 하늘을 가로질러요
   const fr=night?Math.max(0,Math.min(1,((hr>=19.5?hr-19.5:hr+4.5))/10)):Math.max(0,Math.min(1,(hr-6)/13));
   const sx=Math.round(8+84*fr),sy=Math.round(12+70*(1-Math.sin(Math.PI*fr)));
   const dim=wx.kind==='clear'?1:wx.kind==='cloudy'?.55:.25;
   const orb=`<div class="sun" style="left:${sx}%;top:${sy}px;right:auto;opacity:${dim}">${night?'🌙':'☀️'}</div>`;
   let sky='';
-  if(night&&(wx.kind==='clear'||wx.kind==='cloudy'))sky+='<div class="dc" style="left:18%;bottom:300px;font-size:14px">✨</div><div class="dc" style="left:40%;bottom:330px;font-size:12px">✨</div><div class="dc" style="left:72%;bottom:310px;font-size:16px">✨</div><div class="dc" style="left:55%;bottom:340px;font-size:10px">✨</div>';
+  if(night&&(wx.kind==='clear'||wx.kind==='cloudy'))sky+='<div class="dc" style="left:18%;bottom:340px;font-size:14px">✨</div><div class="dc" style="left:40%;bottom:370px;font-size:12px">✨</div><div class="dc" style="left:72%;bottom:350px;font-size:16px">✨</div><div class="dc" style="left:55%;bottom:380px;font-size:10px">✨</div>';
   const ncl=wx.kind==='clear'?(night?0:2):wx.kind==='cloudy'?5:wx.kind==='fog'?3:4;
   for(let i=0;i<ncl;i++)sky+=`<div class="cl" style="top:${14+((i*37)%70)}px;animation-delay:-${(i*11)%50}s;font-size:${30+(i*7)%20}px;animation-duration:${wx.windy?18:50}s;opacity:${wx.kind==='clear'?.9:.75}">☁️</div>`;
   let fx='';
   if(wx.kind==='rain')for(let i=0;i<46;i++)fx+=`<i class="sdrop" style="left:${(i*29)%100}%;animation-duration:${(0.6+((i*7)%6)/10).toFixed(1)}s;animation-delay:-${(((i*13)%10)/10).toFixed(1)}s"></i>`;
   if(wx.kind==='snow')for(let i=0;i<34;i++)fx+=`<i class="sflake" style="left:${(i*47)%100}%;animation-duration:${6+(i*7)%6}s;animation-delay:-${(i*3)%8}s;font-size:${10+(i*5)%10}px">❄</i>`;
-  if(wx.windy)for(let i=0;i<7;i++)fx+=`<i class="sleaf" style="top:${60+((i*53)%220)}px;animation-duration:${3+(i%4)}s;animation-delay:-${(i*5)%7}s">🍃</i>`;
+  if(wx.windy)for(let i=0;i<7;i++)fx+=`<i class="sleaf" style="top:${60+((i*53)%260)}px;animation-duration:${3+(i%4)}s;animation-delay:-${(i*5)%7}s">🍃</i>`;
   if(wx.thunder)fx+='<div class="flash"></div>';
+  // 땅·산·물 색깔 (시간·눈에 따라)
   const snowG=wx.kind==='snow';
   const g1=snowG?'#f4f8fb':night?'#3f6b3a':ph==='dusk'?'#8aa84e':ph==='dawn'?'#8fbf68':'#9ccc65',g2=snowG?'#e3edf3':night?'#2f5a2d':ph==='dusk'?'#6d8f3a':ph==='dawn'?'#6fae4f':'#7cb342';
+  const mt=night?'#34425e':ph==='dusk'?'#7d7fa3':ph==='dawn'?'#a3a6c4':'#8fa3b5',mt2=night?'#26324a':ph==='dusk'?'#6a6c90':ph==='dawn'?'#8f92b0':'#7a8fa3',cap=night?'#c5cae9':'#ffffff';
+  const wt=night?'#1f4a7a':ph==='dusk'?'#4a86b8':'#3fa9e6',wt2=night?'#2a5c93':ph==='dusk'?'#6aa3cf':'#7fd0ff',sand=night?'#8c7d5a':'#f0dfae';
+  const svg=`<svg viewBox="0 0 800 420" preserveAspectRatio="none">
+    <path d="M0 300 L70 200 L130 255 L215 120 L285 235 L340 185 L420 300 Z" fill="${mt2}"/>
+    <path d="M190 150 L215 120 L242 156 L228 148 L215 164 L202 148Z" fill="${cap}"/>
+    <path d="M20 300 L120 190 L180 250 L260 160 L340 300 Z" fill="${mt}"/>
+    <path d="M248 178 L260 160 L276 182 L266 176 L260 188 L252 176Z" fill="${cap}"/>
+    <path d="M0 305 L22 232 L72 168 L124 232 L150 305Z" fill="${night?'#4a3a38':'#7d5a4a'}"/>
+    <path d="M64 178 L72 168 L82 180 L76 186 L68 184Z" fill="#ff7043"/>
+    <circle class="smk" cx="74" cy="150" r="11" fill="#ffffff" opacity=".6"/><circle class="smk s2" cx="84" cy="130" r="15" fill="#ffffff" opacity=".5"/><circle class="smk s3" cx="98" cy="108" r="19" fill="#ffffff" opacity=".4"/>
+    <path d="M0 285 Q200 235 400 280 T800 262 V420 H0Z" fill="${g1}"/>
+    <path d="M0 340 Q250 292 500 336 T800 322 V420 H0Z" fill="${g2}"/>
+    <ellipse cx="505" cy="396" rx="112" ry="30" fill="${sand}"/><ellipse cx="505" cy="396" rx="100" ry="24" fill="${wt}"/><ellipse cx="500" cy="391" rx="60" ry="9" fill="${wt2}" opacity=".6"/>
+    <path d="M800 252 Q725 262 690 300 Q662 336 676 372 Q690 404 720 420 H800Z" fill="${sand}"/>
+    <path d="M800 262 Q738 272 706 306 Q684 338 694 372 Q706 400 730 420 H800Z" fill="${wt}"/>
+    <path d="M800 300 Q760 306 740 330 M800 346 Q768 352 752 372 M800 388 Q776 392 762 404" stroke="${wt2}" stroke-width="3" fill="none" opacity=".7"/>
+  </svg>`;
+  const boxN=k.mons.filter(m=>m.box).length,hab={};order.forEach(i=>{if(!isAway(k,i)){const h=habitatOf(k.mons[i]);hab[h]=1}});
   return `<div class="scene ph-${ph} wx-${wx.kind}${wx.windy?' windy':''}">
-    <svg viewBox="0 0 800 380" preserveAspectRatio="none"><path d="M0 250 Q200 185 400 240 T800 215 V380 H0Z" fill="${g1}"/><path d="M0 300 Q250 255 500 298 T800 282 V380 H0Z" fill="${g2}"/><path d="M300 380 Q360 325 410 300 L470 300 Q420 325 395 380Z" fill="${night?'#8c7d5a':'#e6d3a3'}"/></svg>
-    ${orb}${sky}<div class="tint"></div>${decor}
-    <div class="dc" style="left:7%;bottom:38px;font-size:84px">🏡</div>
-    ${trainerAway(k)?'<div class="dc" style="left:13%;bottom:14px;font-size:34px">🚌</div>':`<div class="tr" style="left:13%;bottom:12px"><img src="${TRAINER(k.trainer)}"></div>`}${wm}${visHtml(k)}${fx}</div>
-    <div class="small" style="margin-top:6px">🏘️ ${esc(k.name)}의 마을 · 포켓몬 ${n}마리 · 꾸민 것 ${items.length-FREE_DECOR.length}개${visitorsOf(k).length?` · 놀러 온 친구 ${visitorsOf(k).length}`:''}</div>`;
+    ${svg}
+    ${orb}${sky}<div class="tint"></div>
+    <div class="dc" style="left:42%;bottom:230px;font-size:46px">🌲</div><div class="dc" style="left:38%;bottom:216px;font-size:54px">🌲</div><div class="dc" style="left:46%;bottom:210px;font-size:50px">🌲</div><div class="dc" style="left:3%;bottom:318px;font-size:22px;opacity:.9">🌋</div>
+    ${decor}
+    <div class="dc" style="left:36%;bottom:52px;font-size:84px">🏡</div>
+    ${trainerAway(k)?'<div class="dc" style="left:42%;bottom:14px;font-size:34px">🚌</div>':`<div class="tr" style="left:42%;bottom:10px"><img src="${TRAINER(k.trainer)}"></div>`}${wm}${visHtml(k)}${fx}</div>
+    <div class="small" style="margin-top:6px">🏘️ ${esc(k.name)}의 마을 · 포켓몬 ${n}마리 · 꾸민 것 ${items.length-FREE_DECOR.length}개${boxN?` · 📦 보관함 ${boxN}마리`:''}${visitorsOf(k).length?` · 놀러 온 친구 ${visitorsOf(k).length}`:''}<br>${Object.keys(HAB_KO).map(h=>`<span style="margin-right:8px;${hab[h]?'font-weight:800':'opacity:.55'}">${HAB_KO[h]}</span>`).join('')}</div>`;
 }
 function visHtml(k){                                       // 놀러 온 친구들
   return visitorsOf(k).map((v,j)=>{
@@ -2229,6 +2307,20 @@ function giveCard(k){
   return `<div class="card"><h2>💝 엄마·아빠에게 코인 선물</h2><div class="small">모은 코인을 나눠 주면 엄마·아빠도 포켓몬 알을 뽑을 수 있어요</div>
     ${S.parents.map((q,j)=>`<div class="giverow"><b style="color:${q.color}">${esc(q.name)}</b>${[10,50,100].map(v=>`<button data-give="${j}|${v}" ${k.coins<v?'disabled':''}>💰${v}</button>`).join('')}</div>`).join('')}</div>`;
 }
+/* ---- 📦 포켓몬 보관함: 포켓볼에 넣어 두면 마을에서는 안 보여요 ---- */
+let boxMode=false,boxOpen=false,boxSel={};
+function monsCard(k){
+  const inTown=[],boxed=[];k.mons.forEach((q,i)=>{(q.box?boxed:inTown).push({q,i})});
+  const nSel=Object.keys(boxSel).length;
+  const tile=({q,i})=>`<div class="mon ${i===k.sel?'sel':''}${q.box?' boxed':''}${boxSel[i]?' marked':''}" ${boxMode?`data-bx="${i}"`:`data-sel="${i}"`}>${q.box?'<i class="pball"></i>':''}<img src="${ART(q.id)}" loading="lazy"><div>${esc(q.name)}</div><small>⚡${powerOf(q)}</small>${boxMode&&boxSel[i]?'<b class="mk">✓</b>':''}</div>`;
+  return `<div class="card"><h2>내 포켓몬 (${k.mons.length}마리)</h2>
+    <div class="acts" style="justify-content:flex-start;margin:0 0 6px"><button class="${boxMode?'go':''}" data-act="bxmode">${boxMode?'✔ 고르기 끝내기':'☑️ 여러 마리 고르기'}</button>${boxMode?`<button data-act="bxput" ${nSel?'':'disabled'}>📦 보관함에 넣기 (${nSel})</button><button data-act="bxout" ${nSel?'':'disabled'}>🌳 마을로 꺼내기 (${nSel})</button><button data-act="bxclear">선택 풀기</button>`:''}</div>
+    ${boxMode?'<div class="small">보관하거나 꺼낼 포켓몬을 눌러서 ✓ 표시한 뒤, 위의 버튼을 눌러요.</div>':''}
+    <div class="small"><b>🌳 마을에 있는 친구 ${inTown.length}마리</b>${inTown.length>22?' (마을에는 최근 22마리만 보여요)':''}</div>
+    <div class="grid">${inTown.map(tile).join('')||'<div class="small">모두 보관함에 있어요</div>'}</div>
+    <div class="acts" style="justify-content:flex-start;margin-top:10px"><button data-act="bxopen">📦 보관함 (${boxed.length}마리) ${boxOpen?'▲':'▼'}</button></div>
+    ${boxOpen?`<div class="grid" style="margin-top:6px">${boxed.map(tile).join('')||'<div class="small">보관함이 비어 있어요</div>'}</div>`:''}</div>`;
+}
 function townView(){
   const k=K(),p=leadOf(k);
   let hero='<p class="hero">아직 포켓몬이 없어요. 포켓코인으로 알을 뽑아 보세요! 🥚</p>';
@@ -2243,8 +2335,7 @@ function townView(){
   <div class="acts"><button class="egg" data-act="egg" ${k.coins<S.eggCost&&!(k.freeEgg>0)?'disabled':''}>${k.freeEgg>0?'🎁 선물 알 열기 (무료!)':`${k.hatched===0&&!k.adult?'🥚 첫 알 뽑기 · 친구 고르기':'🥚 알 뽑기'} (💰${won(S.eggCost)})`}</button></div>
   <div class="small" style="text-align:center;margin-top:4px">${k.hatched===0&&!k.adult?'첫 알은 피카츄·꼬부기·파이리·이상해씨 중에서 골라요':`지금까지 알 ${k.hatched}개`}</div></div>
   ${battleCards(k)}
-  <div class="card"><h2>내 포켓몬 (${k.mons.length}마리)</h2><div class="grid">
-  ${k.mons.map((q,i)=>`<div class="mon ${i===k.sel?'sel':''}" data-sel="${i}"><img src="${ART(q.id)}" loading="lazy"><div>${esc(q.name)}</div><small>⚡${powerOf(q)}</small></div>`).join('')}</div></div></div>`;
+  ${monsCard(k)}</div>`;
 }
 
 /* ---- 도감 ---- */
@@ -2456,16 +2547,25 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){wake();sy
 document.addEventListener('click',async e=>{
   bump();wake();
   if(e.target.id==='ov'){closeOv();return}
-  const t=e.target.closest('button,[data-sel],[data-gokid],[data-gotab],[data-pick],[data-zoom],[data-tov],[data-famimg]');if(!t||t.id==='fs')return;
+  const t=e.target.closest('button,[data-sel],[data-bx],[data-gokid],[data-gotab],[data-pick],[data-zoom],[data-tov],[data-famimg]');if(!t||t.id==='fs')return;
   if(t.id==='dimbtn'){dimManual=true;dimTick();return}
   if(t.id==='mute'){S.mute=!S.mute;save();render();return}
   if(t.id==='gohome'){tab='home';editMode=false;render();window.scrollTo(0,0);return}   // 어디서든 한 번에 홈으로
   const k=K();
   if(t.dataset.tab){const n=t.dataset.tab;if(n==='set'&&!askPin())return;tab=n;editMode=false}
   else if(t.dataset.gokid!==undefined){kid=+t.dataset.gokid;tab='todo'}
-  else if(t.dataset.kid!==undefined){kid=+t.dataset.kid}
+  else if(t.dataset.kid!==undefined){kid=+t.dataset.kid;boxSel={};boxMode=false}
   else if(t.dataset.chore!==undefined){choreToggle(k,+t.dataset.chore)}
   else if(/^m(start|step|fin|reset)$/.test(t.dataset.act||'')){mornAct(t.dataset.act,t)}
+  else if(t.dataset.bx!==undefined){const i=+t.dataset.bx;if(boxSel[i])delete boxSel[i];else boxSel[i]=1;render();return}
+  else if(t.dataset.act==='bxmode'){boxMode=!boxMode;boxSel={};render();return}
+  else if(t.dataset.act==='bxclear'){boxSel={};render();return}
+  else if(t.dataset.act==='bxopen'){boxOpen=!boxOpen;render();return}
+  else if(t.dataset.act==='bxput'||t.dataset.act==='bxout'){
+    const put=t.dataset.act==='bxput';let n=0;
+    Object.keys(boxSel).forEach(i=>{const m=k.mons[+i];if(m){if(put)m.box=true;else delete m.box;n++}});
+    boxSel={};if(n)toast(put?`📦 ${n}마리를 보관함에 넣었어요`:`🌳 ${n}마리를 마을로 꺼냈어요`);
+    if(put)boxOpen=true}
   else if(t.dataset.sel!==undefined){k.sel=+t.dataset.sel}
   else if(t.dataset.act==='egg'&&(k.coins>=S.eggCost||k.freeEgg>0)&&!busy){
     if(k.hatched===0&&!k.adult){await openStarter(k);return}      // 첫 알은 4마리 중에서 골라요
@@ -2499,7 +2599,7 @@ document.addEventListener('click',async e=>{
     const p=leadOf(k);if(!p||p.final||k.coins<S.evoCost)return;
     busy=true;t.disabled=true;t.textContent='진화 중...';
     try{const n=await evolve(p);
-      if(n){const old=p.name;k.coins-=S.evoCost;Object.assign(p,n);p.bst=0;ensureBst(p).then(()=>{save();render()});k.dex[p.id]=1;k.evos++;
+      if(n){const old=p.name;k.coins-=S.evoCost;Object.assign(p,n);p.bst=0;p.ty=null;ensureBst(p).then(()=>{save();render()});k.dex[p.id]=1;k.evos++;
         sfx('evo');confetti();overlay(`<h2>✨ ${esc(old)} → ${esc(p.name)} 진화!</h2><img class="big" src="${ART(p.id)}">`)}
       else{p.final=true;toast('더 이상 진화하지 않아요 (코인은 그대로예요)')}}
     catch(err){overlay('<h2>인터넷 연결을 확인해주세요 😢</h2>')}
