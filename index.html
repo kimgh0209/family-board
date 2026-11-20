@@ -79,7 +79,7 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 .mt2{font-size:44px;font-weight:900;color:#e65100;line-height:1.15}
 .mt2.over{color:#d32f2f;animation:shake .5s infinite}
 .mt3{font-size:15px;color:#6d4c41}
-.mstage{position:relative;height:150px;margin:8px 0;overflow:hidden;border-radius:14px;background:linear-gradient(#cdeafc,#eaf7ff 60%)}
+.mstage{position:relative;height:178px;margin:8px 0;overflow:hidden;border-radius:14px;background:linear-gradient(#cdeafc,#eaf7ff 60%)}
 .mroad{position:absolute;left:0;right:0;bottom:0;height:46px;background:#8bc34a;border-top:4px solid #689f38}
 .mroad:after{content:'';position:absolute;left:0;right:0;top:18px;border-top:4px dashed #fff}
 .mschool{position:absolute;right:2%;bottom:30px;font-size:64px;line-height:1}
@@ -91,7 +91,25 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 .mbody{display:block;font-size:30px;line-height:1;margin-top:-6px}
 .mchase{z-index:2;width:76px;margin-left:-8px}
 .mchase img{width:70px;height:70px;object-fit:contain;display:block;animation:bob .4s infinite ease-in-out}
-.mdust{position:absolute;left:-26px;bottom:6px;font-size:26px}
+.mfam{position:absolute;bottom:18px;left:62%;transform:translateX(-50%);text-align:center;z-index:2}
+.mfrow{display:flex;justify-content:center;position:relative;z-index:1}
+.mfp{width:52px;margin:0 -5px;animation:mfbob .8s infinite ease-in-out}
+.mfpf{width:48px;height:48px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);display:block;margin:0 auto;background:#fff}
+.mfpe{display:block;font-size:40px;line-height:48px}
+.mfpb{display:block;font-size:26px;line-height:1;margin-top:-4px;transform-origin:50% 100%;animation:mfwave .5s infinite ease-in-out}
+@keyframes mfbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes mfwave{0%,100%{transform:rotate(-22deg)}50%{transform:rotate(22deg)}}
+.mice2{position:absolute;left:-8px;right:-8px;top:-8px;bottom:-6px;background:rgba(160,225,255,.45);border:3px solid rgba(255,255,255,.85);border-radius:16px;z-index:2;transition:all .8s;box-shadow:inset 0 0 12px rgba(255,255,255,.8)}
+.mice{position:absolute;right:-14px;top:-14px;font-size:30px;z-index:3;transition:all .8s}
+.mfam.free .mice2{opacity:0;transform:scale(1.5)}
+.mfam.free .mice{opacity:0;transform:scale(2.4)}
+.mfam.free .mfp{animation:mfjump .45s infinite ease-in-out}
+.mfam.free .mfpb{animation-duration:.25s}
+@keyframes mfjump{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+.mfam.worry .mfp{animation:shake .35s infinite}
+.mfamb{position:absolute;left:50%;top:-30px;transform:translateX(-50%);white-space:nowrap;background:#fff;border:2px solid #ef5350;color:#c62828;border-radius:12px;padding:1px 8px;font-size:13px;font-weight:800}
+.mheart{position:absolute;left:30%;top:-34px;font-size:28px;animation:bob .6s infinite ease-in-out}
+.mheart.h2{left:70%;animation-delay:-.3s}
 .mbub{position:absolute;top:6px;background:#fff;border-radius:14px;padding:4px 10px;font-weight:800;font-size:15px;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:left 1s linear;white-space:nowrap}
 .msteps{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));margin-top:4px}
 .msteps>*{margin:5px}
@@ -128,15 +146,6 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 @keyframes sway{0%,100%{transform:translateX(-50%) rotate(-3deg)}50%{transform:translateX(-50%) rotate(3deg)}}
 .scene .vwrap{position:absolute;z-index:4}
 .vtag{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:800;background:rgba(255,255,255,.85);border-radius:8px;padding:0 6px;white-space:nowrap}
-.msgi{display:flex;align-items:center;padding:6px 8px;border-radius:12px;margin-top:5px;background:#fafafa;border:2px solid var(--line)}
-.msgi.new{background:#fff3f8;border-color:#f48fb1}
-.msgi .mi{font-size:30px;margin-right:10px;flex:none}
-.msgi small{color:#888}
-.stkg{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));margin-top:6px}
-.stkg>*{margin:4px}
-.stk{display:block;text-align:center;padding:10px 4px;border-radius:16px}
-.stk span{display:block;font-size:40px;line-height:1.1}
-.stk b{display:block;font-size:14px;margin-top:2px}
 .bstage{position:relative;width:min(88vw,520px);height:290px;border-radius:16px;overflow:hidden;border:3px solid #fff;box-shadow:0 0 0 2px #90a4ae}
 .bsky{position:absolute;left:0;top:0;right:0;bottom:0;background:linear-gradient(#8ed1fc,#d9f3ff 55%,#bde48a 56%,#8bc34a)}
 .bground{position:absolute;left:-10%;right:-10%;bottom:-40px;height:150px;background:radial-gradient(ellipse at 50% 30%,#a5d66b,#7cb342 70%);border-radius:50%}
@@ -204,6 +213,31 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 @keyframes bddance0{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-16px) rotate(8deg)}}
 @keyframes bddance1{0%,100%{transform:scale(1) rotate(6deg)}50%{transform:scale(1.15) rotate(-6deg)}}
 @keyframes bddance2{0%,100%{transform:translateX(-6px) scaleX(1)}25%{transform:translateX(6px) translateY(-10px)}50%{transform:translateX(6px) scaleX(-1)}75%{transform:translateX(-6px) translateY(-10px) scaleX(-1)}}
+.dboard{background:linear-gradient(#fff8e1,#ffecb3);border:3px solid #ffb300;border-radius:18px;padding:10px}
+.dhead{display:flex;align-items:center;flex-wrap:wrap}
+.dhead>*{margin:2px 6px 2px 0}
+.drem{margin-top:6px;background:#fff;border-radius:12px;padding:6px 10px;font-size:15px}
+.drem span{display:inline-block;margin:2px 10px 2px 0;font-weight:700}
+.drem b{color:#e65100}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));margin-top:8px}
+.dgrid.s{grid-template-columns:repeat(auto-fill,minmax(58px,1fr))}
+.dgrid.m{grid-template-columns:repeat(auto-fill,minmax(80px,1fr))}
+.dgrid.l{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+.dgrid.s .dtab{height:54px;font-size:16px}
+.dgrid.m .dtab{height:76px;font-size:22px}
+.dgrid.l .dtab{height:104px;font-size:28px}
+.dgrid>*{margin:4px}
+.dtab{position:relative;height:62px;border-radius:6px;background:repeating-linear-gradient(45deg,#fff3c4,#fff3c4 8px,#ffe69a 8px,#ffe69a 16px);border:2px solid #f9a825;box-shadow:1px 2px 3px rgba(0,0,0,.25);display:grid;place-items:center;font-size:18px;font-weight:900;color:#e65100;padding:0}
+.dtab .stp{position:absolute;left:50%;top:4px;width:20px;height:5px;margin-left:-10px;background:#9e9e9e;border-radius:2px;box-shadow:0 1px 1px rgba(0,0,0,.4)}
+.dtab.open{background:#eceff1;border:2px dashed #b0bec5;box-shadow:none;color:#607d8b;font-size:24px;line-height:1}
+.dtab.open small{display:block;font-size:10px;font-weight:700}
+.tearbox{position:relative;width:210px;height:170px;margin:8px auto}
+.prz{position:absolute;left:0;top:0;right:0;bottom:0;display:grid;place-items:center;background:#fff;border:3px dashed #ffb300;border-radius:12px;font-size:24px;font-weight:900;padding:8px;text-align:center;line-height:1.3}
+.prz.show{animation:przpop .6s .9s both}
+@keyframes przpop{0%{transform:scale(.6);opacity:.2}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+.tearp{position:absolute;left:0;top:0;right:0;bottom:0;background:repeating-linear-gradient(45deg,#fff3c4,#fff3c4 10px,#ffe69a 10px,#ffe69a 20px);border:3px solid #f9a825;border-radius:12px;transform-origin:0 0;animation:tearoff 1.1s .2s forwards}
+.tearp:before{content:'';position:absolute;left:50%;top:6px;width:30px;height:7px;margin-left:-15px;background:#9e9e9e;border-radius:3px}
+@keyframes tearoff{0%{transform:none}35%{transform:rotate(-6deg) translateY(-4px)}100%{transform:rotate(-80deg) translate(-60px,-150px);opacity:0}}
 .shopg{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));margin-top:8px}
 .shopg>*{margin:4px}
 .shopi{display:block;text-align:center;padding:8px 4px}
@@ -331,9 +365,9 @@ main{max-width:1200px}
 .ce{margin-top:2px;padding:1px 3px;border-radius:3px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
 .cm{font-size:10px;opacity:.6;margin-top:2px}
 .ckgrid{display:grid;grid-template-columns:repeat(3,1fr);grid-gap:0 8px;gap:0 8px}
-.ti{display:flex;align-items:center;width:100%;background:none;box-shadow:none;padding:4px 0;font-weight:600;font-size:14px;text-align:left;border-radius:6px}
+.ti{display:flex;align-items:center;width:100%;background:none;box-shadow:none;padding:9px 2px;min-height:40px;font-weight:600;font-size:15px;text-align:left;border-radius:8px}
 .ti:active{transform:none}
-.ti .cb{width:17px;height:17px;border:2px solid #9aa;border-radius:4px;margin-right:6px;flex:none;display:grid;place-items:center;font-size:11px;color:#fff;font-weight:800}
+.ti .cb{width:24px;height:24px;border:2px solid #9aa;border-radius:6px;margin-right:8px;flex:none;display:grid;place-items:center;font-size:15px;color:#fff;font-weight:800}
 .ti.d .cb{background:var(--green);border-color:var(--green)}
 .ti.d .t{text-decoration:line-through;opacity:.5}
 .two{display:grid;grid-template-columns:1fr 1fr;grid-gap:10px;gap:10px}
@@ -344,6 +378,16 @@ main{max-width:1200px}
 .cm2{margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}
 .inl{display:flex;flex-wrap:wrap}
 .inl .ti{width:auto;margin-right:12px}
+.ti.more{color:#1565c0;font-weight:800}
+.tcol .sh{cursor:pointer}
+.tov{width:min(88vw,440px);text-align:left}
+.tov h2{margin:0 0 6px}
+.tovl{max-height:58vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.tob{display:flex;align-items:center;width:100%;min-height:60px;margin:6px 0;padding:8px 14px;border-radius:16px;font-size:22px;font-weight:700;text-align:left}
+.tob .tcb{width:38px;height:38px;border:3px solid #9aa;border-radius:10px;margin-right:12px;flex:none;display:grid;place-items:center;font-size:24px;color:#fff;font-weight:900;background:#fff}
+.tob.d{background:#c8e6c9}
+.tob.d .tcb{background:var(--green);border-color:var(--green)}
+.tob.d span:last-child{text-decoration:line-through;opacity:.55}
 .shop{margin-top:6px;border-top:1px dashed var(--line);padding-top:6px;color:#2e7d32;font-weight:600}
 .krow{display:flex;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line);cursor:pointer}
 .krow:last-child{border-bottom:0}
@@ -487,8 +531,8 @@ main{padding:6px 10px 8px}
 .okid{min-height:66px;font-size:16px;padding:4px 2px}
 .thumbs{min-height:28px}
 .thumbs img{width:26px;height:26px}
-.ti{font-size:12px;padding:3px 0}
-.ti .cb{width:15px;height:15px}
+.ti{font-size:13px;padding:7px 2px;min-height:36px}
+.ti .cb{width:22px;height:22px;font-size:14px}
 .krow{padding:4px 0}
 .krow img{width:38px;height:38px}
 .kinfo small{font-size:11px}
@@ -627,7 +671,7 @@ function newParent(name,color,trainer){const k=newKid(name,[],trainer);k.adult=t
 function ensureParents(s){
   if(!Array.isArray(s.parents)||!s.parents.length){const pp=(s.people||[]).filter(x=>x.n!=='가족');
     s.parents=[newParent((pp[0]&&pp[0].n)||'엄마',(pp[0]&&pp[0].c)||'#ec407a','lyra'),newParent((pp[1]&&pp[1].n)||'아빠',(pp[1]&&pp[1].c)||'#1e88e5','ethan')]}
-  s.parents.forEach((k,i)=>{k.adult=true;fixKid(k,i)});
+  s.parents.forEach((k,i)=>{k.adult=true;fixKid(k,i);if(typeof k.freeEgg!=='number')k.freeEgg=(k.hatched===0&&!k.mons.length)?1:0})   // 엄마·아빠에게 선물 알 1개
 }
 function defaults(){
   const base=()=>[['세수하기',10],['양치하기',10],['책 읽기',30],['장난감 정리',20]];
@@ -639,7 +683,7 @@ function defaults(){
     todoDone:{},shopping:'우유\n사과\n식빵\n요거트',
     checklist:{title:'여행 준비물',sub:'',text:'여권\n충전기\n카메라\n간식\n세면도구\n비상약'},
     menu:`${dkey(0)} 점심 비빔밥, 계란국\n${dkey(0)} 저녁 김치찌개, 계란말이, 시금치나물\n${dkey(1)} 저녁 삼겹살, 쌈채소`,   // 예시예요. 설정에서 고쳐 쓰세요
-    thanks:{},thanksTo:'',closet:[],outfit:{},msgs:[],
+    thanks:{},thanksTo:'',closet:[],outfit:{},family:{},
     shift:{on:true,name:'아빠',anchor:'2026-11-17',seq:'휴 야 야 휴 휴 주 주 휴'},   // 4조 2교대: 기준일(휴)부터 휴·야·야·휴·휴·주·주·휴 를 반복
     shiftOv:{},
     autoPurge:true,                                  // 지난 날 입은 옷 사진은 다음날 자동 삭제
@@ -711,7 +755,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261120a';
+const BUILD='20261120e';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -948,7 +992,7 @@ async function hatchEgg(k,btn){
   const n=k.hatched+1,legend=n===7||n%20===0;   // 7번째, 그리고 20번째마다 (화면에는 알리지 않음)
   try{
     const p=legend?await rollLegend(k):await rollEgg(k);
-    k.coins-=S.eggCost;k.mons.push(p);ensureBst(p);k.dex[p.id]=1;k.hatched++;k.sel=k.mons.length-1;
+    if(k.freeEgg>0)k.freeEgg--;else k.coins-=S.eggCost;k.mons.push(p);ensureBst(p);k.dex[p.id]=1;k.hatched++;k.sel=k.mons.length-1;
     sfx('hatch');confetti();
     overlay((p.legend?'<h2>🌟 대박! 전설의 포켓몬이에요!</h2>':'')+'<h2>🎉 '+esc(p.name)+' 등장!</h2><img class="big" src="'+ART(p.id)+'">');
   }catch(err){overlay('<h2>인터넷 연결을 확인해주세요 😢</h2>')}
@@ -1047,15 +1091,15 @@ function closeOv(){document.getElementById('ov').classList.remove('show')}
 let tt;function toast(m,ms){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),ms||1400)}
 function clockHtml(){const d=new Date();return `${pad(d.getHours())}:${pad(d.getMinutes())}`}
 function dateHtml(){return new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})}
-const KIDTABS=['menu','outfit','todo','town','dex','battle','rec'];
+const KIDTABS=['menu','outfit','todo','town','draw','dex','rec'];
 
 function render(){
-  document.getElementById('tabs').innerHTML=[['home','🏠 홈'],['menu','🍽 식단'],['outfit','👕 옷'],['todo','📝 미션'],['town','🌳 마을'],['dex','📖 도감'],['battle','⚔️ 배틀'],['rec','📊 기록'],['msg','💌 메시지'+(unreadCount()?' ('+unreadCount()+')':'')],['set','⚙️ 설정']]
+  document.getElementById('tabs').innerHTML=[['home','🏠 홈'],['menu','🍽 식단'],['outfit','👕 옷'],['todo','📝 미션'],['town','🌳 마을'],...(drawCfg().on?[['draw','🎟 뽑기']]:[]),['dex','📖 도감'],['rec','📊 기록'],['set','⚙️ 설정']]
     .map(([k,l])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${l}</button>`).join('');
-  document.getElementById('mute').textContent=S.mute?'🔇':'🔊';  if(kid>=S.kids.length&&tab!=='town'&&tab!=='dex'&&tab!=='battle')kid=0;     // 엄마·아빠는 마을·도감에서만 골라요
-  document.getElementById('kids').innerHTML=KIDTABS.indexOf(tab)>=0?S.kids.concat(tab==='town'||tab==='dex'||tab==='battle'?S.parents:[]).map((k,i)=>`<button class="${i===kid?'on':''}" data-kid="${i}">${k.adult?'👪 ':''}${esc(k.name)}</button>`).join(''):'';
+  document.getElementById('mute').textContent=S.mute?'🔇':'🔊';  if(kid>=S.kids.length&&tab!=='town'&&tab!=='dex'&&tab!=='draw')kid=0;     // 엄마·아빠는 마을·도감에서만 골라요
+  document.getElementById('kids').innerHTML=KIDTABS.indexOf(tab)>=0?S.kids.concat(tab==='town'||tab==='dex'||tab==='draw'?S.parents:[]).map((k,i)=>`<button class="${i===kid?'on':''}" data-kid="${i}">${k.adult?'👪 ':''}${esc(k.name)}</button>`).join(''):'';
   const m=document.getElementById('main');
-  m.innerHTML=tab==='home'?homeView():tab==='menu'?menuView():tab==='outfit'?outfitView():tab==='todo'?todoView():tab==='town'?townView():tab==='dex'?dexView():tab==='battle'?battleView():tab==='rec'?recView():tab==='msg'?msgView():setView();
+  m.innerHTML=tab==='home'?homeView():tab==='menu'?menuView():tab==='outfit'?outfitView():tab==='todo'?todoView():tab==='town'?townView():tab==='draw'?drawView():tab==='dex'?dexView():tab==='rec'?recView():setView();
   const gh=document.getElementById('gohome');if(gh)gh.style.display=tab==='home'?'none':'block';
   if(tab==='dex')fillDex();
   paintCloud();
@@ -1178,13 +1222,25 @@ function schedCard(evs){
   return `<div class="sec"><div class="two">${day(0,'오늘')}${day(1,'내일')}</div>
     ${nx?`<div class="small" style="margin-top:6px">다음 ${nd.getMonth()+1}/${nd.getDate()} · ${esc(nx.e.title)}</div>`:''}</div>`;
 }
+const TODO_VIS=6;                                          // 홈 카드에 한 칸에 보이는 항목 수 (나머지는 "더 보기"에서 크게)
+function todoOrder(who,items){                             // 아직 안 한 것 먼저
+  const u=[],d=[];items.forEach(t=>{(S.todoDone[who+'|'+t]?d:u).push(t)});return u.concat(d);
+}
+function todoOvHtml(who){
+  const items=listLines(who),k=S.kids.find(q=>q.name===who),c=k?k.color:'#8e24aa',dn=items.filter(t=>S.todoDone[who+'|'+t]).length;
+  return `<div class="tov"><h2 style="color:${c}">📝 ${esc(who)} 할 일 <span class="chip">${dn}/${items.length}</span></h2>
+    <div class="tovl">${items.length?items.map(t=>{const d=!!S.todoDone[who+'|'+t];return `<button class="tob ${d?'d':''}" data-act="tg" data-k="${esc(who+'|'+t)}"><span class="tcb">${d?'✓':''}</span><span>${esc(t)}</span></button>`}).join(''):'<div class="small">없어요 🎉</div>'}</div></div>`;
+}
+let todoOvWho=null;
+function showTodoOv(who){todoOvWho=who;overlay(todoOvHtml(who))}
+function refreshTodoOv(){try{if(todoOvWho&&document.getElementById('ov').classList.contains('show'))overlay(todoOvHtml(todoOvWho))}catch(e){}}
 function todoCard(){
   const cols=S.kids.map(k=>({p:{n:k.name,c:k.color},items:listLines(k.name)}));
   const common=listLines('가족'),shop=shopLines();
   if(!cols.some(x=>x.items.length)&&!common.length&&!shop.length)return `<div class="sec"><div class="small">설정에서 할 일과 장보기 목록을 넣어 보세요</div></div>`;
-  return `<div class="sec">${cols.length?`<div class="tcols" style="grid-template-columns:repeat(${cols.length},1fr)">${cols.map(({p,items})=>{const left=items.filter(t=>!S.todoDone[p.n+'|'+t]).length;
-      return `<div class="tcol"><div class="sh" style="--c:${p.c};color:${p.c}">${esc(p.n)} 할 일 <span class="cnt">${left}</span></div>${items.length?items.map(t=>tiBtn(p.n+'|'+t,t)).join(''):'<div class="small">없어요 🎉</div>'}</div>`}).join('')}</div>`:''}
-    ${common.length?`<div class="cm2"><b>공통 할 일 · ${common.filter(t=>!S.todoDone['가족|'+t]).length}</b><div class="inl">${common.map(t=>tiBtn('가족|'+t,t)).join('')}</div></div>`:''}
+  return `<div class="sec">${cols.length?`<div class="tcols" style="grid-template-columns:repeat(${cols.length},1fr)">${cols.map(({p,items})=>{const left=items.filter(t=>!S.todoDone[p.n+'|'+t]).length,ord=todoOrder(p.n,items),vis=ord.slice(0,TODO_VIS),more=ord.length-vis.length;
+      return `<div class="tcol"><div class="sh" data-tov="${esc(p.n)}" style="--c:${p.c};color:${p.c}">${esc(p.n)} 할 일 <span class="cnt">${left}</span><span style="margin-left:auto;font-size:12px">🔍</span></div>${items.length?vis.map(t=>tiBtn(p.n+'|'+t,t)).join(''):'<div class="small">없어요 🎉</div>'}${more>0?`<button class="ti more" data-tov="${esc(p.n)}">+${more}개 더 보기 ›</button>`:''}</div>`}).join('')}</div>`:''}
+    ${common.length?`<div class="cm2"><b data-tov="가족" style="cursor:pointer">공통 할 일 · ${common.filter(t=>!S.todoDone['가족|'+t]).length} 🔍</b><div class="inl">${todoOrder('가족',common).slice(0,TODO_VIS).map(t=>tiBtn('가족|'+t,t)).join('')}${common.length>TODO_VIS?`<button class="ti more" data-tov="가족">+${common.length-TODO_VIS}개 더 보기 ›</button>`:''}</div></div>`:''}
     ${shop.length?`<div class="shop"><b>🛒 장보기 ${shop.length}</b> <span>${shop.map(esc).join(' · ')}</span></div>`:''}</div>`;
 }
 function bdayInfo(k){
@@ -1269,30 +1325,38 @@ function mornState(){                                    // off · idle(시작 �
 function mornCalc(){                                     // 화면에 그릴 값 (시간·단계 → 위치)
   const c=morningCfg(),r=S.mrun,st=mornSteps(),n=st.length,dn=(r.done||[]).filter(i=>i<n).length,lv=leaveAt(),now=r.fin||Date.now();
   const ft=Math.max(0,Math.min(1,(now-r.start)/Math.max(lv-r.start,60000))),sf=n?dn/n:1;
-  const kx=r.fin?80:Math.round(4+72*sf),cx=Math.round(-14+88*ft);
-  const caught=!r.fin&&cx+10>=kx,near=!r.fin&&cx+16>=kx,rem=lv-Date.now();
-  const bub=r.fin?(r.ok?'🎉 도착! 성공!':'😅 늦었지만 해냈어요'):caught?'🆘 잡혔어요! 서둘러요!':near?'😱 쫓아와요!':rem<=0?'⏰ 출발 시간이에요!':'💪 잘하고 있어요';
+  const kx=r.fin?84:Math.round(4+24*sf);                      // 단계를 끝낼수록 위험에 빠진 가족(60%)에게 가까워져요 → 구하면 학교로!
+  const behind=!r.fin&&ft>.2&&ft>sf+.25,rem=lv-Date.now();
+  const bub=r.fin?(r.ok?'🎉 구출 성공! 이제 학교 가자!':'😅 늦었지만 구했어요!'):rem<=0?'⏰ 출발 시간이에요!':behind?'😰 서둘러요! 가족이 기다려요':dn===0?'🦸 출동 준비!':'💪 힘내라 영웅!';
   const timer=r.fin?(r.ok?`${Math.max(1,Math.round((lv-r.fin)/60000))}분 일찍 끝!`:'준비 끝!'):rem>0?(rem>=600000?`${Math.ceil(rem/60000)}분 남았어요`:`${Math.floor(rem/60000)}분 ${pad(Math.floor(rem%60000/1000))}초`):'⏰ 지금 출발해요!';
-  return {c,n,dn,kx,cx,caught,near,bub,timer,over:rem<=0&&!r.fin};
+  return {c,n,dn,kx,px:kx-10,behind,bub,timer,free:!!r.fin,over:rem<=0&&!r.fin};
 }
 function mornBanner(){
   if(mornState()!=='idle')return '';
   const c=morningCfg(),k=mornKid();
-  return `<div class="sec mbanner" id="mbn"><div class="sh" style="--c:#ff8f00;color:#e65100">🌅 ${esc(k.name)} · ${esc(c.place)} 가는 준비</div><div class="mbrow"><span>출발 <b>${esc(c.leave)}</b></span><button class="go" data-act="mstart">🏃 준비 시작!</button></div></div>`;
+  return `<div class="sec mbanner" id="mbn"><div class="sh" style="--c:#ff8f00;color:#e65100">🦸 ${esc(k.name)} 영웅 출동 준비 · ${esc(c.place)}</div><div class="mbrow"><span>출발 <b>${esc(c.leave)}</b></span><button class="go" data-act="mstart">🏃 준비 시작!</button></div></div>`;
+}
+function famCluster(hero){                                  // 구해야 할 가족 (영웅 빼고). 사진이 있으면 얼굴로, 없으면 이모지로
+  const names=famNames().filter(n=>n!==hero.name),fam=S.family||{};
+  const have=names.filter(n=>fam[n]&&IMG.mem[fam[n]]);
+  const list=have.length?have:null,emo=['👩','👨','👧','👦','🧒'];
+  const people=list?list.map(n=>({img:IMG.mem[fam[n]],n})):names.slice(0,4).map((n,i)=>({emo:emo[i%5],n}));
+  return people.slice(0,5).map((q,i)=>`<div class="mfp" style="animation-delay:-${(i*0.23).toFixed(2)}s">${q.img?`<img class="mfpf" src="${q.img}">`:`<span class="mfpe">${q.emo}</span>`}<span class="mfpb" style="animation-delay:-${(i*0.31).toFixed(2)}s">🙌</span></div>`).join('');
 }
 function morningView(){
   const k=mornKid(),r=S.mrun,m=mornCalc(),st=mornSteps(),c=m.c,done=!!r.fin;
   const face=k.face&&IMG.mem[k.face]?`<img class="mface" src="${IMG.mem[k.face]}">`:`<img class="mface" src="${TRAINER(k.trainer)}">`;
   const ch=k.mons.length?(k.mons[k.sel]||k.mons[0]).id:25;
   return `<div class="morn" id="morn">
-    <div class="mhead"><div class="mt1">🏫 ${esc(c.place)}까지</div><div class="mt2 ${m.over?'over':''}" id="mtimer">${m.timer}</div><div class="mt3">출발 ${esc(c.leave)}</div></div>
+    <div class="mhead"><div class="mt1">🏫 ${esc(c.place)}까지</div><div class="mt2 ${m.over?'over':''}" id="mtimer">${m.timer}</div><div class="mt3">출발 ${esc(c.leave)} · 🦸 가족을 구하고 가요!</div></div>
     <div class="mstage"><div class="mroad"></div><div class="mschool">🏫</div>
-      <div class="mchase" id="mchase" style="left:${m.cx}%"><span class="mdust">💨</span><img src="${ART(ch)}"></div>
-      <div class="mkid ${m.caught?'caught':''} ${done?'arrive':''}" id="mkid" style="left:${m.kx}%">${face}<span class="mbody">${done?'🙌':'🏃'}</span></div>
+      <div class="mfam ${done?'free':''}${m.behind?' worry':''}" id="mfam"><div class="mfamb" id="mfamb">${done?'':'🆘 구해줘요!'}</div><div class="mfrow">${famCluster(k)}</div><span class="mice2"></span><span class="mice">🧊</span>${done?'<span class="mheart">❤️</span><span class="mheart h2">💖</span>':''}</div>
+      <div class="mchase" id="mchase" style="left:${m.px}%"><img src="${ART(ch)}"></div>
+      <div class="mkid ${done?'arrive':''}" id="mkid" style="left:${m.kx}%">${face}<span class="mbody">${done?'🙌':'🦸'}</span></div>
       <div class="mbub" id="mbub" style="left:${Math.max(6,Math.min(70,m.kx-6))}%">${m.bub}</div></div>
-    ${done?`<div class="mres">${r.ok?`🎉 ${esc(k.name)} 성공! ${esc(c.place)} 갈 준비를 시간 안에 끝냈어요${morningChoreTxt()}`:`😊 끝까지 해냈어요! 내일은 더 일찍 해봐요`}</div>`:''}
+    ${done?`<div class="mres">${r.ok?`🎉 ${esc(k.name)} 영웅이 가족을 구했어요! 이제 ${esc(c.place)}에 가요${morningChoreTxt()}`:`😊 끝까지 가족을 구했어요! 내일은 더 빨리 출동해요`}</div>`:''}
     <div class="msteps">${st.map((t,i)=>{const d=(r.done||[]).indexOf(i)>=0;return `<button class="mstep ${d?'done':''}" data-act="mstep" data-i="${i}" ${done?'disabled':''}><span class="mn">${d?'✓':i+1}</span><b>${esc(t)}</b></button>`}).join('')}</div>
-    <div class="acts">${done?'':`<button class="go mfin" data-act="mfin" ${m.dn<m.n?'disabled':''}>✅ 준비 끝! (${m.dn}/${m.n})</button>`}<button data-act="mreset">${done?'확인 ✔':'↺ 처음부터'}</button></div></div>`;
+    <div class="acts">${done?'':`<button class="go mfin" data-act="mfin" ${m.dn<m.n?'disabled':''}>🦸 가족 구하기! (${m.dn}/${m.n})</button>`}<button data-act="mreset">${done?'확인 ✔':'↺ 처음부터'}</button></div></div>`;
 }
 function morningChoreTxt(){const c=morningCfg();return c.chore?` · 미션 "${esc(c.chore)}" 클리어!`:''}
 function mornTick(){
@@ -1302,8 +1366,9 @@ function mornTick(){
   if(st!=='run')return;
   const v=mornCalc(),set=(id,f)=>{const e=document.getElementById(id);if(e)f(e)};
   set('mtimer',e=>{e.textContent=v.timer;e.className='mt2'+(v.over?' over':'')});
-  set('mchase',e=>{e.style.left=v.cx+'%'});
-  set('mkid',e=>{e.style.left=v.kx+'%';e.className='mkid'+(v.caught?' caught':'')});
+  set('mchase',e=>{e.style.left=v.px+'%'});
+  set('mkid',e=>{e.style.left=v.kx+'%'});
+  set('mfam',e=>{e.className='mfam'+(v.behind?' worry':'')});
   set('mbub',e=>{e.textContent=v.bub;e.style.left=Math.max(6,Math.min(70,v.kx-6))+'%'});
 }
 setInterval(mornTick,1000);
@@ -1438,13 +1503,40 @@ function cropFace(file){
     im.src=u;
   });
 }
+let famState=null;
+const famNames=()=>S.parents.map(q=>q.name).concat(S.kids.map(q=>q.name));
+function famStart(file){
+  const u=URL.createObjectURL(file),im=new Image();
+  im.onload=()=>{famState={img:im,url:u,names:famNames(),i:0};famShow()};
+  im.onerror=()=>{URL.revokeObjectURL(u);toast('사진을 불러오지 못했어요')};
+  im.src=u;
+}
+function famShow(){
+  const f=famState;if(!f)return;
+  if(f.i>=f.names.length){URL.revokeObjectURL(f.url);famState=null;closeOv();save();render();toast('👪 가족 얼굴을 저장했어요!',2500);return}
+  overlay(`<h3>👪 <b>${esc(f.names[f.i])}</b> 얼굴을 눌러 주세요 <small>(${f.i+1}/${f.names.length})</small></h3>
+    <img id="famimg" data-famimg="1" src="${f.url}" style="max-width:84vw;max-height:54vh;border-radius:10px;cursor:crosshair">
+    <div class="acts"><button data-act="famskip">이 사람은 건너뛰기</button></div>`);
+}
+async function famTap(imgEl,cx,cy){
+  const f=famState;if(!f)return;
+  const r=imgEl.getBoundingClientRect(),fx=(cx-r.left)/r.width,fy=(cy-r.top)/r.height,im=f.img;
+  const W=im.naturalWidth||im.width,H=im.naturalHeight||im.height,side=Math.min(W,H,Math.round(W*.19));
+  const sx=Math.max(0,Math.min(W-side,fx*W-side/2)),sy=Math.max(0,Math.min(H-side,fy*H-side*.55));
+  const c=document.createElement('canvas');c.width=c.height=200;
+  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,200,200);x.drawImage(im,sx,sy,side,side,0,0,200,200);
+  const id='g'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name=f.names[f.i];
+  await IMG.put(id,c.toDataURL('image/jpeg',0.85));
+  S.family=S.family||{};if(S.family[name])IMG.del(S.family[name]);S.family[name]=id;
+  f.i++;famShow();
+}
 async function setFace(file){
   const k=K();
   try{const d=await cropFace(file),id='f'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
     await IMG.put(id,d);if(k.face)IMG.del(k.face);k.face=id;save();render();toast('🙂 얼굴 사진을 넣었어요',2500)}
   catch(e){toast('사진을 불러오지 못했어요')}
 }
-const photoIds=()=>S.closet.map(c=>({id:c.id})).concat(S.kids.filter(k=>k.face).map(k=>({id:k.face})));
+const photoIds=()=>S.closet.map(c=>({id:c.id})).concat(S.kids.filter(k=>k.face).map(k=>({id:k.face}))).concat(Object.keys(S.family||{}).map(n=>({id:S.family[n]})));
 
 const tile=(x,label)=>`<div class="tl" data-zoom="${x.id}"><img src="${IMG.mem[x.id]||''}">${label?`<small>${label}</small>`:''}</div>`;
 function stageHtml(items,k){
@@ -1477,7 +1569,7 @@ function purgeUsedPhotos(){
   return true;
 }
 function gcPhotos(){                                 // 어디에도 안 쓰이는 사진 조각을 기기에서 비워요
-  const used={};S.closet.forEach(c=>{used[c.id]=1});S.kids.forEach(k=>{if(k.face)used[k.face]=1});
+  const used={};S.closet.forEach(c=>{used[c.id]=1});S.kids.forEach(k=>{if(k.face)used[k.face]=1});Object.keys(S.family||{}).forEach(n=>{used[S.family[n]]=1});
   Object.keys(IMG.mem).forEach(id=>{
     if(used[id])return;
     const tm=parseInt(id.slice(1,9),36);if(tm&&Date.now()-tm<600000)return;   // 방금 올린 사진은 건드리지 않아요
@@ -1557,13 +1649,13 @@ const b64d=s=>decodeURIComponent(escape(atob(String(s).replace(/\s/g,''))));
 // 부모가 정하는 설정 (아이 기록은 아래 progress.json 으로 따로 맞춰요)
 function cfgOf(){
   return {pin:S.pin,lat:S.lat,lon:S.lon,notices:S.notices,events:S.events,menu:S.menu,todoText:S.todoText,shopping:S.shopping,checklist:S.checklist,
-    people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,autoPurge:S.autoPurge,bgm:S.bgm,dim:S.dim,morning:S.morning,bdayCfg:S.bdayCfg,
+    people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,autoPurge:S.autoPurge,bgm:S.bgm,dim:S.dim,morning:S.morning,bdayCfg:S.bdayCfg,family:S.family,drawCfg:S.drawCfg,
     kids:S.kids.map(k=>({name:k.name,chores:k.chores,birthday:k.birthday,color:k.color,face:k.face||''})),closet:S.closet,outfit:S.outfit};
 }
 const cfgHash=()=>JSON.stringify(cfgOf());
 lastCfgHash=cfgHash();
 function applyCfg(c){
-  ['pin','lat','lon','notices','events','menu','todoText','shopping','checklist','people','eggCost','evoCost','bonus','legend','closet','outfit','shift','shiftOv','autoPurge','bgm','dim','morning','bdayCfg'].forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});
+  ['pin','lat','lon','notices','events','menu','todoText','shopping','checklist','people','eggCost','evoCost','bonus','legend','closet','outfit','shift','shiftOv','autoPurge','bgm','dim','morning','bdayCfg','family','drawCfg'].forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});
   if(Array.isArray(c.kids)){
     c.kids.forEach((kc,i)=>{
       let k=S.kids[i];
@@ -1614,11 +1706,11 @@ async function pullPhotos(){
   return got;
 }
 /* ---- 아이 기록(코인·포켓몬·할 일 체크 등) 기기 간 동기화: 아이별로 "나중에 바뀐 쪽"이 이겨요 ---- */
-const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev','deco','out','bw','bl','bday','bn'];
+const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev','deco','out','bw','bl','bday','bn','freeEgg'];
 const progOf=k=>{const o={};PF.forEach(f=>{if(k[f]!==undefined)o[f]=k[f]});return o};
 function sweepTodo(){                                       // 오늘이 아닌 날 체크된 할 일은 지워요
   let n=0;Object.keys(S.todoDone).forEach(x=>{const v=S.todoDone[x];if(x.indexOf('__ck|')!==0&&typeof v==='string'&&v!==today()){delete S.todoDone[x];n++}});return n}
-const progG=()=>({todoDone:S.todoDone,thanks:S.thanks,mrun:S.mrun||null});
+const progG=()=>({todoDone:S.todoDone,thanks:S.thanks,mrun:S.mrun||null,draw:S.drawBoard||null});
 let lastPH=[],lastPP=[],lastGH='';
 function progMark(init){                                  // 바뀐 아이가 있으면 시각을 새로 찍어요
   let dirty=false;
@@ -1646,7 +1738,7 @@ async function syncProgress(){
     else if(lp>(x?x.pts:0))push=true;
   }));
   if(rg&&rg.pts>(S.gpts||0)){
-    if(!busy){S.todoDone=JSON.parse(JSON.stringify(rg.d.todoDone||{}));S.thanks=JSON.parse(JSON.stringify(rg.d.thanks||{}));S.mrun=rg.d.mrun?JSON.parse(JSON.stringify(rg.d.mrun)):null;S.gpts=rg.pts;lastGH=JSON.stringify(progG());pulled=true;if(sweepTodo()){S.gpts=now;lastGH=JSON.stringify(progG());push=true}}
+    if(!busy){S.todoDone=JSON.parse(JSON.stringify(rg.d.todoDone||{}));S.thanks=JSON.parse(JSON.stringify(rg.d.thanks||{}));S.mrun=rg.d.mrun?JSON.parse(JSON.stringify(rg.d.mrun)):null;S.drawBoard=rg.d.draw?JSON.parse(JSON.stringify(rg.d.draw)):null;S.gpts=rg.pts;lastGH=JSON.stringify(progG());pulled=true;if(sweepTodo()){S.gpts=now;lastGH=JSON.stringify(progG());push=true}}
   }else if(!rg&&!(S.gpts)){S.gpts=now;push=true}
   else if((S.gpts||0)>(rg?rg.pts:0))push=true;
   if(pulled){try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}render()}
@@ -1688,7 +1780,6 @@ async function syncNow(){
       try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}
     }
     await syncProgress();
-    try{await syncMsgs()}catch(e){}
     if(await pullPhotos()>0)render();
     if(!sc.ro){if(runPurge())render();await purgeRemote()}else gcPhotos();
     setSync('ok','마지막으로 맞춘 시각 '+apText(new Date())+' '+clockText(new Date()));
@@ -1770,7 +1861,7 @@ function homeView(){
   <div class="tri">
     <div class="col">${clockCard(now)}${calCard(evs)}${schedCard(evs)}</div>
     <div class="col">${weatherCard(now)}${shiftCard()}${outfitCard()}${menuCard()}</div>
-    <div class="col">${msgBanner()}${bdayBanner()}${mornBanner()}${todoCard()}${kidsCard()}${upCard(evs)}</div>
+    <div class="col">${bdayBanner()}${mornBanner()}${todoCard()}${kidsCard()}${upCard(evs)}</div>
   </div></div>`;
 }
 
@@ -1785,7 +1876,7 @@ function todoView(){
 }
 
 /* ---- ⚔️ 전투력 · 훈련 · 배틀 ---- */
-const MAX_LV=20,WILD_DAILY=5;
+const MAX_LV=20,WILD_DAILY=3;
 const trainCost=m=>30*((m.lv||0)+1);
 const powerOf=m=>Math.round((m.bst>0?m.bst:300)*(1+0.06*(m.lv||0)));
 const bstTried={};
@@ -1896,22 +1987,66 @@ async function friendBattle(k,q){
   fighting=true;await ensureBst(m);await ensureBst(o);fighting=false;
   battleStart(k,m,{name:`${q.name}의 ${o.name}`,id:o.id,power:powerOf(o),onEnd:win=>{if(win){k.bw=(k.bw||0)+1;q.bl=(q.bl||0)+1}else{k.bl=(k.bl||0)+1;q.bw=(q.bw||0)+1}}});
 }
-function battleView(){
-  const k=K(),m=k.mons[k.sel];
-  if(!m)return `<div class="stack"><div class="card"><h2>⚔️ 배틀</h2><p class="hero">포켓몬이 있어야 배틀할 수 있어요! 마을에서 알을 뽑아 보세요 🥚</p></div></div>`;
+function battleCards(k){                                    // 마을 화면 안에 들어가는 배틀 카드
+  const m=k.mons[k.sel];
+  if(!m)return '';
   const lv=m.lv||0,left=k.bday===today()?Math.max(0,WILD_DAILY-(k.bn||0)):WILD_DAILY;
   const friends=ents().filter(q=>q!==k&&q.mons[q.sel]);
-  const list=k.mons.map((q,i)=>({q,i})).sort((a,b)=>powerOf(b.q)-powerOf(a.q)).slice(0,24);
-  return `<div class="stack">
-  <div class="card hero"><div class="bar" style="justify-content:center"><b style="color:${k.color}">${esc(k.name)}</b>의 파이터 <span class="chip coin">💰 ${won(k.coins)}</span><span class="chip">🏆 ${k.bw||0}승 ${k.bl||0}패</span></div>
-    <img src="${ART(m.id)}"><div class="bar" style="justify-content:center">${esc(m.name)} <span class="chip">Lv.${lv}</span> <span class="chip" style="background:#fff3e0">⚡ 전투력 ${powerOf(m)}</span></div>
-    <div class="acts"><button class="go" data-act="train" ${lv>=MAX_LV||k.coins<trainCost(m)?'disabled':''}>${lv>=MAX_LV?'💪 최고 레벨이에요!':`💪 훈련하기 (💰${won(trainCost(m))})`}</button></div>
-    <div class="small">훈련하면 전투력이 올라가요. 진화하면 훨씬 더 세져요! ✨</div></div>
-  <div class="card"><h2>🌿 야생 포켓몬과 배틀</h2><div class="small">이기면 코인을 받아요 (오늘 남은 도전 ${left}번)</div>
-    <div class="acts"><button class="egg" data-act="wild" ${left<=0?'disabled':''}>⚔️ 도전!</button></div></div>
-  <div class="card"><h2>🤝 가족과 겨뤄요</h2><div class="small">상대가 고른 파이터와 겨뤄요 (코인은 걸리지 않아요)</div>
-    ${friends.length?friends.map(q=>{const o=q.mons[q.sel];return `<div class="giverow"><img src="${ART(o.id)}" style="width:44px;height:44px;object-fit:contain"><span style="flex:1;margin-left:6px"><b style="color:${q.color}">${esc(q.name)}</b>의 ${esc(o.name)} ⚡${powerOf(o)}</span><button class="go" data-fight="${esc(q.name)}">⚔️ 겨루기</button></div>`}).join(''):'<div class="small">겨룰 상대가 없어요</div>'}</div>
-  <div class="card"><h2>🐾 내 파이터 고르기 (전투력 순)</h2><div class="grid">${list.map(({q,i})=>`<div class="mon ${i===k.sel?'sel':''}" data-sel="${i}"><img src="${ART(q.id)}" loading="lazy"><div>${esc(q.name)}</div><small>⚡${powerOf(q)} · Lv.${q.lv||0}</small></div>`).join('')}</div></div></div>`;
+  return `<div class="card"><h2>⚔️ 배틀</h2>
+    <div class="giverow"><img src="${ART(m.id)}" style="width:64px;height:64px;object-fit:contain"><span style="flex:1;margin-left:8px"><b>${esc(m.name)}</b> <span class="chip">Lv.${lv}</span> <span class="chip" style="background:#fff3e0">⚡ ${powerOf(m)}</span><br><span class="small">🏆 ${k.bw||0}승 ${k.bl||0}패 · 아래 "내 포켓몬"에서 싸울 친구를 골라요</span></span></div>
+    <div class="acts"><button class="go" data-act="train" ${lv>=MAX_LV||k.coins<trainCost(m)?'disabled':''}>${lv>=MAX_LV?'💪 최고 레벨이에요!':`💪 훈련하기 (💰${won(trainCost(m))})`}</button><button class="egg" data-act="wild" ${left<=0?'disabled':''}>🌿 야생 배틀 (오늘 ${left}번)</button></div>
+    <div class="small" style="text-align:center">훈련하면 전투력이 올라가요. 진화하면 훨씬 더 세져요! 야생 배틀에서 이기면 코인을 받아요.</div>
+    ${friends.length?`<div class="small" style="margin-top:8px"><b>🤝 가족과 겨뤄요</b> (코인은 걸리지 않아요)</div>`+friends.map(q=>{const o=q.mons[q.sel];return `<div class="giverow"><img src="${ART(o.id)}" style="width:44px;height:44px;object-fit:contain"><span style="flex:1;margin-left:6px"><b style="color:${q.color}">${esc(q.name)}</b>의 ${esc(o.name)} ⚡${powerOf(o)}</span><button class="go" data-fight="${esc(q.name)}">⚔️ 겨루기</button></div>`}).join(''):''}</div>`;
+}
+/* ---- 🎟 종이 뽑기: 옛날 문방구 뽑기처럼 종이를 뜯어서 안에 적힌 상품을 확인해요 (상품은 부모가 정해요) ---- */
+const DRAW_DEF={on:false,price:30,size:120,items:[{n:'아이스크림',c:4},{n:'게임 30분',c:4},{n:'스티커',c:10},{n:'코인 50',c:6}]};
+const drawCfg=()=>{const c=Object.assign({},DRAW_DEF,S.drawCfg||{});if(!Array.isArray(c.items))c.items=DRAW_DEF.items;return c};
+function drawExpand(c){                                    // 상품(이름·개수)을 펼치고, 모자란 만큼 꽝 종이로 채워요
+  const a=[];c.items.forEach(it=>{const n=String(it.n||'').trim(),k=Math.max(0,Math.min(150,Math.round(+it.c)||0));if(n)for(let i=0;i<k;i++)a.push(n)});
+  const size=Math.max(a.length,Math.min(150,Math.round(+c.size)||120));
+  while(a.length<size)a.push('꽝');
+  return a.slice(0,150);
+}
+function drawBuild(){                                      // 새 판: 상품을 섞어서 종이마다 숨겨요
+  const a=drawExpand(drawCfg());
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}
+  S.drawBoard={made:Date.now(),tabs:a.map(p=>({p}))};
+}
+const drawCoin=p=>{const m=String(p).match(/^코인\s*(\d+)$/);return m?+m[1]:0};
+const drawBlank=p=>/^(꽝|아쉽|없음)/.test(p);
+function drawView(){
+  const k=K(),c=drawCfg();
+  if(!c.on)return `<div class="stack"><div class="card"><h2>🎟 종이 뽑기</h2><div class="small">설정에서 종이 뽑기를 켜 주세요.</div></div></div>`;
+  const b=S.drawBoard,tabs=(b&&b.tabs)||[];
+  if(!tabs.length)return `<div class="stack"><div class="card"><h2>🎟 종이 뽑기</h2><div class="small">아직 뽑기판이 없어요. 부모님이 ⚙️ 설정에서 상품을 정하고 "새 판 깔기"를 눌러 주세요!</div></div></div>`;
+  const left=tabs.filter(t=>!t.open).length,rem={};
+  tabs.forEach(t=>{if(!t.open&&!drawBlank(t.p))rem[t.p]=(rem[t.p]||0)+1});
+  const pend=tabs.map((t,i)=>({t,i})).filter(x=>x.t.open&&!drawBlank(x.t.p)&&!drawCoin(x.t.p)&&!x.t.paid);
+  const sz=tabs.length>80?'s':tabs.length>40?'m':'l';
+  return `<div class="dboard">
+    <div class="dhead"><b style="font-size:20px">🎟 종이 뽑기</b> <span class="chip coin">한 장 💰${won(c.price)}</span> <span class="chip">남은 종이 ${left}/${tabs.length}</span> <span class="chip coin" style="margin-left:auto">${esc(k.name)} 💰${won(k.coins)}</span></div>
+    ${Object.keys(rem).length?`<div class="drem">🎁 남은 상품: ${Object.keys(rem).map(n=>`<span>${esc(n)} <b>${rem[n]}</b></span>`).join('')}</div>`:''}
+    <div class="dgrid ${sz}">${tabs.map((t,i)=>t.open?`<div class="dtab open"><span>${drawBlank(t.p)?'💨':drawCoin(t.p)?'💰':'🎁'}</span><small>${esc(t.by||'')}</small></div>`:`<button class="dtab" data-draw="${i}"><i class="stp"></i><b>${i+1}</b></button>`).join('')}</div>
+    ${left?'':'<div class="small" style="text-align:center;margin:8px">모두 뽑혔어요! 부모님께 새 판을 부탁해요</div>'}
+    ${pend.length?`<div class="drem" style="background:#fff8e1"><b>🎁 받은 상품 (아직 안 받은 것)</b>${pend.map(x=>`<div class="giverow"><span style="flex:1">${esc(x.t.by)} · <b>${esc(x.t.p)}</b></span><button data-act="drawpaid" data-i="${x.i}">✔ 받았어요 (부모)</button></div>`).join('')}</div>`:''}</div>`;
+}
+function drawConfirm(k,i){
+  const c=drawCfg(),t=S.drawBoard&&S.drawBoard.tabs[i];
+  if(!t||t.open)return;
+  if(k.coins<c.price){toast(`코인이 모자라요 (💰${c.price} 필요)`,2500);return}
+  overlay(`<h2>🎟 ${i+1}번 종이를 뜯을까요?</h2><div class="tearbox"><div class="prz">❓</div><div class="tearp"></div></div>
+    <div class="acts"><button class="go" data-act="drawgo" data-i="${i}">✂️ 뜯기! (💰${won(c.price)})</button></div>`);
+  const tp=document.querySelector('#ovbox .tearp');if(tp)tp.style.animation='none';
+}
+function drawGo(k,i){
+  const c=drawCfg(),t=S.drawBoard&&S.drawBoard.tabs[i];
+  if(!t||t.open||k.coins<c.price)return;
+  k.coins-=c.price;t.open={};t.by=k.name;t.ts=Date.now();
+  const cn=drawCoin(t.p),blank=drawBlank(t.p);
+  if(cn){k.coins+=cn}
+  S.drawBoard=Object.assign({},S.drawBoard);
+  overlay(`<h2>🎟 ${i+1}번 종이</h2><div class="tearbox"><div class="prz show">${blank?'💨<br>꽝!<br><small>아쉬워요 😢</small>':cn?`💰<br>코인 ${cn}개!`:`🎁<br>${esc(t.p)}<br><small>축하해요!</small>`}</div><div class="tearp"></div></div>`);
+  if(blank)sfx('buy');else{sfx('win');confetti()}
 }
 /* ---- 마을 ---- */
 function skyPhase(){const d=new Date(),h=d.getHours()+d.getMinutes()/60;return h<5.5||h>=19.5?'night':h<7.5?'dawn':h<17?'day':'dusk'}
@@ -2023,88 +2158,6 @@ function bdayBanner(){
   return `<div class="sec msgban" style="border-color:#ffb300"><div class="sh" style="--c:#ff8f00;color:#e65100">🎂 오늘은 ${esc(k.name)}${josa(k.name)}의 생일이에요! 🎉</div>
     <div class="acts" style="justify-content:flex-start"><button class="go" data-act="bdaytest" data-i="${S.kids.indexOf(k)}">🎉 다시 축하해 주기</button></div></div>`;
 }
-/* ---- 💌 스티커 메시지 (글자 없이 아이콘으로 엄마·아빠·아이들끼리) ---- */
-const STK_KID=[['🍚','배고파요'],['💧','목말라요'],['🤒','아파요'],['😴','졸려요'],['🥰','보고싶어요'],['❤️','사랑해요'],['🎮','놀아줘요'],['🆘','도와줘요'],['🚽','화장실 가고 싶어요'],['🏠','언제 와요?'],['😢','속상해요'],['🙏','미안해요'],['📚','숙제 다 했어요'],['🎉','칭찬해 주세요'],['🍦','간식 먹고 싶어요'],['🛁','씻었어요']];
-const STK_ADULT=[['❤️','사랑해'],['👍','잘했어'],['🏠','곧 갈게'],['🚗','지금 가는 중'],['🍚','밥 먹자'],['📚','숙제하자'],['⏰','서둘러'],['😴','잘 시간이야'],['🎁','선물 있어'],['😊','고마워'],['🍦','간식 먹자'],['🙌','최고야']];
-let msgFrom='',msgTo='',msgSyncing=false,msgSeen=null;
-const ME_KEY='pkfam3_me';
-const meGet=()=>{try{return localStorage.getItem(ME_KEY)||''}catch(e){return ''}};
-const meSet=v=>{try{localStorage.setItem(ME_KEY,v)}catch(e){}};
-const msgTargets=m=>m.to==='부모'?S.parents.map(q=>q.name):m.to==='아이들'?S.kids.map(q=>q.name):[m.to];
-function meNames(){const me=meGet();return me==='아이들'?S.kids.map(q=>q.name):me?[me]:[]}
-const msgUnread=m=>{const me=meNames();return msgTargets(m).some(n=>me.indexOf(n)>=0&&(m.r||[]).indexOf(n)<0)};
-function unreadList(){return (S.msgs||[]).filter(msgUnread)}
-function unreadCount(){try{return unreadList().length}catch(e){return 0}}
-const msgTime=ts=>{const d=new Date(ts),t=`${pad(d.getHours())}:${pad(d.getMinutes())}`;return dstr(d)===today()?t:`${d.getMonth()+1}/${d.getDate()} ${t}`};
-const toLabel=m=>m.to==='부모'?'엄마·아빠':m.to==='아이들'?'아이들':m.to;
-function mergeMsgs(a,b){
-  const m={};[a,b].forEach(L=>(L||[]).forEach(x=>{const y=m[x.id];if(!y)m[x.id]=JSON.parse(JSON.stringify(x));else{y.r=y.r||[];(x.r||[]).forEach(n=>{if(y.r.indexOf(n)<0)y.r.push(n)})}}));
-  const cut=Date.now()-14*86400000;
-  return Object.keys(m).map(k=>m[k]).filter(x=>x.ts>cut).sort((p,q)=>p.ts-q.ts).slice(-120);
-}
-function kickMsgSync(){try{if(S.sync&&S.sync.on){clearTimeout(syncTimer);syncTimer=setTimeout(syncNow,1200)}}catch(e){}}
-function sendMsg(from,to,ic,tx){
-  S.msgs=mergeMsgs(S.msgs,[{id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),from,to,ic,tx,ts:Date.now(),r:[]}]);
-  save();kickMsgSync();
-}
-function markRead(){
-  const me=meNames();let n=0;
-  (S.msgs||[]).forEach(m=>{msgTargets(m).forEach(t=>{if(me.indexOf(t)>=0&&(m.r=m.r||[]).indexOf(t)<0){m.r.push(t);n++}})});
-  if(n){save();kickMsgSync()}
-}
-async function syncMsgs(){                              // messages.json: 서로 합쳐서(지우지 않고) 올려요
-  const sc=S.sync;if(!sc||!sc.on||!sc.token||!sc.repo||msgSyncing)return;
-  msgSyncing=true;
-  try{
-    const r=await ghReq('GET','messages.json');
-    let remote=[],sha=null;
-    if(r.status===200){const j=await r.json();sha=j.sha;remote=(JSON.parse(b64d(j.content))||{}).msgs||[]}
-    else if(r.status!==404)throw new Error(ghMsg(r.status));
-    const before=msgSeen||{};(S.msgs||[]).forEach(m=>{if(msgUnread(m))before[m.id]=1});
-    const merged=mergeMsgs(S.msgs,remote);
-    const changedLocal=JSON.stringify(merged)!==JSON.stringify(S.msgs||[]),changedRemote=JSON.stringify(merged)!==JSON.stringify(remote);
-    S.msgs=merged;
-    if(changedRemote){
-      const body={message:'msgs',content:b64e(JSON.stringify({msgs:merged}))};if(sha)body.sha=sha;
-      const w=await ghReq('PUT','messages.json',body);
-      if(!w.ok&&w.status!==409&&w.status!==422)throw new Error(ghMsg(w.status));
-    }
-    if(changedLocal){try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}}
-    const fresh=unreadList().filter(m=>!before[m.id]&&msgSeen);
-    msgSeen={};unreadList().forEach(m=>{msgSeen[m.id]=1});
-    if(fresh.length){sfx('hatch');toast('💌 새 메시지가 왔어요! '+fresh[0].ic+' '+fresh[0].tx,3000)}
-    if(changedLocal&&(tab==='home'||tab==='msg')&&!busy)render();
-  }finally{msgSyncing=false}
-}
-setInterval(()=>{try{if(S.sync&&S.sync.on)syncMsgs().catch(()=>{})}catch(e){}},20000);
-function msgBanner(){
-  const u=unreadList().slice(-3).reverse();if(!u.length)return '';
-  return `<div class="sec msgban"><div class="sh" style="--c:#d81b60;color:#ad1457">💌 새 메시지 ${u.length}개</div>
-    ${u.map(m=>`<div class="msgi new"><span class="mi">${m.ic}</span><div><b>${esc(m.from)}</b> → ${esc(toLabel(m))}<br>${esc(m.tx)}</div></div>`).join('')}
-    <div class="acts" style="justify-content:flex-start"><button class="go" data-act="msgread">✔ 읽었어요</button><button data-tab="msg">💌 답장하기</button></div></div>`;
-}
-function msgView(){
-  const me=meGet(),all=ents(),names=all.map(q=>q.name);
-  if(names.indexOf(msgFrom)<0)msgFrom=(me&&me!=='아이들'&&names.indexOf(me)>=0)?me:(names.indexOf(K().name)>=0?K().name:names[0]);
-  const fromE=all.find(q=>q.name===msgFrom),adult=!!fromE.adult,others=all.filter(q=>q!==fromE).map(q=>q.name);
-  const toOpts=others.concat([adult?'아이들':'부모']);
-  if(toOpts.indexOf(msgTo)<0)msgTo=adult?'아이들':'부모';
-  const lab=n=>n==='부모'?'👪 엄마·아빠 모두':n==='아이들'?'👧 아이들 모두':n;
-  const stk=(adult?STK_ADULT:STK_KID);
-  const feed=(S.msgs||[]).slice(-30).reverse();
-  return `<div class="stack">
-  <div class="card"><h2>📱 이 기기는 누구 거예요?</h2>
-    <div class="acts" style="justify-content:flex-start">${[['','잘 모르겠어요'],['아이들','👧 아이들 (거실 패드)']].concat(S.parents.map(q=>[q.name,'👤 '+q.name])).map(([v,l])=>`<button class="${me===v?'go':''}" data-me="${esc(v)}">${l}</button>`).join('')}</div>
-    <div class="small">${me?'이 기기로 온 메시지만 새 메시지로 알려 줘요.':'먼저 골라 주세요! 그래야 나에게 온 메시지를 알려 줘요.'} (이 기기에만 저장돼요)</div></div>
-  <div class="card"><h2>💌 스티커 보내기</h2>
-    <div class="small">보내는 사람</div><div class="acts" style="justify-content:flex-start">${names.map(n=>`<button class="${n===msgFrom?'go':''}" data-msgfrom="${esc(n)}">${esc(n)}</button>`).join('')}</div>
-    <div class="small">받는 사람</div><div class="acts" style="justify-content:flex-start">${toOpts.map(n=>`<button class="${n===msgTo?'go':''}" data-msgto="${esc(n)}">${esc(lab(n))}</button>`).join('')}</div>
-    <div class="stkg">${stk.map(([ic,tx],i)=>`<button class="stk" data-stk="${i}"><span>${ic}</span><b>${esc(tx)}</b></button>`).join('')}</div>
-    <div class="small">누르면 바로 ${esc(lab(msgTo))}에게 보내져요. 글자를 쓰지 않아도 돼요! 😊 (받는 사람은 앱을 열면 알림이 떠요)</div></div>
-  <div class="card"><h2>📬 주고받은 메시지</h2>
-    ${me?`<div class="acts" style="justify-content:flex-start"><button data-act="msgread" ${unreadCount()?'':'disabled'}>✔ 모두 읽음으로</button></div>`:''}
-    ${feed.length?feed.map(m=>`<div class="msgi ${msgUnread(m)?'new':''}"><span class="mi">${m.ic}</span><div><b>${esc(m.from)}</b> → ${esc(toLabel(m))} · ${esc(m.tx)}<small> ${msgTime(m.ts)}${(m.r||[]).length?' · 읽음':''}</small></div></div>`).join(''):'<div class="small">아직 메시지가 없어요</div>'}</div></div>`;
-}
 /* ---- 🚌 친구 마을에 놀러 가기 (포켓몬·트레이너) ---- */
 const vSel={to:'',who:'t',mode:'play'};
 const VISIT_MS=3*3600000;                                       // "잠깐 놀기"는 3시간 뒤에 저절로 돌아와요
@@ -2187,10 +2240,11 @@ function townView(){
   return `<div class="stack">${sceneHtml(k)}
   ${visitCard(k)}${giveCard(k)}${shopCard(k)}
   <div class="card"><div class="stats"><span class="chip coin">💰 ${won(k.coins)}</span><button data-act="pickTrainer" style="padding:6px 12px">🧢 트레이너 바꾸기</button></div>${hero}
-  <div class="acts"><button class="egg" data-act="egg" ${k.coins<S.eggCost?'disabled':''}>${k.hatched===0&&!k.adult?'🥚 첫 알 뽑기 · 친구 고르기':'🥚 알 뽑기'} (💰${won(S.eggCost)})</button></div>
+  <div class="acts"><button class="egg" data-act="egg" ${k.coins<S.eggCost&&!(k.freeEgg>0)?'disabled':''}>${k.freeEgg>0?'🎁 선물 알 열기 (무료!)':`${k.hatched===0&&!k.adult?'🥚 첫 알 뽑기 · 친구 고르기':'🥚 알 뽑기'} (💰${won(S.eggCost)})`}</button></div>
   <div class="small" style="text-align:center;margin-top:4px">${k.hatched===0&&!k.adult?'첫 알은 피카츄·꼬부기·파이리·이상해씨 중에서 골라요':`지금까지 알 ${k.hatched}개`}</div></div>
+  ${battleCards(k)}
   <div class="card"><h2>내 포켓몬 (${k.mons.length}마리)</h2><div class="grid">
-  ${k.mons.map((q,i)=>`<div class="mon ${i===k.sel?'sel':''}" data-sel="${i}"><img src="${ART(q.id)}" loading="lazy"><div>${esc(q.name)}</div></div>`).join('')}</div></div></div>`;
+  ${k.mons.map((q,i)=>`<div class="mon ${i===k.sel?'sel':''}" data-sel="${i}"><img src="${ART(q.id)}" loading="lazy"><div>${esc(q.name)}</div><small>⚡${powerOf(q)}</small></div>`).join('')}</div></div></div>`;
 }
 
 /* ---- 도감 ---- */
@@ -2310,6 +2364,16 @@ function setView(){
     <div class="row"><input type="time" data-dim="to" value="${dimCfg().to}"><span>에 가장 환하게</span></div>
     <div class="row"><span>그 전에 서서히 어두워지는 시간</span><select data-dim="ramp" style="width:110px">${[[0,'바로'],[60,'1시간'],[120,'2시간'],[180,'3시간']].map(([v,l])=>`<option value="${v}" ${+dimCfg().ramp===v?'selected':''}>${l}</option>`).join('')}</select></div>
     <p class="small">완전히 어두울 때 화면을 터치하면 1분 동안 보였다가 다시 어두워져요. 위쪽 🌙 버튼을 누르면 지금 바로 어둡게 해요.</p></div>
+  <div class="card"><h2>🎟 종이 뽑기 (상품은 우리가 정해요)</h2>
+    <div class="row"><input type="checkbox" data-drw="on" ${drawCfg().on?'checked':''}><span>위쪽에 "🎟 뽑기" 메뉴를 보여줘요</span></div>
+    <div class="row"><span>한 장 뜯는 값</span><input class="num" type="number" min="0" value="${drawCfg().price}" data-drw="price"><span>코인</span></div>
+    <div class="row"><span>종이 전체 장수</span><input class="num" type="number" min="1" max="150" value="${drawCfg().size}" data-drw="size"><span>장 (최대 150)</span></div>
+    <label class="small">상품 이름과 개수</label>
+    ${drawCfg().items.map((it,i)=>`<div class="row"><input value="${esc(it.n)}" data-dpn="${i}" placeholder="상품 이름"><input class="num" type="number" min="0" value="${it.c}" data-dpc="${i}" style="width:70px"><span>개</span><button data-act="dpdel" data-i="${i}">✕</button></div>`).join('')}
+    <div class="acts" style="justify-content:flex-start"><button data-act="dpadd">➕ 상품 추가</button></div>
+    <div class="small">상품 개수를 모두 더하고, 종이 전체 장수에서 모자란 만큼은 <b>꽝</b>으로 자동으로 채워요. (지금: 상품 ${drawCfg().items.reduce((a,it)=>a+(Math.round(+it.c)||0),0)}개 + 꽝 ${Math.max(0,drawExpand(drawCfg()).length-drawCfg().items.reduce((a,it)=>a+(String(it.n).trim()?(Math.round(+it.c)||0):0),0))}장 = 종이 ${drawExpand(drawCfg()).length}장)<br>상품 이름을 <b>코인 50</b>처럼 쓰면 뜯는 순간 코인이 자동으로 들어와요. 나머지는 실제로 챙겨 주는 상품이에요.</div>
+    <div class="acts" style="justify-content:flex-start"><button class="go" data-act="drawnew">🎟 새 판 깔기 (상품을 섞어서 종이 만들기)</button></div>
+    <div class="small">지금 판: ${S.drawBoard&&S.drawBoard.tabs?`${S.drawBoard.tabs.filter(t=>!t.open).length}/${S.drawBoard.tabs.length}장 남음`:'아직 없어요'} · 상품을 바꿔도 지금 판은 그대로예요. 바꾼 뒤에는 "새 판 깔기"를 눌러야 적용돼요.</div></div>
   <div class="card"><h2>🎂 생일 축하 파티</h2>
     <div class="row"><input type="checkbox" data-bdc="on" ${bdayCfg().on?'checked':''}><span>아이 생일에 홈 화면에서 포켓몬들이 축하해 줘요</span></div>
     <div class="row"><span>시작 시각</span><input type="time" data-bdc="from" value="${esc(bdayCfg().from)}"><span>이후 처음 켜질 때</span></div>
@@ -2317,6 +2381,10 @@ function setView(){
     <div class="row"><input type="checkbox" data-bdcdev ${bdAutoOn()?'checked':''}><span>이 기기에서 자동으로 시작해요 (이 기기에만 적용돼요)</span></div>
     <div class="acts" style="justify-content:flex-start">${S.kids.map((q,i)=>`<button data-act="bdaytest" data-i="${i}">🎉 ${esc(q.name)} 축하 미리보기</button>`).join('')}</div>
     <p class="small">아이 카드의 🎂 생일 날짜가 오늘이면 자동으로 시작돼요. 가진 포켓몬들이 춤추고, 아직 아무도 못 만난 전설·환상 포켓몬 3마리가 손님으로 와서 말로 축하해요. 소리는 화면을 한 번 눌러 준 뒤에 나와요. 🔇로 끄면 목소리도 꺼져요.</p></div>
+  <div class="card"><h2>👪 가족 얼굴 (아침 구출 장면용)</h2>
+    <div class="row">${famNames().filter(n=>(S.family||{})[n]&&IMG.mem[S.family[n]]).map(n=>`<span style="text-align:center;margin-right:8px"><img class="mface" style="width:48px;height:48px" src="${IMG.mem[S.family[n]]}"><br><small>${esc(n)}</small></span>`).join('')||'<span class="small">아직 없어요</span>'}</div>
+    <div class="row"><label class="filebtn">👪 가족 사진 고르기<input type="file" id="famfile" accept="image/*" style="display:none"></label><button data-act="famdel">모두 지우기</button></div>
+    <p class="small">가족이 함께 찍힌 사진을 고르면, 한 사람씩 얼굴을 눌러서 동그랗게 저장해요. 아침 준비에서 영웅이 구하는 가족이 이 얼굴로 나와요. 사진은 이 기기와 비공개 클라우드 저장소에만 저장돼요. (영웅이 된 아이는 구해야 할 가족 목록에서 자동으로 빠져요)</p></div>
   <div class="card"><h2>🌅 아침 준비 (등원 챌린지)</h2>
     <div class="row"><input type="checkbox" data-morn="on" ${morningCfg().on?'checked':''}><span>월~금 아침, 아이가 준비하는 모습을 달리기 게임으로 보여줘요</span></div>
     <div class="row"><span>누구?</span><select data-morn="kid" style="width:110px">${S.kids.map(q=>`<option ${q.name===morningCfg().kid?'selected':''}>${esc(q.name)}</option>`).join('')}</select><span>가는 곳</span><input data-morn="place" value="${esc(morningCfg().place)}" style="width:100px"></div>
@@ -2324,7 +2392,7 @@ function setView(){
     <label class="small">준비 단계 (한 줄에 하나씩)</label>${ta('data-morn="steps"',morningCfg().steps,'',130)}
     <div class="row"><span>🎯 성공하면 클리어할 미션</span><select data-morn="chore" style="width:140px"><option value="">(연결 안 함)</option>${((mornKid()||{chores:[]}).chores).map(q=>`<option ${q.t===morningCfg().chore?'selected':''}>${esc(q.t)}</option>`).join('')}</select></div>
     <div class="acts" style="justify-content:flex-start"><button class="go" data-act="mstart">🏃 지금 시작하기 (연습·주말)</button></div>
-    <p class="small">출발 3시간 전부터 홈 화면에 "준비 시작" 버튼이 나와요. 부모가 누르면 시작되고, 시간이 흐를수록 포켓몬이 쫓아와요. 단계를 하나씩 끝낼 때마다 아이가 학교 쪽으로 달려가요. 출발 시간 안에 "준비 끝!"을 누르면 성공이에요. ('미션'은 위에서 아이 이름 카드의 미션 이름과 같아야 연결돼요)</p></div>
+    <p class="small">출발 3시간 전부터 홈 화면에 "준비 시작" 버튼이 나와요. 부모가 누르면 시작돼요. 위험에 빠진 가족(🧊)을 영웅이 구하러 가는 이야기예요. 단계를 하나씩 끝낼 때마다 영웅이 가족에게 가까워지고, 모두 끝내고 "가족 구하기!"를 누르면 구출 성공 후 학교로 가요. 출발 시간 안에 구하면 성공이에요. ('미션'은 위에서 아이 이름 카드의 미션 이름과 같아야 연결돼요)</p></div>
   <div class="card"><h2>🎵 아침 배경음악</h2>
     <div class="row"><input type="checkbox" data-bgm="on" ${bgmCfg().on?'checked':''}><span>월~금, 정해진 시간에 잔잔한 멜로디를 틀어요</span></div>
     <div class="row"><input type="time" data-bgm="from" value="${bgmCfg().from}"><span>부터</span><input type="time" data-bgm="to" value="${bgmCfg().to}"><span>까지</span></div>
@@ -2388,7 +2456,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){wake();sy
 document.addEventListener('click',async e=>{
   bump();wake();
   if(e.target.id==='ov'){closeOv();return}
-  const t=e.target.closest('button,[data-sel],[data-gokid],[data-gotab],[data-pick],[data-zoom]');if(!t||t.id==='fs')return;
+  const t=e.target.closest('button,[data-sel],[data-gokid],[data-gotab],[data-pick],[data-zoom],[data-tov],[data-famimg]');if(!t||t.id==='fs')return;
   if(t.id==='dimbtn'){dimManual=true;dimTick();return}
   if(t.id==='mute'){S.mute=!S.mute;save();render();return}
   if(t.id==='gohome'){tab='home';editMode=false;render();window.scrollTo(0,0);return}   // 어디서든 한 번에 홈으로
@@ -2399,21 +2467,22 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.chore!==undefined){choreToggle(k,+t.dataset.chore)}
   else if(/^m(start|step|fin|reset)$/.test(t.dataset.act||'')){mornAct(t.dataset.act,t)}
   else if(t.dataset.sel!==undefined){k.sel=+t.dataset.sel}
-  else if(t.dataset.act==='egg'&&k.coins>=S.eggCost&&!busy){
+  else if(t.dataset.act==='egg'&&(k.coins>=S.eggCost||k.freeEgg>0)&&!busy){
     if(k.hatched===0&&!k.adult){await openStarter(k);return}      // 첫 알은 4마리 중에서 골라요
     await hatchEgg(k,t);
   }
   else if(t.dataset.starter){await hatchStarter(k,+t.dataset.starter)}
-  else if(t.dataset.me!==undefined){meSet(t.dataset.me);msgSeen=null;if(t.dataset.me==='아이들'||t.dataset.me==='')msgFrom='';else msgFrom=t.dataset.me;toast(t.dataset.me?'이 기기는 "'+t.dataset.me+'" 거예요':'선택을 풀었어요')}
-  else if(t.dataset.msgfrom!==undefined){msgFrom=t.dataset.msgfrom;msgTo=''}
-  else if(t.dataset.msgto!==undefined){msgTo=t.dataset.msgto}
-  else if(t.dataset.stk!==undefined){const fe=ents().find(q=>q.name===msgFrom),st=((fe&&fe.adult)?STK_ADULT:STK_KID)[+t.dataset.stk];if(fe&&st&&msgTo){sendMsg(msgFrom,msgTo,st[0],st[1]);sfx('coin');toast('💌 보냈어요! '+st[0]+' '+st[1])}}
-  else if(t.dataset.act==='msgread'){markRead()}
   else if(t.dataset.act==='train'){const m=k.mons[k.sel];if(m&&(m.lv||0)<MAX_LV&&k.coins>=trainCost(m)){k.coins-=trainCost(m);m.lv=(m.lv||0)+1;sfx('evo');toast(`💪 훈련 성공! ${m.name} Lv.${m.lv} ⚡${powerOf(m)}`)}}
   else if(t.dataset.act==='wild'){wildBattle(k);return}
   else if(t.dataset.fight!==undefined){friendBattle(k,ents().find(q=>q.name===t.dataset.fight));return}
   else if(t.dataset.act==='bdayclose'){const r=bdayRun();if(r)bdayStop(r.name);return}
   else if(t.dataset.act==='bdaytest'){const q=S.kids[+t.dataset.i];if(q){const o=bdLoad();delete o.done[q.name];o.run=null;bdSave(o);unlockAudio();bdayStart(q);tab='home'}}
+  else if(t.dataset.draw!==undefined){drawConfirm(k,+t.dataset.draw);return}
+  else if(t.dataset.act==='drawgo'){drawGo(k,+t.dataset.i)}
+  else if(t.dataset.act==='drawpaid'){if(!askPin())return;const tb=S.drawBoard&&S.drawBoard.tabs[+t.dataset.i];if(tb){tb.paid=true;S.drawBoard=Object.assign({},S.drawBoard)}}
+  else if(t.dataset.act==='dpadd'){const c=drawCfg();S.drawCfg=Object.assign(c,{items:c.items.concat([{n:'새 상품',c:1}])})}
+  else if(t.dataset.act==='dpdel'){const c=drawCfg();S.drawCfg=Object.assign(c,{items:c.items.filter((_,j)=>j!==+t.dataset.i)})}
+  else if(t.dataset.act==='drawnew'){if(confirm('새 판을 깔면 지금 판은 사라져요. 계속할까요?')){drawBuild();toast('🎟 새 뽑기판을 깔았어요!')}}
   else if(t.dataset.act==='vsend'){
     const f=ents().find(q=>q.name===vSel.to&&q!==k)||ents().find(q=>q!==k),cur=outOf(k);
     if(f&&cur.length<3){
@@ -2486,7 +2555,11 @@ document.addEventListener('click',async e=>{
     toast('식단을 추가했어요 ✅');
   }
   else if(t.dataset.act==='cal'){const d=+t.dataset.d;calOff=d===0?0:calOff+d}
-  else if(t.dataset.act==='tg'){const key=t.dataset.k;if(S.todoDone[key])delete S.todoDone[key];else S.todoDone[key]=today()}   // 체크한 날짜를 함께 기록해요 → 어제 체크가 다른 기기에서 돌아와도 걸러져요
+  else if(t.dataset.famimg!==undefined){famTap(t,e.clientX,e.clientY);return}
+  else if(t.dataset.act==='famskip'){if(famState){famState.i++;famShow()}return}
+  else if(t.dataset.act==='famdel'){if(confirm('저장한 가족 얼굴을 모두 지울까요?')){Object.keys(S.family||{}).forEach(n=>IMG.del(S.family[n]));S.family={}}}
+  else if(t.dataset.tov!==undefined&&t.dataset.act!=='tg'){showTodoOv(t.dataset.tov);return}
+  else if(t.dataset.act==='tg'){const key=t.dataset.k;if(S.todoDone[key])delete S.todoDone[key];else{S.todoDone[key]=today();sfx('coin')}refreshTodoOv()}   // 체크한 날짜를 함께 기록해요 → 어제 체크가 다른 기기에서 돌아와도 걸러져요
   else if(t.dataset.act==='addev'){
     const v=id=>{const el=document.getElementById(id);return el?el.value:''};
     const ds=v('evd'),tm=v('evt'),ti=v('evn').trim(),wh=v('evw'),an=document.getElementById('eva').checked;
@@ -2569,6 +2642,7 @@ document.addEventListener('click',async e=>{
 function fixAdd(k){fixKid(k,S.kids.length);return k}
 document.addEventListener('change',e=>{
   bump();const t=e.target,D=t.dataset;
+  if(t.id==='famfile'){const f=t.files&&t.files[0];if(f)famStart(f);return}
   if(t.id==='facefile'){const f=t.files&&t.files[0];if(f)setFace(f);return}
   if(t.id==='clothfile'){const fs=t.files;if(fs&&fs.length)addPhotos(fs);return}
   if(t.id==='catsel'){lastCat=t.value;return}
@@ -2592,6 +2666,9 @@ document.addEventListener('change',e=>{
     else if(q.bonusDate===today()){q.lastPerfect=today();q.prev={streak:Math.max(0,n-1),last:n>1?dkey(-1):''}}   // 오늘 이미 다 했으면 오늘까지 센 값
     else q.lastPerfect=dkey(-1);                                                                                   // 오늘 다 하면 n+1 이 돼요
   }
+  else if(D.drw!==undefined){S.drawCfg=Object.assign(drawCfg(),{[D.drw]:D.drw==='on'?t.checked:Math.max(D.drw==='size'?1:0,Math.min(D.drw==='size'?150:99999,Math.round(+t.value)||0))});render()}
+  else if(D.dpn!==undefined){const c=drawCfg(),it=c.items.map(x=>Object.assign({},x));if(it[+D.dpn])it[+D.dpn].n=t.value;S.drawCfg=Object.assign(c,{items:it})}
+  else if(D.dpc!==undefined){const c=drawCfg(),it=c.items.map(x=>Object.assign({},x));if(it[+D.dpc])it[+D.dpc].c=Math.max(0,Math.min(150,Math.round(+t.value)||0));S.drawCfg=Object.assign(c,{items:it})}
   else if(D.bdc!==undefined){S.bdayCfg=Object.assign(bdayCfg(),{[D.bdc]:(D.bdc==='on'||D.bdc==='voice')?t.checked:D.bdc==='min'?+t.value:t.value})}
   else if(D.bdcdev!==undefined){try{localStorage.setItem(BD_AUTO,t.checked?'on':'off')}catch(e){}return}
   else if(D.vsel!==undefined){vSel[D.vsel]=t.value;return}
