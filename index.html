@@ -388,6 +388,7 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 @keyframes vwalk{0%{transform:translate(0,0)}25%{transform:translate(9px,-4px)}50%{transform:translate(18px,0)}75%{transform:translate(9px,-4px)}100%{transform:translate(0,0)}}
 @keyframes vfall{from{transform:translate(0,-20px)}to{transform:translate(30px,260px)}}
 .vpt{position:absolute;top:0;font-size:14px;-webkit-animation:vfall 7s linear infinite;animation:vfall 7s linear infinite}
+.wkbar{display:block;margin:2px 0 4px}.wkb{display:inline-block;margin:0 4px 4px 0;padding:6px 11px;border-radius:14px;border:2px solid #ddd;background:#fff;font-size:14px;font-weight:700}.wkb.on{background:#7e57c2;border-color:#7e57c2;color:#fff}
 .cv{position:absolute;z-index:3;width:46px;text-align:center;-webkit-animation:wander2 9s ease-in-out infinite;animation:wander2 9s ease-in-out infinite}
 .cv img{display:block;margin:0 auto;width:auto;height:auto;max-width:48px;max-height:56px;-webkit-filter:drop-shadow(0 2px 2px rgba(0,0,0,.5));filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
 .cv img.nocut{height:56px;border:2px solid #fff;border-radius:6px;box-sizing:content-box}
@@ -823,6 +824,7 @@ function defaults(){
     notices:'오늘도 화이팅! 💪',
     events:`${dkey(0)} 10:30 도서관 그림책 시간 #이현\n${dkey(1)} 18:30 태권도 #한율\n${dkey(3)} 가족 외식 #가족\n${dkey(6)} 병원 예약 #엄마`,   // 예시예요. 설정에서 지우고 고쳐 쓰세요
     people:[{n:'엄마',c:'#ec407a'},{n:'아빠',c:'#1e88e5'},{n:'가족',c:'#8e24aa'}],
+    todoWk:{},
     todoText:{'한율':'책가방 챙기기\n숙제하기','이현':'알림장 확인\n준비물 챙기기','서비':'장난감 정리하기','가족':'가족 사진 고르기'},
     todoDone:{},shopping:'우유\n사과\n식빵\n요거트',
     checklist:{title:'여행 준비물',sub:'',text:'여권\n충전기\n카메라\n간식\n세면도구\n비상약'},
@@ -901,7 +903,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261124o';
+const BUILD='20261124p';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1439,7 +1441,13 @@ function nextOcc(e){
 const addDays=(n)=>{const d=new Date();d.setDate(d.getDate()+n);return d};
 const dstr=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 
-function listLines(who){return B&&B.todos&&B.todos[who]!==undefined?lines(B.todos[who]):lines((S.todoText||{})[who])}
+function wkLines(who,wd){const w=(S.todoWk||{})[who];return w?lines(w[wd]):[]}      // 요일별 할 일 (0=일 ... 6=토)
+function listLines(who){
+  if(B&&B.todos&&B.todos[who]!==undefined)return lines(B.todos[who]);
+  const base=lines((S.todoText||{})[who]),out=base.slice();                // 매일 하는 것 + 오늘 요일에만 하는 것
+  wkLines(who,new Date().getDay()).forEach(x=>{if(out.indexOf(x)<0)out.push(x)});
+  return out;
+}
 function shopLines(){return B&&B.shopping!==undefined?lines(B.shopping):lines(S.shopping)}
 function checkData(){
   const c=S.checklist||{},r=B&&B.checklist?B.checklist:null;
@@ -1528,7 +1536,7 @@ function todoOvHtml(who){
   return `<div class="tov"><h2 style="color:${c}">📝 ${esc(who)} 할 일 <span class="chip">${dn}/${items.length}</span></h2>
     <div class="tovl">${items.length?items.map(t=>{const d=!!S.todoDone[who+'|'+t];return `<button class="tob ${d?'d':''}" data-act="tg" data-k="${esc(who+'|'+t)}"><span class="tcb">${d?'✓':''}</span><span>${esc(t)}</span></button>`}).join(''):'<div class="small">없어요 🎉</div>'}</div></div>`;
 }
-let todoOvWho=null;
+let todoOvWho=null,todoEd='all';       // todoEd: 설정에서 고치는 중인 요일 ('all'=매일, 0~6=일~토)
 function showTodoOv(who){todoOvWho=who;overlay(todoOvHtml(who))}
 function refreshTodoOv(){try{if(todoOvWho&&document.getElementById('ov').classList.contains('show'))overlay(todoOvHtml(todoOvWho))}catch(e){}}
 function todoCard(){
@@ -1983,14 +1991,14 @@ const b64e=s=>btoa(unescape(encodeURIComponent(s)));
 const b64d=s=>decodeURIComponent(escape(atob(String(s).replace(/\s/g,''))));
 // 부모가 정하는 설정 (아이 기록은 아래 progress.json 으로 따로 맞춰요)
 function cfgOf(){
-  return {pin:S.pin,lat:S.lat,lon:S.lon,notices:S.notices,events:S.events,menu:S.menu,todoText:S.todoText,shopping:S.shopping,checklist:S.checklist,
+  return {pin:S.pin,lat:S.lat,lon:S.lon,notices:S.notices,events:S.events,menu:S.menu,todoText:S.todoText,todoWk:S.todoWk,shopping:S.shopping,checklist:S.checklist,
     people:S.people,eggCost:S.eggCost,evoCost:S.evoCost,bonus:S.bonus,legend:S.legend,shift:S.shift,shiftOv:S.shiftOv,autoPurge:S.autoPurge,bgm:S.bgm,dim:S.dim,morning:S.morning,bdayCfg:S.bdayCfg,family:S.family,drawCfg:S.drawCfg,rocketCfg:S.rocketCfg,
     kids:S.kids.map(k=>({name:k.name,chores:k.chores,birthday:k.birthday,color:k.color,face:k.face||''})),closet:S.closet,outfit:S.outfit};
 }
 const cfgHash=()=>JSON.stringify(cfgOf());
 lastCfgHash=cfgHash();
 function applyCfg(c){
-  ['pin','lat','lon','notices','events','menu','todoText','shopping','checklist','people','eggCost','evoCost','bonus','legend','closet','outfit','shift','shiftOv','autoPurge','bgm','dim','morning','bdayCfg','family','drawCfg','rocketCfg'].forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});
+  ['pin','lat','lon','notices','events','menu','todoText','todoWk','shopping','checklist','people','eggCost','evoCost','bonus','legend','closet','outfit','shift','shiftOv','autoPurge','bgm','dim','morning','bdayCfg','family','drawCfg','rocketCfg'].forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});
   if(Array.isArray(c.kids)){
     c.kids.forEach((kc,i)=>{
       let k=S.kids[i];
@@ -2983,8 +2991,10 @@ function setView(){
     ${ta('data-g="menu"',S.menu,'2026-12-01 저녁 김치찌개, 계란말이&#10;2026-12-02 점심 비빔밥',150)}
     <p class="small">형식: 날짜 점심|저녁|아침|간식 메뉴 · 같은 날 같은 끼니를 또 쓰면 아래 줄이 우선이에요 · 폰의 board.json에도 menu로 적을 수 있어요</p></div>
   <div class="card"><h2>✅ 할 일 · 장보기 · 체크리스트</h2>
-    ${S.kids.map(k=>`<label class="small">${esc(k.name)} 할 일 (한 줄에 하나씩)</label>${ta(`data-todo="${esc(k.name)}"`,(S.todoText||{})[k.name],'')}`).join('')}
-    <label class="small">공통 할 일 (한 줄에 하나씩)</label>${ta('data-todo="가족"',(S.todoText||{})['가족'],'')}
+    <div class="wkbar">${[['all','매일']].concat([1,2,3,4,5,6,0].map(d=>[String(d),WD[d]])).map(x=>`<button class="wkb ${String(todoEd)===x[0]?'on':''}" data-act="tday" data-d="${x[0]}">${x[0]==='all'?x[1]:x[1]+(new Date().getDay()===+x[0]?'·오늘':'')}</button>`).join('')}</div>
+    <p class="small" style="margin:2px 0 6px">${todoEd==='all'?'매일 하는 할 일이에요. 요일마다 다른 건 위에서 요일을 눌러 적어요.':`${WD[+todoEd]}요일에만 보이는 할 일이에요. (매일 할 일에 더해서 나와요)`}</p>
+    ${S.kids.map(k=>`<label class="small">${esc(k.name)} 할 일 (한 줄에 하나씩)</label>${todoEd==='all'?ta(`data-todo="${esc(k.name)}"`,(S.todoText||{})[k.name],''):ta(`data-todowk="${esc(k.name)}|${todoEd}"`,((S.todoWk||{})[k.name]||{})[todoEd],'')}`).join('')}
+    <label class="small">공통 할 일 (한 줄에 하나씩)</label>${todoEd==='all'?ta('data-todo="가족"',(S.todoText||{})['가족'],''):ta(`data-todowk="가족|${todoEd}"`,((S.todoWk||{})['가족']||{})[todoEd],'')}
     <label class="small">🛒 장보기 (한 줄에 하나씩)</label>${ta('data-g="shopping"',S.shopping,'')}
     <label class="small">체크리스트 이름 · 설명 (예: 여행 준비물 · 내일 출발)</label>
     <div class="row"><input value="${esc(ck.title||'')}" data-cl="title" placeholder="여행 준비물"><input value="${esc(ck.sub||'')}" data-cl="sub" placeholder="설명"></div>
@@ -3245,8 +3255,10 @@ document.addEventListener('click',async e=>{
     S.events=(S.events?S.events.replace(/\s+$/,'')+'\n':'')+`${an?p[1]+'-'+p[2]:ds}${tm?' '+tm:''} ${ti}${wh?' #'+wh:''}`;
     toast('일정을 추가했어요 ✅');
   }
+  else if(t.dataset.act==='tday'){todoEd=t.dataset.d==='all'?'all':+t.dataset.d;render()}
   else if(t.dataset.act==='cleardone'){
     Object.keys(S.todoText).forEach(w=>{S.todoText[w]=lines(S.todoText[w]).filter(x=>!S.todoDone[w+'|'+x]).join('\n')});
+    const wd0=new Date().getDay();Object.keys(S.todoWk||{}).forEach(w=>{if(S.todoWk[w]&&S.todoWk[w][wd0]!==undefined)S.todoWk[w][wd0]=lines(S.todoWk[w][wd0]).filter(x=>!S.todoDone[w+'|'+x]).join('\n')});
     S.checklist.text=lines(S.checklist.text).filter(x=>!S.todoDone['__ck|'+x]).join('\n');
     S.todoDone={};toast('완료한 항목을 지웠어요 🧹');
   }
@@ -3327,6 +3339,7 @@ document.addEventListener('change',e=>{
   else if(D.kname!==undefined){const old=S.kids[+D.kname].name;S.kids[+D.kname].name=t.value;
     S.closet.forEach(c=>{if(c.kid===old)c.kid=t.value});
     if(S.todoText[old]!==undefined&&t.value&&t.value!==old){S.todoText[t.value]=S.todoText[old];delete S.todoText[old]}
+    if(S.todoWk&&S.todoWk[old]&&t.value&&t.value!==old){S.todoWk[t.value]=S.todoWk[old];delete S.todoWk[old]}
     Object.keys(S.outfit).forEach(d=>{if(S.outfit[d][old]){S.outfit[d][t.value]=S.outfit[d][old];delete S.outfit[d][old]}})}
   else if(D.ct){const[i,j]=D.ct.split('.');S.kids[i].chores[j].t=t.value}
   else if(D.cc){const[i,j]=D.cc.split('.');S.kids[i].chores[j].c=Math.max(0,Math.round(+t.value)||0)}
@@ -3357,8 +3370,9 @@ document.addEventListener('change',e=>{
   else if(D.shon!==undefined){S.shift.on=t.checked}
   else if(D.sh!==undefined){S.shift[D.sh]=t.value;render()}
   else if(D.todo!==undefined)S.todoText[D.todo]=t.value;
+  else if(D.todowk!==undefined){const[w,dy]=D.todowk.split('|');S.todoWk=S.todoWk||{};S.todoWk[w]=S.todoWk[w]||{};S.todoWk[w][dy]=t.value}
   else if(D.cl!==undefined)S.checklist[D.cl]=t.value;
-  else if(D.pn!==undefined){const p=S.people[+D.pn];if(S.todoText[p.n]!==undefined&&t.value&&t.value!==p.n){S.todoText[t.value]=S.todoText[p.n];delete S.todoText[p.n]}p.n=t.value}
+  else if(D.pn!==undefined){const p=S.people[+D.pn];if(S.todoText[p.n]!==undefined&&t.value&&t.value!==p.n){S.todoText[t.value]=S.todoText[p.n];delete S.todoText[p.n]}if(S.todoWk&&S.todoWk[p.n]&&t.value&&t.value!==p.n){S.todoWk[t.value]=S.todoWk[p.n];delete S.todoWk[p.n]}p.n=t.value}
   else if(D.pc!==undefined)S.people[+D.pc].c=t.value;
   else if(D.bday!==undefined)S.kids[+D.bday].birthday=t.value;
   else if(D.kcol!==undefined)S.kids[+D.kcol].color=t.value;
