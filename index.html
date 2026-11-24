@@ -901,7 +901,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261124n';
+const BUILD='20261124o';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1260,9 +1260,18 @@ function vCut(im){
   try{
     if(!im||im.dataset.cut||!im.naturalWidth)return;im.dataset.cut='1';
     const src=im.getAttribute('data-u')||im.src;
-    if(VCUT[src]){if(VCUT[src]!=='x'){im.src=VCUT[src];im.className+=' cut'}return}
-    const W=im.naturalWidth,H=im.naturalHeight,c=document.createElement('canvas');c.width=W;c.height=H;
-    const x=c.getContext('2d');x.drawImage(im,0,0);
+    if(VCUT[src]){if(VCUT[src]!=='x'){im.src=VCUT[src];im.className+=' cut'}else im.className+=' nocut';return}
+    // 화면에 보이는 그림은 그대로 두고, 배경 지우기용 사본을 따로(보안 요청+주소 바꿔서) 불러와요. 사본이 실패해도 그림은 보여요(아이폰 사파리 대응)
+    const o=new Image();o.crossOrigin='anonymous';
+    o.onerror=()=>{VCUT[src]='x';im.className+=' nocut'};
+    o.onload=()=>vCutRun(im,o,src);
+    o.src=src+'?c=1';
+  }catch(e){try{im.dataset.cut='1';im.className+=' nocut'}catch(e2){}}
+}
+function vCutRun(im,o,src){
+  try{
+    const W=o.naturalWidth,H=o.naturalHeight,c=document.createElement('canvas');c.width=W;c.height=H;
+    const x=c.getContext('2d');x.drawImage(o,0,0);
     const d=x.getImageData(0,0,W,H),p=d.data,N=W*H;
     // 배경색: 가장자리 한 줄의 가장 흔한 색
     const bins={};let bk='',bc=0,tot=0;
@@ -1291,14 +1300,16 @@ function vCut(im){
     if(x1<=x0||y1<=y0){VCUT[src]='x';return}
     x.putImageData(d,0,0);
     const c2=document.createElement('canvas');c2.width=x1-x0+1;c2.height=y1-y0+1;c2.getContext('2d').drawImage(c,x0,y0,c2.width,c2.height,0,0,c2.width,c2.height);
-    const url=c2.toDataURL('image/png');VCUT[src]=url;im.src=url;im.className+=' cut';
-  }catch(e){try{im.dataset.cut='1';im.className+=' nocut'}catch(e2){}}
+    const url=c2.toDataURL('image/png');
+    const chk=new Image();chk.onload=()=>{if(chk.naturalWidth>1){VCUT[src]=url;im.src=url;im.className+=' cut'}else{VCUT[src]='x';im.className+=' nocut'}};
+    chk.onerror=()=>{VCUT[src]='x';im.className+=' nocut'};chk.src=url;     // 지운 그림이 정말 그려지는지 확인한 뒤에만 바꿔요
+  }catch(e){VCUT[src]='x';try{im.className+=' nocut'}catch(e2){}}
 }
 function vErr(im){                                  // 그림을 못 불러오면: 한 번은 화면 처리 없이 다시 시도, 그래도 안 되면 숨겨요
-  if(!im.dataset.r){im.dataset.r='1';im.removeAttribute('crossorigin');im.className+=' nocut';im.dataset.cut='1';im.src=im.getAttribute('data-u')+'?n=1';return}
-  im.style.visibility='hidden';
+  if(!im.dataset.r){im.dataset.r='1';im.className+=' nocut';im.dataset.cut='1';im.src=im.getAttribute('data-u')+'?n=1';return}
+  try{const s=document.createElement('span');s.textContent='🐭';s.style.cssText='display:block;font-size:40px;line-height:56px;text-align:center';im.parentNode.replaceChild(s,im)}catch(e){im.style.visibility='hidden'}   // 그래도 안 되면 이름만 남기지 말고 작은 모양을 보여요
 }
-const vAttr=(c,v)=>`src="${AL+c[2]}" data-u="${AL+c[2]}"${v==='chii'?' crossorigin="anonymous"':''} referrerpolicy="no-referrer" alt="" ${v==='chii'?'onload="vCut(this)" ':''}onerror="vErr(this)"`;   // 배경 지우기는 그림이 흰 배경인 치이카와만 해요
+const vAttr=(c,v)=>`src="${AL+c[2]}" data-u="${AL+c[2]}" alt="" ${v==='chii'?'onload="vCut(this)" ':''}onerror="vErr(this)"`;   // 배경 지우기는 그림이 흰 배경인 치이카와만 해요
 const vOpen=(k,v)=>!!(isDad(k)||(k.vil&&k.vil[v]));
 function sdoorHtml(k){return DOORS.map(d=>{const o=vOpen(k,d[0]);return `<button class="sdoor d-${d[0]}${o?' op':''}" style="left:${d[1]}%;bottom:${d[2]}px" data-act="vdoor" data-v="${d[0]}" title="${VIL[d[0]].n}"><i>${o?VIL[d[0]].e:'🔒'}</i></button>`}).join('')}
 function ovRaw(html){document.getElementById('ovbox').innerHTML=html;document.getElementById('ov').classList.add('show')}
