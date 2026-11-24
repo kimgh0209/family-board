@@ -817,7 +817,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261124c';
+const BUILD='20261124d';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1781,7 +1781,7 @@ async function pullPhotos(){
   return got;
 }
 /* ---- 아이 기록(코인·포켓몬·할 일 체크 등) 기기 간 동기화: 아이별로 "나중에 바뀐 쪽"이 이겨요 ---- */
-const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev','deco','out','bw','bl','bday','bn','freeEgg','tix','fday','fn','stolen','rday','rn','gf','wp'];
+const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev','deco','out','bw','bl','bday','bn','freeEgg','tix','fday','fn','stolen','rday','rn','gf','wp','dg'];
 const progOf=k=>{const o={};PF.forEach(f=>{if(k[f]!==undefined)o[f]=k[f]});return o};
 function sweepTodo(){                                       // 오늘이 아닌 날 체크된 할 일은 지워요
   let n=0;Object.keys(S.todoDone).forEach(x=>{const v=S.todoDone[x];if(x.indexOf('__ck|')!==0&&typeof v==='string'&&v!==today()){delete S.todoDone[x];n++}});return n}
@@ -1794,6 +1794,12 @@ function progMark(init){                                  // 바뀐 아이가 �
   return dirty;
 }
 progMark(true);
+/* 엄마·아빠 매일 용돈: 엄마 50코인 · 아빠 20코인 (하루에 한 번, 어느 기기가 먼저 열어도 한 번만) */
+const ALLOW=[50,20];
+function allowanceApply(){
+  let ch=false;S.parents.forEach((q,i)=>{const v=ALLOW[i]||0;if(v&&q.dg!==today()){q.dg=today();q.coins+=v;ch=true}});
+  return ch;
+}
 const progScore=d=>(+d.earned||0)+100*(+d.hatched||0)+10*Object.keys(d.hist||{}).length+Object.keys(d.dex||{}).length;
 async function syncProgress(){
   const r=await ghReq('GET','progress.json');
@@ -1816,6 +1822,7 @@ async function syncProgress(){
     if(!busy){S.todoDone=JSON.parse(JSON.stringify(rg.d.todoDone||{}));S.thanks=JSON.parse(JSON.stringify(rg.d.thanks||{}));S.mrun=rg.d.mrun?JSON.parse(JSON.stringify(rg.d.mrun)):null;S.drawBoard=rg.d.draw?JSON.parse(JSON.stringify(rg.d.draw)):null;S.trades=rg.d.trades?JSON.parse(JSON.stringify(rg.d.trades)):[];S.rocket=rg.d.rocket?JSON.parse(JSON.stringify(rg.d.rocket)):null;S.bdayDone=rg.d.bday?JSON.parse(JSON.stringify(rg.d.bday)):null;S.gpts=rg.pts;lastGH=JSON.stringify(progG());pulled=true;if(sweepTodo()){S.gpts=now;lastGH=JSON.stringify(progG());push=true}}
   }else if(!rg&&!(S.gpts)){S.gpts=now;push=true}
   else if((S.gpts||0)>(rg?rg.pts:0))push=true;
+  if(allowanceApply()){progMark();push=true;pulled=true}      // 클라우드 기록을 받은 뒤에 용돈을 줘요 (옛 기록으로 두 번 주는 것 방지)
   if(pulled){try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}render()}
   if(push){
     const mk=(L,R)=>L.map((k,i)=>{const x=R[i];return (x&&x.pts>=(k.pts||0))?x:{pts:k.pts||0,d:progOf(k)}}),kids=mk(S.kids,rk),parents=mk(S.parents,rp);
@@ -2535,15 +2542,10 @@ function shopCard(k){
   return `<div class="card"><h2>🛍 마을 꾸미기 상점</h2><div class="small">코인으로 마을에 놓을 것을 사요 · 산 것 ${own.length}/${SHOP.length}</div>
     <div class="shopg">${left.map(d=>`<button class="shopi" data-buy="${d.id}" ${k.coins<d.p?'disabled':''}><span>${d.e}</span><b>${d.n}</b><small>💰${won(d.p)}</small></button>`).join('')||'<div class="small">모두 샀어요! 🎉</div>'}</div></div>`;
 }
-function giveTotals(q){                                   // 누가 지금까지 얼마를 선물했는지 누적으로 보여줘요
-  const g=q.gf||{},names=S.kids.map(c=>c.name);Object.keys(g).forEach(n=>{if(names.indexOf(n)<0)names.push(n)});
-  const tot=names.reduce((a,n)=>a+(g[n]||0),0);
-  return `<div style="margin-top:8px">${names.map(n=>{const c=S.kids.find(x=>x.name===n);return `<div class="giverow"><b style="color:${c?c.color:'#555'}">${esc(n)}</b><span style="flex:1;text-align:right">💰 ${won(g[n]||0)}</span></div>`}).join('')}<div class="giverow"><b>모두 합쳐서</b><span style="flex:1;text-align:right"><b>💰 ${won(tot)}</b></span></div></div>`;
-}
 function giveCard(k){
-  if(k.adult)return `<div class="card"><h2>💝 아이들이 선물해 준 코인</h2><div class="small">${esc(k.name)}의 코인은 아이들이 나눠 준 것으로만 채워져요. 고맙다고 말해 주세요! 😊</div>${giveTotals(k)}</div>`;
-  return `<div class="card"><h2>💝 엄마·아빠에게 코인 선물</h2><div class="small">모은 코인을 나눠 주면 엄마·아빠도 포켓몬 알을 뽑을 수 있어요</div>
-    ${S.parents.map((q,j)=>`<div class="giverow"><b style="color:${q.color}">${esc(q.name)}</b>${[10,50,100].map(v=>`<button data-give="${j}|${v}" ${k.coins<v?'disabled':''}>💰${v}</button>`).join('')}</div>`).join('')}</div>`;
+  if(!k.adult)return '';
+  const i=S.parents.indexOf(k),v=ALLOW[i]||0,g=k.gf||{},tot=Object.keys(g).reduce((a,n)=>a+g[n],0);
+  return `<div class="card"><h2>💰 매일 받는 용돈</h2><div class="small">${esc(k.name)}은(는) 매일 <b>코인 ${v}개</b>를 받아요 (하루에 한 번 자동으로)</div>${tot>0?`<div class="small" style="margin-top:6px">예전에 아이들이 준 코인 ${won(tot)}개 포함</div>`:''}</div>`;
 }
 /* ---- 📦 포켓몬 보관함: 포켓볼에 넣어 두면 마을에서는 안 보여요 ---- */
 let boxMode=false,boxOpen=false,boxSel={};
@@ -2851,7 +2853,6 @@ document.addEventListener('click',async e=>{
   }
   else if(t.dataset.act==='vback'){const cur=outOf(k);k.out=cur.filter((_,j)=>j!==+t.dataset.j);toast('🏠 돌아왔어요!')}
   else if(t.dataset.buy){const d=SHOP.find(x=>x.id===t.dataset.buy);if(d&&(k.deco||[]).indexOf(d.id)<0&&k.coins>=d.p){k.coins-=d.p;k.deco.push(d.id);sfx('hatch');toast(d.e+' '+d.n+' 샀어요! 마을에 놓였어요')}}
-  else if(t.dataset.give){const a=t.dataset.give.split('|'),q=S.parents[+a[0]],v=+a[1];if(q&&!k.adult&&v>0&&k.coins>=v){k.coins-=v;q.coins+=v;q.gf=q.gf||{};q.gf[k.name]=(q.gf[k.name]||0)+v;sfx('hatch');toast('💝 '+q.name+'에게 코인 '+v+'개를 선물했어요!')}}
   else if(t.dataset.act==='evo'&&!busy){
     const p=leadOf(k);if(!p||p.final||k.coins<S.evoCost)return;
     busy=true;t.disabled=true;t.textContent='진화 중...';
@@ -3064,7 +3065,8 @@ setInterval(()=>{
 setInterval(loadWeather,30*60000);
 setInterval(()=>{if(!W)loadWeather()},120000);       // 못 불러왔으면 2분마다 다시 시도해요
 setInterval(loadBoard,5*60000);
-setInterval(syncNow,60000);                       // 1분마다 폰에서 고친 내용을 확인해요
+setInterval(syncNow,60000);
+setInterval(()=>{if(S.sync&&S.sync.on&&S.sync.token)return;if(allowanceApply()){progMark();save();if(tab==='town'||tab==='home')render()}},60000);setTimeout(()=>{if(S.sync&&S.sync.on&&S.sync.token)return;if(allowanceApply()){progMark();save()}},800);                       // 1분마다 폰에서 고친 내용을 확인해요
 setTimeout(syncNow,1500);
 
 /* qrcode-generator 1.4.4 (Kazuhiko Arase, MIT License) — QR 그림을 만드는 데만 써요. 인터넷에서 불러오지 않고 이 파일 안에 넣어 뒀어요 */
