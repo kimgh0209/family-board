@@ -798,10 +798,12 @@ function fitScreen(){
     const z=port?w/800:h/760;b.style.zoom=String(Math.round(z*100)/100);b.style.minHeight=Math.floor(h/z)+'px';   // 확대된 만큼 높이 기준도 줄여요
     
     if(port)b.classList.add('port');else b.classList.remove('port');
+    /* 홈 화면이 세로로 넘치면(아이 할 일이 많거나 글자가 커진 기기) 한 화면에 들어올 때까지 조금씩 줄여요 */
+    if(!port&&document.querySelector('.tri')){let zz=z,n=0;while(n<5&&zz>z*0.6){const sh=document.documentElement.scrollHeight;if(sh<=h+2)break;zz=zz*h/sh*0.99;b.style.zoom=String(Math.round(zz*100)/100);b.style.minHeight=Math.floor(h/zz)+'px';n++}}
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261120p';
+const BUILD='20261124a';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1149,6 +1151,7 @@ function render(){
   const gh=document.getElementById('gohome');if(gh)gh.style.display=tab==='home'?'none':'block';
   if(tab==='dex')fillDex();
   paintCloud();
+  fitScreen();
 }
 
 /* ---- 대시보드(홈) ---- */
