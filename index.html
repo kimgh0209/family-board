@@ -333,17 +333,26 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 #ov.show{display:grid}
 #ov .box{background:#fff;border-radius:24px;padding:28px;text-align:center;max-width:90vw;max-height:92vh;overflow:auto}
 #ov img.big{width:240px;height:240px;object-fit:contain;animation:pop .6s}
-/* 비밀의 문 + 치이카와 마을 */
-.sdoor{position:absolute;left:3%;bottom:30px;width:34px;height:52px;padding:0;border:0;border-radius:17px 17px 2px 2px;background:#a0693d;box-shadow:inset 0 0 0 3px #6d4226,0 2px 4px rgba(0,0,0,.3);z-index:4;cursor:pointer}
+/* 비밀의 문 5개 + 캐릭터 마을 */
+.sdoor{position:absolute;width:34px;height:52px;padding:0;border:0;border-radius:17px 17px 2px 2px;background:#a0693d;box-shadow:inset 0 0 0 3px rgba(0,0,0,.35),0 2px 4px rgba(0,0,0,.3);z-index:4;cursor:pointer}
 .sdoor:after{content:"";position:absolute;right:6px;top:28px;width:5px;height:5px;border-radius:50%;background:#ffd54f}
-.sdoor i{position:absolute;left:-6px;top:-18px;font-size:16px;font-style:normal;-webkit-animation:bob 2s ease-in-out infinite;animation:bob 2s ease-in-out infinite}
-.sdoor.op{background:#f48fb1;box-shadow:inset 0 0 0 3px #c2185b,0 0 12px 3px #fff59d}
-.chv{position:relative;width:640px;max-width:84vw;height:400px;border-radius:18px;overflow:hidden;margin:0 auto;background:#bfe8ff;background:linear-gradient(#a8dcff,#eaf8ff 52%,#a8dd84 52%,#78c056)}
-.chv .chd{position:absolute;line-height:1}
-.chv .chc{position:absolute;width:104px;padding:0;border:0;background:none;text-align:center;-webkit-animation:bob 2.6s ease-in-out infinite;animation:bob 2.6s ease-in-out infinite}
-.chv .chc svg{width:100%;height:auto;display:block}
-.chv .chc b{display:block;margin-top:-2px;font-size:13px;color:#5b4a45;text-shadow:0 0 4px #fff,0 0 4px #fff}
-.chb{min-height:44px;margin-top:10px;font-size:19px;font-weight:700;color:#d81b60}
+.sdoor i{position:absolute;left:-4px;top:-20px;font-size:16px;font-style:normal;-webkit-animation:bob 2s ease-in-out infinite;animation:bob 2s ease-in-out infinite}
+.sdoor.d-chii{background:#f48fb1}.sdoor.d-aot{background:#7a9a6b}.sdoor.d-csm{background:#c0392b}.sdoor.d-op{background:#3f88c5}.sdoor.d-kny{background:#2f8f86}
+.sdoor.op{box-shadow:inset 0 0 0 3px #fff,0 0 12px 3px #fff59d}
+.vhead{border-radius:14px;padding:8px 10px;margin-bottom:10px}
+.vhead h2{margin:0}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,92px);grid-gap:10px;justify-content:center;max-width:560px;margin:0 auto}
+.vt{width:92px;text-align:center}
+.vt .vi{position:relative;width:92px;height:116px;border-radius:14px;overflow:hidden;background:#f1ecff;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.vt .vi img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;object-position:center top}
+.vt .vph{position:absolute;left:0;right:0;top:34px;font-size:40px;font-weight:800;color:#b39ddb}
+.vt:not(.on) .vi img{-webkit-filter:brightness(0);filter:brightness(0);opacity:.28}
+.vt b{display:block;font-size:12px;margin-top:3px;color:#5b4a45;min-height:16px}
+.vbig{position:relative;width:200px;height:260px;margin:0 auto;border-radius:18px;overflow:hidden;background:#f1ecff;border:4px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.35);-webkit-animation:pop .6s;animation:pop .6s}
+.vbig img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;object-position:center top}
+.vbig .vph{position:absolute;left:0;right:0;top:80px;font-size:80px;font-weight:800;color:#b39ddb}
+.vq{font-size:90px;-webkit-animation:bob .5s infinite;animation:bob .5s infinite;margin:30px 0}
+.chb{min-height:30px;margin-top:10px;font-size:22px;font-weight:700;color:#d81b60}
 /* 진화 연출: 빛나며 모습이 바뀌어요 */
 .evst{position:relative;width:340px;max-width:78vw;height:340px;border-radius:20px;background:#1b1240;background:radial-gradient(circle,#4a3a8a,#120a2a);overflow:hidden;margin:0 auto}
 .evray{position:absolute;left:50%;top:50%;width:560px;height:560px;margin:-280px 0 0 -280px;opacity:0;background:repeating-conic-gradient(rgba(255,255,255,.55) 0 8deg,rgba(255,255,255,0) 8deg 24deg);-webkit-animation:evspin 4s linear infinite;animation:evspin 4s linear infinite}
@@ -734,6 +743,7 @@ function fixKid(k,i){
   k.hist=k.hist||{};k.badges=k.badges||{};k.lastPerfect=k.lastPerfect||'';k.bonusDate=k.bonusDate||'';
   if(!Array.isArray(k.out))k.out=[];
   if(!Array.isArray(k.stolen))k.stolen=[];
+  if(!k.vil||typeof k.vil!=='object'||Array.isArray(k.vil))k.vil={};if(!k.cc||typeof k.cc!=='object'||Array.isArray(k.cc))k.cc={};if(k.sdoor&&!k.vil.chii)k.vil.chii=1;   // 비밀의 문(열림) · 모은 캐릭터
   if(typeof k.tix!=='number')k.tix=k.adult?0:2;                  // 종이 뽑기 무료권 (처음 개시 선물: 아이들 2장씩)
   if(!Array.isArray(k.deco)){k.deco=Object.keys(OLD_GIFT).filter(id=>k.mons.length>=OLD_GIFT[id])}   // 마을 상점에서 산 것
   const keys=Object.keys(k.hist).sort();while(keys.length>45)delete k.hist[keys.shift()];
@@ -828,7 +838,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261124f';
+const BUILD='20261124g';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1172,37 +1182,46 @@ function evoAnim(oldName,oldId,newName,newId){        // 진화 연출: 흔들 �
   at(4350,()=>{g('evimg').className='evimg';g('evimg').style.animation='pop .7s';g('evtx').innerHTML='🎉 축하해요!<br>'+esc(oldName)+' → <span style="color:#e53935">'+esc(newName)+'</span> 진화!';sfx('evo');confetti()});
   at(5200,()=>{ob.insertAdjacentHTML('beforeend','<p><button style="background:#eee" onclick="closeOv()">확인!</button></p>')});
 }
-/* ---- 🚪 비밀의 문 → 치이카와 마을 (문을 열려면 코인 500개) ---- */
-const SDOOR_COST=500;
-const CHI_STY='stroke="#6b5a55" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"';
-const CHI_FACE=(ex1,ex2,ey,bl1,bl2,by,mx,my)=>`<circle cx="${ex1}" cy="${ey}" r="2.8" fill="#3b2f2f"/><circle cx="${ex2}" cy="${ey}" r="2.8" fill="#3b2f2f"/><ellipse cx="${bl1}" cy="${by}" rx="5.5" ry="3.2" fill="#ffb3c1"/><ellipse cx="${bl2}" cy="${by}" rx="5.5" ry="3.2" fill="#ffb3c1"/><path d="M${mx-4} ${my} Q${mx} ${my+4} ${mx+4} ${my}" fill="none" ${CHI_STY}/>`;
-const CHI={
-  chii:{n:'치이카와',x:30,y:150,say:['와~! 같이 놀자!','으엥... 아니야, 괜찮아!','힘내서 해볼래!'],
-    svg:`<svg viewBox="0 0 100 100"><circle cx="33" cy="25" r="9" fill="#fff" ${CHI_STY}/><circle cx="67" cy="25" r="9" fill="#fff" ${CHI_STY}/><circle cx="33" cy="26" r="4" fill="#ffd6df"/><circle cx="67" cy="26" r="4" fill="#ffd6df"/><ellipse cx="38" cy="90" rx="10" ry="5" fill="#fff" ${CHI_STY}/><ellipse cx="62" cy="90" rx="10" ry="5" fill="#fff" ${CHI_STY}/><ellipse cx="50" cy="57" rx="34" ry="33" fill="#fff" ${CHI_STY}/><ellipse cx="17" cy="64" rx="6" ry="8" fill="#fff" ${CHI_STY}/><ellipse cx="83" cy="64" rx="6" ry="8" fill="#fff" ${CHI_STY}/>${CHI_FACE(40,60,52,31,69,62,50,60)}</svg>`},
-  hachi:{n:'하치와레',x:150,y:140,say:['하이! 하이! 하이!','같이 힘내자!','잘 부탁해~!'],
-    svg:`<svg viewBox="0 0 100 100"><polygon points="20,38 28,6 46,24" fill="#8fc3ea" ${CHI_STY}/><polygon points="80,38 72,6 54,24" fill="#8fc3ea" ${CHI_STY}/><ellipse cx="38" cy="90" rx="10" ry="5" fill="#fff" ${CHI_STY}/><ellipse cx="62" cy="90" rx="10" ry="5" fill="#fff" ${CHI_STY}/><ellipse cx="50" cy="57" rx="34" ry="33" fill="#fff" ${CHI_STY}/><path d="M17 50 Q16 24 50 23 Q84 24 83 50 Q72 46 64 40 Q57 47 50 34 Q43 47 36 40 Q28 46 17 50Z" fill="#8fc3ea" stroke="none"/><ellipse cx="17" cy="64" rx="6" ry="8" fill="#fff" ${CHI_STY}/><ellipse cx="83" cy="64" rx="6" ry="8" fill="#fff" ${CHI_STY}/>${CHI_FACE(40,60,54,31,69,63,50,61)}</svg>`},
-  usagi:{n:'우사기',x:268,y:150,say:['야하! 우라! 우라!','푸이~! 푸이~!','우라라라라~!'],
-    svg:`<svg viewBox="0 0 100 100"><ellipse cx="36" cy="16" rx="7" ry="18" fill="#ffe27a" ${CHI_STY}/><ellipse cx="64" cy="16" rx="7" ry="18" fill="#ffe27a" ${CHI_STY}/><ellipse cx="38" cy="90" rx="10" ry="5" fill="#ffe27a" ${CHI_STY}/><ellipse cx="62" cy="90" rx="10" ry="5" fill="#ffe27a" ${CHI_STY}/><ellipse cx="50" cy="58" rx="34" ry="32" fill="#ffe27a" ${CHI_STY}/><ellipse cx="17" cy="64" rx="6" ry="8" fill="#ffe27a" ${CHI_STY}/><ellipse cx="83" cy="64" rx="6" ry="8" fill="#ffe27a" ${CHI_STY}/><circle cx="39" cy="50" r="2.8" fill="#3b2f2f"/><circle cx="61" cy="50" r="2.8" fill="#3b2f2f"/><ellipse cx="29" cy="60" rx="5" ry="3" fill="#ffb3a1"/><ellipse cx="71" cy="60" rx="5" ry="3" fill="#ffb3a1"/><ellipse cx="50" cy="67" rx="11" ry="9" fill="#c2185b" ${CHI_STY}/><ellipse cx="50" cy="72" rx="6" ry="3.5" fill="#ff8a9a"/></svg>`},
-  kuri:{n:'쿠리만쥬',x:386,y:145,say:['멍! 맛있는 거 먹고 싶다~','냠냠냠…','같이 밥 먹자!'],
-    svg:`<svg viewBox="0 0 100 100"><ellipse cx="22" cy="40" rx="10" ry="16" fill="#b9753e" transform="rotate(20 22 40)" ${CHI_STY}/><ellipse cx="78" cy="40" rx="10" ry="16" fill="#b9753e" transform="rotate(-20 78 40)" ${CHI_STY}/><ellipse cx="38" cy="90" rx="10" ry="5" fill="#d9a066" ${CHI_STY}/><ellipse cx="62" cy="90" rx="10" ry="5" fill="#d9a066" ${CHI_STY}/><ellipse cx="50" cy="57" rx="34" ry="33" fill="#d9a066" ${CHI_STY}/><ellipse cx="50" cy="64" rx="22" ry="17" fill="#fde9c9"/><circle cx="40" cy="52" r="2.8" fill="#3b2f2f"/><circle cx="60" cy="52" r="2.8" fill="#3b2f2f"/><ellipse cx="50" cy="60" rx="4" ry="3" fill="#3b2f2f"/><path d="M45 66 Q50 71 55 66" fill="none" ${CHI_STY}/><ellipse cx="31" cy="62" rx="4.5" ry="2.8" fill="#ffb3a1"/><ellipse cx="69" cy="62" rx="4.5" ry="2.8" fill="#ffb3a1"/></svg>`},
-  momo:{n:'모몽가',x:504,y:150,say:['모몽~! 놀아줘!','나 날 수 있어~!','휘리릭~!'],
-    svg:`<svg viewBox="0 0 100 100"><path d="M20 58 L2 84 L32 80Z" fill="#b9b9c6" ${CHI_STY}/><path d="M80 58 L98 84 L68 80Z" fill="#b9b9c6" ${CHI_STY}/><circle cx="30" cy="30" r="8" fill="#cfcfd8" ${CHI_STY}/><circle cx="70" cy="30" r="8" fill="#cfcfd8" ${CHI_STY}/><ellipse cx="38" cy="90" rx="10" ry="5" fill="#cfcfd8" ${CHI_STY}/><ellipse cx="62" cy="90" rx="10" ry="5" fill="#cfcfd8" ${CHI_STY}/><ellipse cx="50" cy="58" rx="32" ry="31" fill="#cfcfd8" ${CHI_STY}/><ellipse cx="50" cy="68" rx="18" ry="15" fill="#fff"/><circle cx="40" cy="52" r="4" fill="#3b2f2f"/><circle cx="60" cy="52" r="4" fill="#3b2f2f"/><circle cx="41" cy="51" r="1.2" fill="#fff"/><circle cx="61" cy="51" r="1.2" fill="#fff"/><ellipse cx="30" cy="62" rx="5" ry="3" fill="#ffb3c1"/><ellipse cx="70" cy="62" rx="5" ry="3" fill="#ffb3c1"/><path d="M45 62 Q50 67 55 62" fill="none" ${CHI_STY}/></svg>`},
-  rakko:{n:'라코',x:90,y:270,say:['조개 구경할래?','나는 라코야, 반가워!','반짝반짝 예쁘지?'],
-    svg:`<svg viewBox="0 0 100 100"><circle cx="30" cy="28" r="7" fill="#a9835f" ${CHI_STY}/><circle cx="70" cy="28" r="7" fill="#a9835f" ${CHI_STY}/><ellipse cx="38" cy="90" rx="10" ry="5" fill="#a9835f" ${CHI_STY}/><ellipse cx="62" cy="90" rx="10" ry="5" fill="#a9835f" ${CHI_STY}/><ellipse cx="50" cy="57" rx="34" ry="33" fill="#a9835f" ${CHI_STY}/><ellipse cx="50" cy="52" rx="26" ry="22" fill="#f3dcc0"/><circle cx="40" cy="50" r="2.8" fill="#3b2f2f"/><circle cx="60" cy="50" r="2.8" fill="#3b2f2f"/><ellipse cx="50" cy="57" rx="4" ry="3" fill="#3b2f2f"/><ellipse cx="31" cy="60" rx="4.5" ry="2.8" fill="#ffb3a1"/><ellipse cx="69" cy="60" rx="4.5" ry="2.8" fill="#ffb3a1"/><path d="M38 78 Q50 66 62 78 Q50 88 38 78Z" fill="#ffc9d6" ${CHI_STY}/><path d="M50 69 L50 82 M44 71 L45 82 M56 71 L55 82" stroke="#d98aa0" stroke-width="1.4" fill="none"/></svg>`},
-  shisa:{n:'시사',x:210,y:272,say:['어서 와~ 놀러 왔구나!','시사~!','오키나와에서 왔어!'],
-    svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="52" r="42" fill="#d9453a" ${CHI_STY}/><circle cx="28" cy="22" r="9" fill="#f6b94a" ${CHI_STY}/><circle cx="72" cy="22" r="9" fill="#f6b94a" ${CHI_STY}/><ellipse cx="38" cy="92" rx="10" ry="5" fill="#f6b94a" ${CHI_STY}/><ellipse cx="62" cy="92" rx="10" ry="5" fill="#f6b94a" ${CHI_STY}/><ellipse cx="50" cy="56" rx="28" ry="26" fill="#f6c75e" ${CHI_STY}/><circle cx="40" cy="50" r="2.8" fill="#3b2f2f"/><circle cx="60" cy="50" r="2.8" fill="#3b2f2f"/><ellipse cx="32" cy="60" rx="4.5" ry="2.8" fill="#ffb3a1"/><ellipse cx="68" cy="60" rx="4.5" ry="2.8" fill="#ffb3a1"/><path d="M42 62 Q50 72 58 62Z" fill="#c2185b" ${CHI_STY}/></svg>`}
+/* ---- 🚪 비밀의 문 5개 → 캐릭터 마을 (문 열기 500코인 · 한 번 열면 계속 · 마을에서 캐릭터 뽑기 150코인) ---- */
+const SDOOR_COST=500,PULL_COST=150;
+const AL='https://s4.anilist.co/file/anilistcdn/character/large/';      // 캐릭터 그림은 AniList(공개 서비스)에서 불러와요
+const VIL={
+  chii:{n:'치이카와 마을',e:'🐭',bg:'#ffe4ee,#fff7fb',ch:[[288497,'치이카와','b288497-SwvcX32INEHD.png'],[288498,'하치와레','b288498-OdHiY9TX3Qpm.png'],[288499,'우사기','b288499-BR8llXagiDBS.png'],[288500,'모몽가','b288500-5e0XSZz0W97a.png'],[288503,'라코','b288503-nBgwdHdBixfG.png'],[288502,'쿠리만쥬','b288502-aepNSDaAQQev.png'],[320258,'시사','b320258-nu08J3r0IZ21.png'],[288501,'포셰트 갑옷씨','b288501-1HKeRw1U4PWB.png'],[288507,'노동 갑옷씨','b288507-lZEhW71MnC1u.png'],[288508,'라멘 갑옷씨','b288508-TIwVO7FlM5qA.png']]},
+  aot:{n:'진격의 거인 마을',e:'⚔️',bg:'#dfe8d5,#f6f8f1',ch:[[45627,'리바이','b45627-CR68RyZmddGG.png'],[40882,'에렌 예거','b40882-dsj7IP943WFF.jpg'],[40881,'미카사 아커만','b40881-F3gr1PkreDvj.png'],[46494,'아르민 알레르토','b46494-g7xYYuBtYPnO.png'],[71121,'한지 조에','b71121-7R7CnQd3lHgt.png'],[46496,'에르빈 스미스','b46496-Mu86MENd5wNB.png'],[45887,'사샤 브라우스','b45887-QPtJH0KwqthW.jpg'],[46484,'라이너 브라운','b46484-P6A2GjNQn49F.png'],[46498,'장 키르슈타인','b46498-ritqAj9FW6jX.png'],[46490,'애니 레온하트','b46490-tan274Ifc1Jf.jpg'],[62481,'크리스타 렌즈','b62481-ZZDa7vn17lMU.png'],[71479,'유미르','b71479-huCD908XIdqv.png'],[46486,'코니 스프링거','n46486-izhPjzut6WCZ.png'],[46488,'베르톨트 후버','b46488-wm6HvkdkHoZu.jpg'],[62485,'도트 피크시스','b62485-I0U5Cat3z65K.png'],[62501,'페트라 랄','n62501-CfTtAAgs64nE.jpg'],[62477,'그리샤 예거','b62477-3AHBGul9bXK8.jpg'],[62479,'마르코 보트','b62479-mYcTkU1RXymL.jpg'],[86017,'히치 드라이제','b86017-m6vXFRKWMwUo.jpg'],[46492,'하네스','b46492-5kRaMLDCVD0B.jpg']]},
+  csm:{n:'체인소맨 마을',e:'⛓',bg:'#ffd9d4,#fff4f2',ch:[[137080,'마키마','b137080-UHcynYNjb5ZU.png'],[130102,'덴지','b130102-FO1VHNnEnLlB.png'],[137079,'파워','b137079-6yLEUYR3bmpr.png'],[137081,'하야카와 아키','b137081-TSrUR3mUJL6r.png'],[148740,'레제','b148740-ceAibPxLW8rR.png'],[170266,'포치타','b170266-bBXPkNJnd3mg.png'],[144594,'히가시야마 코베니','b144594-0dbO1NSYeZ12.png'],[152231,'천사의 악마','b152231-xNV2YsTRzEcS.png'],[144596,'히메노','b144596-kvL6SD2litJu.png'],[144593,'키시베','b144593-hdCTT9t54z0s.png'],[157232,'빔','b157232-5GuWeqoFN9Kq.jpg'],[157231,'폭력의 마인','b157231-hV81SwGqxl2R.jpg'],[174271,'냐코','b174271-iC0Ul9YfLOk6.png'],[157241,'사무라이 소드','b157241-GkgQVzkFrmUD.jpg']]},
+  op:{n:'원피스 마을',e:'⚓',bg:'#cfe8fb,#f1f9ff',ch:[[40,'몽키 D. 루피','b40-MNypXsxSRb1R.png'],[62,'로로노아 조로','b62-S7oAeA9WInjV.png'],[305,'상디','b305-6lisPmHtCnLT.png'],[61,'니코 로빈','b61-ywXUyyocEEqt.png'],[13767,'트라팔가 로','b13767-U604OJN9dxCn.jpg'],[723,'나미','b723-vp5hPptgnNEC.png'],[2072,'포트거스 D. 에이스','b2072-Lc6jEdsueJUK.jpg'],[309,'토니토니 쵸파','b309-H64NhbJ2ywIQ.jpg'],[724,'우솝','b724-GFGgI9AJQkfy.jpg'],[727,'샹크스','b727-wUJx7M1z5xON.png'],[5627,'브룩','b5627-av8oD3zhKvDl.png'],[16342,'보아 핸콕','b16342-kVOF6V5Q94go.png'],[2751,'에드워드 뉴게이트','b2751-NnzW0N2vCTjX.jpg'],[64,'프랑키','n64-ChX6ZzHHjXqA.png'],[18938,'징베','b18938-yZANEfjsVhW4.png'],[32893,'사보','b32893-3weZS61cdwLD.png'],[2064,'드라큘 미호크','n2064-OpnF4nLi6bvL.png'],[725,'버기','n725-g04AaiaK5f9B.png'],[726,'네페르타리 비비','b726-DqAIpscMuYYx.png'],[12361,'코비','b12361-H0SmgKxZ9T61.png']]},
+  kny:{n:'귀멸의 칼날 마을',e:'🎴',bg:'#d3efe9,#f2fbf9',ch:[[126071,'카마도 탄지로','b126071-BTNEc1nRIv68.png'],[127518,'카마도 네즈코','b127518-NRlq1CQ1v1ro.png'],[129131,'아가츠마 젠이츠','b129131-FZrQ7lSlxmEr.png'],[129130,'하시비라 이노스케','n129130-SJC0Kn1DU39E.jpg'],[130050,'토미오카 기유','b130050-qsLThJs5VIbz.png'],[136070,'코쵸우 시노부','b136070-MC9LLxJsHyHE.png'],[129133,'렌고쿠 쿄주로','b129133-VlTPowwt68rJ.png'],[136071,'우즈이 텐겐','b136071-99Kexnnn2PiV.png'],[136072,'칸로지 미츠리','b136072-xVwyRUKdpybi.png'],[139038,'츠유리 카나오','b139038-OcOoDUyLEsRn.png'],[136069,'토키토 무이치로','b136069-6PLglx4tETUX.png'],[137777,'이구로 오바나이','b137777-kGViiNyx0wa7.jpg'],[137774,'시나즈가와 사네미','b137774-O1iYrnGLB71l.png'],[137776,'시나즈가와 겐야','b137776-E0QuFD7y19OQ.jpg'],[137778,'히메지마 교메이','b137778-H4Uzb9cSCvZ6.jpg'],[137809,'사비토','b137809-6Tkle99lCBl8.png'],[137806,'마코모','b137806-43Lqae34Vzqu.png'],[137773,'우로코다키 사콘지','b137773-N4O52f73dJKZ.png'],[138847,'타마요','b138847-rOwIPLKaR5Ux.jpg'],[138846,'유시로','b138846-i8frJEl8baly.jpg']]},
 };
-function sdoorHtml(k){return `<button class="sdoor${k.sdoor?' op':''}" data-act="sdoor" title="비밀의 문"><i>${k.sdoor?'✨':'🔒'}</i></button>`}
+const DOORS=[['chii',2,30],['aot',14,30],['csm',26,30],['op',8,86],['kny',20,86]];   // 문 종류 · 위치(왼쪽 %, 아래 px)
+const vOpen=(k,v)=>!!(k.vil&&k.vil[v]);
+function sdoorHtml(k){return DOORS.map(d=>{const o=vOpen(k,d[0]);return `<button class="sdoor d-${d[0]}${o?' op':''}" style="left:${d[1]}%;bottom:${d[2]}px" data-act="vdoor" data-v="${d[0]}" title="${VIL[d[0]].n}"><i>${o?VIL[d[0]].e:'🔒'}</i></button>`}).join('')}
 function ovRaw(html){document.getElementById('ovbox').innerHTML=html;document.getElementById('ov').classList.add('show')}
-function chiVillage(){
-  const decor=[['🌷',3,330,26],['🌼',24,350,22],['🌳',560,300,64],['🌳',596,330,50],['🏠',250,60,70],['🏡',70,70,60],['⛲',440,230,40],['🌸',470,350,26],['🌷',300,355,24],['☁️',60,16,40],['☁️',380,24,34],['☁️',520,10,30]];
-  return `<h2>🐭 치이카와 마을</h2><div class="chv">${decor.map(d=>`<div class="chd" style="left:${d[1]}px;top:${d[2]}px;font-size:${d[3]}px">${d[0]}</div>`).join('')}${Object.keys(CHI).map((id,i)=>{const c=CHI[id];return `<button class="chc" data-chi="${id}" style="left:${c.x}px;top:${c.y}px;animation-delay:-${(i*7)%20/10}s">${c.svg}<b>${c.n}</b></button>`}).join('')}</div>
-    <div class="chb" id="chib">친구를 눌러 보세요! 👆</div><p><button class="go" onclick="closeOv()">🏘️ 내 마을로 돌아가기</button></p>`;
+const vImg=c=>`<span class="vph">${esc(c[1].charAt(0))}</span><img src="${AL+c[2]}" referrerpolicy="no-referrer" alt="" onerror="this.style.display='none'">`;
+function vilView(k,v){
+  const V=VIL[v],own=(k.cc&&k.cc[v])||[],n=own.length,tot=V.ch.length;
+  return `<div class="vhead" style="background:linear-gradient(${V.bg})"><h2>${V.e} ${esc(V.n)}</h2><div class="small">모은 친구 <b>${n}/${tot}</b> · 💰 ${won(k.coins)}</div></div>
+    <p><button class="egg" data-act="vpull" data-v="${v}" ${k.coins<PULL_COST||n>=tot?'disabled':''}>${n>=tot?'🎉 모두 모았어요!':`🎲 캐릭터 뽑기 (💰${PULL_COST})`}</button></p>
+    <div class="vgrid">${V.ch.map(c=>{const has=own.indexOf(c[0])>=0;return `<div class="vt${has?' on':''}"><div class="vi">${has?vImg(c):'<span class="vph">?</span>'+vImg(c).replace(/<span class="vph">.*?<\/span>/,'')}</div><b>${has?esc(c[1]):'???'}</b></div>`}).join('')}</div>
+    <p><button class="go" onclick="closeOv()">🏘️ 내 마을로 돌아가기</button></p>`;
 }
-function sdoorTap(k){
-  if(k.sdoor){sfx('hatch');ovRaw(chiVillage());return}
+function vdoorTap(k,v){
+  const V=VIL[v];if(!V)return;
+  if(vOpen(k,v)){sfx('hatch');ovRaw(vilView(k,v));return}
   if(k.coins<SDOOR_COST){toast('🔒 비밀의 문이에요... 코인 '+SDOOR_COST+'개가 있으면 열 수 있을 것 같아요!');return}
-  ovRaw(`<h2>🚪 비밀의 문</h2><p>이 문 너머에는 누가 살고 있을까요...?<br>코인 <b>💰${SDOOR_COST}</b>개로 문을 열 수 있어요.</p><p><button class="go" data-act="sdooropen">💰${SDOOR_COST}으로 문 열기!</button> <button style="background:#eee" onclick="closeOv()">다음에</button></p>`);
+  ovRaw(`<h2>🚪 비밀의 문 ${V.e}</h2><p>이 문 너머에는 <b>${esc(V.n)}</b>이(가) 있대요...<br>코인 <b>💰${SDOOR_COST}</b>개로 문을 열 수 있어요.<br><small>한 번 열면 계속 오갈 수 있어요</small></p><p><button class="go" data-act="vopen" data-v="${v}">💰${SDOOR_COST}으로 문 열기!</button> <button style="background:#eee" onclick="closeOv()">다음에</button></p>`);
+}
+let vPulling=false;
+function vilPull(k,v){
+  const V=VIL[v];if(!V||vPulling||!vOpen(k,v)||k.coins<PULL_COST)return;
+  k.cc=k.cc||{};const own=k.cc[v]=k.cc[v]||[];
+  const pool=V.ch.filter(c=>own.indexOf(c[0])<0);if(!pool.length)return;
+  const c=pool[Math.floor(Math.random()*pool.length)];
+  vPulling=true;k.coins-=PULL_COST;own.push(c[0]);save();render();
+  sfx('hatch');ovRaw('<h2>🎲 누가 나올까...?</h2><div class="vq">❓</div>');
+  setTimeout(()=>{
+    vPulling=false;sfx('evo');confetti();
+    ovRaw(`<h2>🎉 새 친구!</h2><div class="vbig">${vImg(c)}</div><div class="chb">${esc(c[1])}</div><div class="small">${esc(V.n)} · ${own.length}/${V.ch.length}</div><p><button class="go" data-act="vback" data-v="${v}">${V.e} ${esc(V.n)}로 돌아가기</button></p>`);
+  },1000);
 }
 function closeOv(){document.getElementById('ov').classList.remove('show')}
 let tt;function toast(m,ms){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),ms||1400)}
@@ -1824,7 +1843,7 @@ async function pullPhotos(){
   return got;
 }
 /* ---- 아이 기록(코인·포켓몬·할 일 체크 등) 기기 간 동기화: 아이별로 "나중에 바뀐 쪽"이 이겨요 ---- */
-const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev','deco','out','bw','bl','bday','bn','freeEgg','tix','fday','fn','stolen','rday','rn','gf','wp','dg','sdoor'];
+const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev','deco','out','bw','bl','bday','bn','freeEgg','tix','fday','fn','stolen','rday','rn','gf','wp','dg','sdoor','vil','cc'];
 const progOf=k=>{const o={};PF.forEach(f=>{if(k[f]!==undefined)o[f]=k[f]});return o};
 function sweepTodo(){                                       // 오늘이 아닌 날 체크된 할 일은 지워요
   let n=0;Object.keys(S.todoDone).forEach(x=>{const v=S.todoDone[x];if(x.indexOf('__ck|')!==0&&typeof v==='string'&&v!==today()){delete S.todoDone[x];n++}});return n}
@@ -2896,9 +2915,10 @@ document.addEventListener('click',async e=>{
   }
   else if(t.dataset.act==='vback'){const cur=outOf(k);k.out=cur.filter((_,j)=>j!==+t.dataset.j);toast('🏠 돌아왔어요!')}
   else if(t.dataset.buy){const d=SHOP.find(x=>x.id===t.dataset.buy);if(d&&(k.deco||[]).indexOf(d.id)<0&&k.coins>=d.p){k.coins-=d.p;k.deco.push(d.id);sfx('hatch');toast(d.e+' '+d.n+' 샀어요! 마을에 놓였어요')}}
-  else if(t.dataset.act==='sdoor'){sdoorTap(k);return}
-  else if(t.dataset.act==='sdooropen'){if(!k.sdoor&&k.coins>=SDOOR_COST){k.coins-=SDOOR_COST;k.sdoor=1;sfx('evo');confetti();save();render();ovRaw(chiVillage())}}
-  else if(t.dataset.chi){const c=CHI[t.dataset.chi],b=document.getElementById('chib');if(c&&b){b.textContent=c.n+': "'+c.say[Math.floor(Math.random()*c.say.length)]+'"';sfx('coin')}return}
+  else if(t.dataset.act==='vdoor'){vdoorTap(k,t.dataset.v);return}
+  else if(t.dataset.act==='vopen'){const v=t.dataset.v;if(VIL[v]&&!vOpen(k,v)&&k.coins>=SDOOR_COST){k.coins-=SDOOR_COST;k.vil[v]=1;sfx('evo');confetti();save();render();ovRaw(vilView(k,v))}}
+  else if(t.dataset.act==='vpull'){vilPull(k,t.dataset.v);return}
+  else if(t.dataset.act==='vback'){if(VIL[t.dataset.v]&&vOpen(k,t.dataset.v))ovRaw(vilView(k,t.dataset.v));return}
   else if(t.dataset.act==='evo'&&!busy){
     const p=leadOf(k);if(!p||p.final||k.coins<S.evoCost)return;
     busy=true;t.disabled=true;t.textContent='진화 중...';
