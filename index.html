@@ -333,6 +333,20 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 #ov.show{display:grid}
 #ov .box{background:#fff;border-radius:24px;padding:28px;text-align:center;max-width:90vw;max-height:92vh;overflow:auto}
 #ov img.big{width:240px;height:240px;object-fit:contain;animation:pop .6s}
+/* 진화 연출: 빛나며 모습이 바뀌어요 */
+.evst{position:relative;width:340px;max-width:78vw;height:340px;border-radius:20px;background:#1b1240;background:radial-gradient(circle,#4a3a8a,#120a2a);overflow:hidden;margin:0 auto}
+.evray{position:absolute;left:50%;top:50%;width:560px;height:560px;margin:-280px 0 0 -280px;opacity:0;background:repeating-conic-gradient(rgba(255,255,255,.55) 0 8deg,rgba(255,255,255,0) 8deg 24deg);-webkit-animation:evspin 4s linear infinite;animation:evspin 4s linear infinite}
+.evray.on{opacity:.55;transition:opacity .8s}
+@keyframes evspin{to{transform:rotate(360deg)}}
+.evimg{position:absolute;left:50%;top:50%;width:230px;height:230px;margin:-115px 0 0 -115px;object-fit:contain}
+.evimg.evw{-webkit-filter:brightness(0) invert(1) drop-shadow(0 0 14px #fff);filter:brightness(0) invert(1) drop-shadow(0 0 14px #fff);-webkit-animation:evwob .28s ease-in-out infinite alternate;animation:evwob .28s ease-in-out infinite alternate}
+.evimg.evg{-webkit-animation:evgrow .9s ease-in-out forwards;animation:evgrow .9s ease-in-out forwards}
+@keyframes evwob{from{transform:scale(.96) rotate(-3deg)}to{transform:scale(1.1) rotate(3deg)}}
+@keyframes evgrow{from{transform:scale(1)}to{transform:scale(1.35)}}
+.evfl{position:absolute;left:0;top:0;right:0;bottom:0;background:#fff;opacity:0;pointer-events:none}
+.evfl.go{-webkit-animation:evfl .9s ease-out;animation:evfl .9s ease-out}
+@keyframes evfl{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+.evtx{margin-top:12px;font-size:20px;font-weight:700;min-height:56px}
 @keyframes pop{from{transform:scale(0) rotate(-20deg)}to{transform:scale(1)}}
 #toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#333;color:#fff;padding:12px 22px;border-radius:99px;font-size:22px;opacity:0;transition:.3s;pointer-events:none;z-index:30;max-width:90vw;text-align:center}
 #toast.show{opacity:1}
@@ -803,7 +817,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261124b';
+const BUILD='20261124c';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1135,6 +1149,18 @@ const lines=v=>(Array.isArray(v)?v:String(v||'').split('\n')).map(s=>String(s).t
 
 /* ---------- 화면 ---------- */
 function overlay(html){document.getElementById('ovbox').innerHTML=html+'<p><button style="background:#eee" onclick="document.getElementById(\'ov\').classList.remove(\'show\')">확인!</button></p>';document.getElementById('ov').classList.add('show')}
+function evoAnim(oldName,oldId,newName,newId){        // 진화 연출: 흔들 → 하얗게 빛남 → 커지며 모습이 바뀜 → 번쩍! → 새 모습
+  try{const pre=new Image();pre.src=ART(newId)}catch(e){}
+  const ob=document.getElementById('ovbox'),T=[];
+  ob.innerHTML=`<div class="evst" id="evst"><div class="evray" id="evray"></div><img class="evimg" id="evimg" src="${ART(oldId)}"><div class="evfl" id="evfl"></div></div><div class="evtx" id="evtx">어...? ${esc(oldName)}의 모습이...?!</div>`;
+  document.getElementById('ov').classList.add('show');
+  const g=id=>document.getElementById(id),at=(ms,f)=>T.push(setTimeout(()=>{try{f()}catch(e){}},ms));
+  at(1300,()=>{g('evimg').className='evimg evw';g('evray').className='evray on';g('evtx').textContent='✨ 몸이 빛나기 시작했어요!';sfx('hatch')});
+  at(3000,()=>{g('evimg').className='evimg evw evg';g('evtx').textContent='✨✨ 모습이 변하고 있어요...!';sfx('coin')});
+  at(4000,()=>{g('evimg').src=ART(newId);g('evfl').className='evfl go'});
+  at(4350,()=>{g('evimg').className='evimg';g('evimg').style.animation='pop .7s';g('evtx').innerHTML='🎉 축하해요!<br>'+esc(oldName)+' → <span style="color:#e53935">'+esc(newName)+'</span> 진화!';sfx('evo');confetti()});
+  at(5200,()=>{ob.insertAdjacentHTML('beforeend','<p><button style="background:#eee" onclick="closeOv()">확인!</button></p>')});
+}
 function closeOv(){document.getElementById('ov').classList.remove('show')}
 let tt;function toast(m,ms){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),ms||1400)}
 function clockHtml(){const d=new Date();return `${pad(d.getHours())}:${pad(d.getMinutes())}`}
@@ -2830,8 +2856,8 @@ document.addEventListener('click',async e=>{
     const p=leadOf(k);if(!p||p.final||k.coins<S.evoCost)return;
     busy=true;t.disabled=true;t.textContent='진화 중...';
     try{const n=await evolve(p);
-      if(n){const old=p.name;k.coins-=S.evoCost;Object.assign(p,n);p.bst=0;p.ty=null;ensureBst(p).then(()=>{save();render()});k.dex[p.id]=1;k.evos++;
-        sfx('evo');confetti();overlay(`<h2>✨ ${esc(old)} → ${esc(p.name)} 진화!</h2><img class="big" src="${ART(p.id)}">`)}
+      if(n){const old=p.name,oldId=p.id;k.coins-=S.evoCost;Object.assign(p,n);p.bst=0;p.ty=null;ensureBst(p).then(()=>{save();render()});k.dex[p.id]=1;k.evos++;
+        evoAnim(old,oldId,p.name,p.id)}
       else{p.final=true;toast('더 이상 진화하지 않아요 (코인은 그대로예요)')}}
     catch(err){overlay('<h2>인터넷 연결을 확인해주세요 😢</h2>')}
     busy=false;
