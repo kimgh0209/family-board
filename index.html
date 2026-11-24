@@ -82,8 +82,8 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 .mstage{position:relative;height:178px;margin:8px 0;overflow:hidden;border-radius:14px;background:linear-gradient(#cdeafc,#eaf7ff 60%)}
 .mroad{position:absolute;left:0;right:0;bottom:0;height:46px;background:#8bc34a;border-top:4px solid #689f38}
 .mroad:after{content:'';position:absolute;left:0;right:0;top:18px;border-top:4px dashed #fff}
-.mschool{position:absolute;right:2%;bottom:30px;font-size:64px;line-height:1}
-.mkid,.mchase{position:absolute;bottom:20px;transition:left 1s linear;text-align:center}
+.mschool{position:absolute;font-size:56px;line-height:1}
+.mkid,.mchase{position:absolute;bottom:20px;-webkit-transition:left 1s linear,bottom 1s linear;transition:left 1s linear,bottom 1s linear;text-align:center}
 .mkid{width:64px;margin-left:-8px;z-index:3;animation:bob 0.5s infinite ease-in-out}
 .mkid.arrive{animation:none}
 .mkid.caught{animation:shake .3s infinite}
@@ -92,7 +92,12 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 .mchase{z-index:2;width:76px;margin-left:-8px}
 .mchase img{width:70px;height:70px;object-fit:contain;display:block;animation:bob .4s infinite ease-in-out}
 /* 로켓단이 포켓몬을 끌고 가요 */
-.mrk{position:absolute;bottom:16px;z-index:2;white-space:nowrap;-webkit-transition:left 1s linear;transition:left 1s linear}
+.mrk{position:absolute;bottom:16px;z-index:2;white-space:nowrap;-webkit-transition:left 1s linear,bottom 1s linear;transition:left 1s linear,bottom 1s linear}
+.mpath{position:absolute;left:0;top:0;width:100%;height:100%}
+.mdc{position:absolute;line-height:1;opacity:.9}
+.mroute{position:absolute;right:8px;top:6px;background:rgba(255,255,255,.85);border-radius:10px;padding:1px 9px;font-size:12px;font-weight:800;color:#5d4037;z-index:4}
+.mschool{z-index:1}
+@media(max-width:640px){.mrk{-webkit-transform:scale(.72);transform:scale(.72);-webkit-transform-origin:left bottom;transform-origin:left bottom}}
 .mrkrow{display:-webkit-flex;display:flex;-webkit-align-items:flex-end;align-items:flex-end;position:relative}
 .mrkmon{position:relative;width:66px;margin-right:6px;-webkit-animation:mfbob .8s infinite ease-in-out;animation:mfbob .8s infinite ease-in-out}
 .mrkmon img{width:66px;height:66px;object-fit:contain;display:block;position:relative;z-index:1}
@@ -889,7 +894,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261124j';
+const BUILD='20261124k';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1010,12 +1015,12 @@ function bgmNote(f,t,dur,vol){
 }
 function bgmTick(){
   try{
-    const on=bgmShould(new Date());
+    const raid=!!rockActive(),on=bgmShould(new Date())||raid;
     if(!bgmHint){bgmHint=document.createElement('div');bgmHint.id='bgmhint';
       bgmHint.style.cssText='position:fixed;right:12px;bottom:12px;z-index:30;background:#fff8e1;border:2px solid #ffb300;border-radius:20px;padding:8px 14px;font-size:14px;font-weight:700;display:none';
       bgmHint.textContent='🎵 화면을 한 번 눌러 주세요 (음악 켜짐)';document.body.appendChild(bgmHint)}
     bgmHint.style.display=(on&&!audioOk)?'block':'none';
-    if(!on||!audioOk||!AC){bgmNext=0;return}
+    if(!on||raid||!audioOk||!AC){bgmNext=0;return}                  // 습격 중에는 로켓단 음악이 나와서 아침 음악은 쉬어요
     if(AC.state==='suspended')AC.resume();
     if(AC.state!=='running')return;
     const vol=Math.max(.02,Math.min(.5,+bgmCfg().vol||.1));
@@ -1592,15 +1597,41 @@ function mornMon(r){                                       // 로켓단에게 �
   const m=k&&(k.mons[k.sel]||k.mons[0]);
   return m?{id:m.id,n:m.name}:{id:25,n:'피카츄'};
 }
-function mornCalc(){                                     // 화면에 그릴 값 (시간·단계 → 위치)
+/* 매일 다른 구불구불한 길: 날짜로 길 모양·풍경이 정해져요 (길 위를 따라 서비와 로켓단이 움직여요) */
+const MSTAGE_H=250;
+const MROUTE_TH=[
+  {n:'🌲 숲속 길',bg:'#cfeedd,#a9d8ab',road:'#a1887f',deco:['🌲','🌳','🌲','🍄','🌳']},
+  {n:'🌷 꽃밭 길',bg:'#cdeafc,#dff3c8',road:'#c9ab7c',deco:['🌷','🌼','🦋','☁️','🌸']},
+  {n:'⛰ 산길',bg:'#d6e4f5,#cfd8c4',road:'#9e9e9e',deco:['⛰','🏔','☁️','🌲','⛰']},
+  {n:'🏖 바닷가 길',bg:'#bfe9ff,#fbeec0',road:'#e0c88a',deco:['🌴','🌊','🐚','⛵','🌴']}
+];
+const mHash=x=>String(x).split('').reduce((a,c)=>(a*31+c.charCodeAt(0))%1000003,7);
+function mornRoute(seed){
+  const rd=i=>((Math.sin(seed*12.9898+i*78.233)*43758.5453)%1+1)%1;
+  const type=seed%5,th=MROUTE_TH[Math.floor(rd(9)*4)%4],ph=rd(1)*6.283,ph2=rd(2)*6.283,cc=.35+rd(3)*.3,fq=1+rd(4)*.8,T=6.283;
+  const f=t=>{let v;
+    if(type===0)v=.5+.38*Math.sin(T*fq*t+ph);                                            // 물결 길
+    else if(type===1)v=.5+.30*Math.sin(T*1.5*t+ph)+.12*Math.sin(T*3*t+ph2);              // 이리저리 굽은 길
+    else if(type===2)v=.82-.62*Math.exp(-Math.pow((t-cc)/.2,2))+.08*Math.sin(T*3*t+ph);   // 언덕을 넘는 길
+    else if(type===3)v=.2+.62*Math.exp(-Math.pow((t-cc)/.2,2))+.08*Math.sin(T*3*t+ph);    // 골짜기로 내려가는 길
+    else v=.5+.4*(2/Math.PI)*Math.asin(Math.sin(T*2*t+ph));                              // 지그재그 길
+    return Math.max(.04,Math.min(.96,v))};
+  const at=t=>{t=Math.max(0,Math.min(1,t));const y=+(135+f(t)*95).toFixed(1);return {x:+(6+86*t).toFixed(2),y,b:Math.round(MSTAGE_H-y-4)}};
+  const pts=[];for(let i=0;i<=60;i++){const q=at(i/60);pts.push(q.x+','+q.y)}
+  const deco=th.deco.map((e,i)=>({e,x:+(3+i*19+rd(20+i)*8).toFixed(1),y:Math.round(6+rd(30+i)*48),s:Math.round(28+rd(40+i)*18)}));
+  return {at,th,type,pts:pts.join(' '),deco};
+}
+const mornSeed=r=>(r&&r.seed)||mHash((r&&r.day)||today());
+function mornCalc(){                                     // 화면에 그릴 값 (시간·단계 → 길 위의 위치)
   const c=morningCfg(),r=S.mrun,st=mornSteps(),n=st.length,dn=(r.done||[]).filter(i=>i<n).length,lv=leaveAt(),now=r.fin||Date.now();
   const ft=Math.max(0,Math.min(1,(now-r.start)/Math.max(lv-r.start,60000))),sf=n?dn/n:1;
-  const rx=Math.round(50+8*ft);                                // 로켓단은 시간이 갈수록 조금씩 멀어져요
-  const kx=r.fin?Math.max(4,rx-15):Math.round(4+(rx-24-4)*sf);   // 단계를 끝낼수록 서비가 가까워져요 → 다 하면 구출!
+  const R=mornRoute(mornSeed(r)),tr=0.5+0.08*ft;                // 로켓단은 시간이 갈수록 조금씩 멀어져요
+  const tk=r.fin?Math.max(0,tr-0.15):0.02+(tr-0.24-0.02)*sf;      // 단계를 끝낼수록 서비가 가까워져요 → 다 하면 구출!
+  const K=R.at(tk),X=R.at(tr);
   const behind=!r.fin&&ft>.2&&ft>sf+.25,rem=lv-Date.now(),pn=mornMon(r).n;
   const bub=r.fin?(r.ok?'🎉 구출 성공! 이제 학교 가자!':'😅 늦었지만 구했어요!'):rem<=0?'⏰ 출발 시간이에요!':behind?'😰 서둘러요! 로켓단이 멀어져요!':dn===0?'🚀 로켓단이 '+pn+'를 데려갔어!':'💪 조금만 더! 가까워졌어요!';
   const timer=r.fin?(r.ok?`${Math.max(1,Math.round((lv-r.fin)/60000))}분 일찍 끝!`:'준비 끝!'):rem>0?(rem>=600000?`${Math.ceil(rem/60000)}분 남았어요`:`${Math.floor(rem/60000)}분 ${pad(Math.floor(rem%60000/1000))}초`):'⏰ 지금 출발해요!';
-  return {c,n,dn,kx,rx,behind,bub,timer,free:!!r.fin,over:rem<=0&&!r.fin};
+  return {c,n,dn,kx:K.x,ky:K.b,rx:X.x,ry:X.b,R,behind,bub,timer,free:!!r.fin,over:rem<=0&&!r.fin};
 }
 function mornBanner(){
   if(mornState()!=='idle')return '';
@@ -1619,12 +1650,15 @@ function morningView(){
   const face=k.face&&IMG.mem[k.face]?`<img class="mface" src="${IMG.mem[k.face]}">`:`<img class="mface" src="${TRAINER(k.trainer)}">`;
   return `<div class="morn" id="morn">
     <div class="mhead"><div class="mt1">🏫 ${esc(c.place)}까지</div><div class="mt2 ${m.over?'over':''}" id="mtimer">${m.timer}</div><div class="mt3">출발 ${esc(c.leave)} · 🚀 로켓단에게서 ${esc(pk.n)}를 구해요!</div></div>
-    <div class="mstage"><div class="mroad"></div><div class="mschool">🏫</div>
-      <div class="mrk ${done?'gone':''}${m.behind?' worry':''}" id="mfam" style="left:${m.rx}%"><div class="mfamb" id="mfamb">${done?'':'🆘 살려줘~!'}</div>
+    <div class="mstage" style="height:${MSTAGE_H}px;background:linear-gradient(${m.R.th.bg})">${m.R.deco.map(d=>`<div class="mdc" style="left:${d.x}%;top:${d.y}px;font-size:${d.s}px">${d.e}</div>`).join('')}
+      <svg class="mpath" viewBox="0 0 100 ${MSTAGE_H}" preserveAspectRatio="none"><polyline points="${m.R.pts}" fill="none" stroke="${m.R.th.road}" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><polyline points="${m.R.pts}" fill="none" stroke="#ffffff" stroke-opacity=".75" stroke-width="3" stroke-dasharray="12 10" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>
+      <div class="mroute">오늘은 ${m.R.th.n}!</div>
+      <div class="mschool" style="left:${m.R.at(1).x-3}%;bottom:${m.R.at(1).b+2}px">🏫</div>
+      <div class="mrk ${done?'gone':''}${m.behind?' worry':''}" id="mfam" style="left:${m.rx}%;bottom:${m.ry}px"><div class="mfamb" id="mfamb">${done?'':'🆘 살려줘~!'}</div>
         <div class="mrkrow"><div class="mrkmon"><img src="${ART(pk.id)}" alt=""><span class="mnet"></span></div><span class="mrope"></span>
           <div class="mrkr">${RK_JESSIE.replace('class="rkchar sp"','class="rkchar sp rj"')}${RK_JAMES.replace('class="rkchar sp"','class="rkchar sp rj"')}<img class="rkcat rm" src="${ART(52)}" alt="나옹"></div></div>
         ${done?'<span class="mheart">❤️</span><span class="mheart h2">💖</span><span class="mbye">로켓단 바이바이~ ✨</span>':''}</div>
-      <div class="mkid ${done?'arrive':''}" id="mkid" style="left:${m.kx}%">${face}<span class="mbody">${done?'🙌':'🦸'}</span></div>
+      <div class="mkid ${done?'arrive':''}" id="mkid" style="left:${m.kx}%;bottom:${m.ky}px">${face}<span class="mbody">${done?'🙌':'🦸'}</span></div>
       <div class="mbub" id="mbub" style="left:${Math.max(6,Math.min(70,m.kx-6))}%">${m.bub}</div></div>
     ${done?`<div class="mres">${r.ok?`🎉 ${esc(k.name)} 영웅이 ${esc(pk.n)}를 구했어요! 로켓단은 도망갔어요. 이제 ${esc(c.place)}에 가요${morningChoreTxt()}`:`😊 늦었지만 ${esc(pk.n)}를 구했어요! 내일은 더 빨리 출동해요`}</div>`:''}
     <div class="msteps">${st.map((t,i)=>{const d=(r.done||[]).indexOf(i)>=0;return `<button class="mstep ${d?'done':''}" data-act="mstep" data-i="${i}" ${done?'disabled':''}><span class="mn">${d?'✓':i+1}</span><b>${esc(t)}</b></button>`}).join('')}</div>
@@ -1638,8 +1672,8 @@ function mornTick(){
   if(st!=='run')return;
   const v=mornCalc(),set=(id,f)=>{const e=document.getElementById(id);if(e)f(e)};
   set('mtimer',e=>{e.textContent=v.timer;e.className='mt2'+(v.over?' over':'')});
-  set('mkid',e=>{e.style.left=v.kx+'%'});
-  set('mfam',e=>{e.className='mrk'+(v.behind?' worry':'');e.style.left=v.rx+'%'});
+  set('mkid',e=>{e.style.left=v.kx+'%';e.style.bottom=v.ky+'px'});
+  set('mfam',e=>{e.className='mrk'+(v.behind?' worry':'');e.style.left=v.rx+'%';e.style.bottom=v.ry+'px'});
   set('mbub',e=>{e.textContent=v.bub;e.style.left=Math.max(6,Math.min(70,v.kx-6))+'%'});
 }
 setInterval(mornTick,1000);
@@ -2384,16 +2418,62 @@ function rockTick(){
       render();return;
     }
     // 3) 습격 중 화면 갱신
-    const a=rockActive();
+    const a=rockActive(),musicOn=rkmTick(a);                      // 습격 중이면 긴박한 음악 (어느 탭에 있어도)
     if(a&&tab==='home'){
       const e=document.getElementById('rktime');
       if(e){const rem=Math.max(0,a.dl-now);e.textContent=pad(Math.floor(rem/60000))+':'+pad(Math.floor(rem%60000/1000))}
       else if(!document.getElementById('rock'))render();
-      if(now-(rockTick.sir||0)>7000){rockTick.sir=now;rockSiren()}
+      if(!musicOn&&now-(rockTick.sir||0)>7000){rockTick.sir=now;rockSiren()}
     }else if(!a&&document.getElementById('rock')&&tab==='home')render();
   }catch(e){}
 }
 setInterval(rockTick,1000);
+/* ---------- 🚨 로켓단 습격 음악: 긴박한 곡이 나오고, 시간이 갈수록 템포가 빨라지고 키가 올라가요 (파일 없이 코드로 만들어요) ---------- */
+let rkm=null,rkmNb=null;
+const rkmBpm=(p,rem)=>Math.round(112+68*p+(rem<60000?8:0));        // 112 → 180 (마지막 1분은 +8)
+const RKM_LEAD=[                                                     // 4마디 돌아가며: 16칸(16분음표)마다 MIDI 음 또는 null (A단조 느낌)
+  [76,null,76,77,76,null,74,null,72,null,71,null,76,null,null,null],
+  [76,null,76,77,76,null,79,null,77,null,76,null,74,null,null,null],
+  [81,null,80,81,null,79,null,77,76,null,75,76,null,null,74,null],
+  [72,null,76,null,79,null,76,null,75,null,76,77,76,null,null,null]];
+const RKM_BASS=[0,0,3,0,0,6,5,3];                                    // 8분음표 8개짜리 낮은 소리 (6 = 불안한 음)
+function rkmStep(m,t,n,bar,p,ko,vol,sd){
+  const out=m.g;
+  const tone=(type,f,dur,v,at)=>{const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(.0001,at);g.gain.linearRampToValueAtTime(v,at+.008);g.gain.exponentialRampToValueAtTime(.0001,at+dur);o.connect(g);g.connect(out);o.start(at);o.stop(at+dur+.03)};
+  if(n%4===0||(p>.66&&n%4===2)){                                     // 쿵! (뒤로 갈수록 두 배로 빨리 쿵쿵)
+    const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(42,t+.12);
+    g.gain.setValueAtTime(vol*.9,t);g.gain.exponentialRampToValueAtTime(.0001,t+.16);o.connect(g);g.connect(out);o.start(t);o.stop(t+.18);
+  }
+  if(n%2===0||p>.5){                                                 // 치치치 (시간이 갈수록 촘촘하게)
+    rkmNb=rkmNb||(()=>{const b=AC.createBuffer(1,Math.floor(AC.sampleRate*.06),AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b})();
+    const sr=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();sr.buffer=rkmNb;f.type='highpass';f.frequency.value=6500;
+    g.gain.setValueAtTime(vol*(n%4===2?.34:.2),t);g.gain.exponentialRampToValueAtTime(.0001,t+.05);sr.connect(f);f.connect(g);g.connect(out);sr.start(t);
+  }
+  if(n%2===0)tone('sawtooth',mf(33+ko+RKM_BASS[(n/2)|0]),sd*1.7,vol*.55,t);       // 낮은 소리
+  const lead=RKM_LEAD[bar%4][n];if(lead!==null&&lead!==undefined)tone('square',mf(lead+ko),sd*1.6,vol*.28,t);   // 날카로운 멜로디
+  if(p>.7&&n%8===0)tone('square',n%16===0?mf(81+ko):mf(77+ko),sd*7,vol*.12,t);     // 막바지: 삐뽀 경보음
+}
+function rkmStop(){
+  if(!rkm)return;
+  try{const g=rkm.g,t=AC.currentTime;g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(g.gain.value,t);g.gain.linearRampToValueAtTime(0,t+.25);setTimeout(()=>{try{g.disconnect()}catch(e){}},400)}catch(e){}
+  rkm=null;
+}
+function rkmTick(a){                                                 // a = 지금 진행 중인 습격 (없으면 null). 반환: 음악이 나오고 있으면 true
+  try{
+    if(!a||S.mute||!audioOk||!AC){rkmStop();return false}
+    if(AC.state==='suspended')AC.resume();
+    if(AC.state!=='running')return false;
+    if(!rkm){const g=AC.createGain();g.gain.value=1;g.connect(AC.destination);rkm={g,next:AC.currentTime+.15,i:0}}
+    if(rkm.next<AC.currentTime)rkm.next=AC.currentTime+.05;
+    const vol=Math.max(.06,Math.min(.5,(+bgmCfg().vol||.1)*2.2));
+    while(rkm.next<AC.currentTime+2){                                // 2초 앞까지 예약 (템포는 그때그때 시간에 맞춰 정해져요)
+      const at=Date.now()+(rkm.next-AC.currentTime)*1000,p=Math.max(0,Math.min(1,(at-a.start)/Math.max(1,a.dl-a.start)));
+      const sd=60/rkmBpm(p,a.dl-at)/4,n=rkm.i%16,bar=Math.floor(rkm.i/16),ko=p<.4?0:p<.75?2:4;
+      rkmStep(rkm,rkm.next,n,bar,p,ko,vol,sd);rkm.next+=sd;rkm.i++;
+    }
+    return true;
+  }catch(e){return false}
+}
 function rockSiren(){                                      // 삐뽀삐뽀 소리
   try{
     if(S.mute||!AC)return;
