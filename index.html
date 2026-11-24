@@ -91,6 +91,23 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 .mbody{display:block;font-size:30px;line-height:1;margin-top:-6px}
 .mchase{z-index:2;width:76px;margin-left:-8px}
 .mchase img{width:70px;height:70px;object-fit:contain;display:block;animation:bob .4s infinite ease-in-out}
+/* 로켓단이 포켓몬을 끌고 가요 */
+.mrk{position:absolute;bottom:16px;z-index:2;white-space:nowrap;-webkit-transition:left 1s linear;transition:left 1s linear}
+.mrkrow{display:-webkit-flex;display:flex;-webkit-align-items:flex-end;align-items:flex-end;position:relative}
+.mrkmon{position:relative;width:66px;margin-right:6px;-webkit-animation:mfbob .8s infinite ease-in-out;animation:mfbob .8s infinite ease-in-out}
+.mrkmon img{width:66px;height:66px;object-fit:contain;display:block;position:relative;z-index:1}
+.mnet{position:absolute;left:-6px;right:-6px;top:-6px;bottom:-4px;z-index:2;border:2px solid rgba(110,70,160,.85);border-radius:14px;background:repeating-linear-gradient(45deg,rgba(110,70,160,.30) 0 3px,transparent 3px 9px),repeating-linear-gradient(-45deg,rgba(110,70,160,.30) 0 3px,transparent 3px 9px);-webkit-transition:opacity .6s;transition:opacity .6s}
+.mrope{width:16px;height:0;border-top:3px dashed #5d4037;margin:0 -2px 26px 0;-webkit-transition:opacity .6s;transition:opacity .6s}
+.mrkr{display:-webkit-flex;display:flex;-webkit-align-items:flex-end;align-items:flex-end}
+.mrkr .rkchar{width:60px;max-width:none}
+.mrkr .rkcat{width:50px;max-width:none}
+.mrk.worry .mrkr{-webkit-animation:shake .35s infinite;animation:shake .35s infinite}
+.mrk .mfamb{left:30px}
+.mrk.gone .mnet,.mrk.gone .mrope{opacity:0}
+.mrk.gone .mrkmon{-webkit-animation:mfjump .45s infinite ease-in-out;animation:mfjump .45s infinite ease-in-out}
+.mrk.gone .mrkr{-webkit-animation:mrkfly 1.6s ease-in forwards;animation:mrkfly 1.6s ease-in forwards}
+@keyframes mrkfly{0%{transform:none;opacity:1}100%{transform:translate(170px,-160px) rotate(35deg);opacity:0}}
+.mbye{position:absolute;left:62px;top:-34px;font-size:13px;font-weight:800;color:#c62828;background:#fff;border-radius:10px;padding:1px 7px}
 .mfam{position:absolute;bottom:18px;left:62%;transform:translateX(-50%);text-align:center;z-index:2}
 .mfrow{display:flex;justify-content:center;position:relative;z-index:1}
 .mfp{width:52px;margin:0 -5px;animation:mfbob .8s infinite ease-in-out}
@@ -872,7 +889,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261124i';
+const BUILD='20261124j';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1224,9 +1241,7 @@ const VIL={
 };
 const DOORS=[['chii',3,30]];   // 문 종류 · 위치(왼쪽 %, 아래 px)
 const isDad=k=>!!k.adult&&S.parents.indexOf(k)===1;                 // 아빠(두 번째 어른): 모든 마을에 코인 없이 들어가요
-const DAD_PREVIEW_UNTIL=new Date(2026,10,24,18,0).getTime();      // 임시: 이 시각(오늘 오후 6시)까지 아빠 마을에서는 모든 캐릭터가 보여요. 지나면 저절로 원래대로 (아빠의 실제 기록은 건드리지 않아요)
-const vPreview=(k,now)=>isDad(k)&&(now===undefined?Date.now():now)<DAD_PREVIEW_UNTIL;
-const vOwn=(k,v,now)=>vPreview(k,now)?VIL[v].ch.map(c=>c[0]):((k.cc&&k.cc[v])||[]);
+const vOwn=(k,v)=>(k.cc&&k.cc[v])||[];
 /* 캐릭터 그림 배경 지우기: 그림 가장자리가 한 가지 색(흰색·단색 등)이면 바깥에서부터 지워서 캐릭터만 남겨요. 안 되면 그대로 보여줘요 */
 const VCUT={};
 function vCut(im){
@@ -1325,7 +1340,6 @@ function vdoorTap(k,v){
 let vPulling=false;
 function vilPull(k,v){
   const V=VIL[v];if(!V||vPulling||!vOpen(k,v)||k.coins<PULL_COST)return;
-  if(vPreview(k))return;
   k.cc=k.cc||{};const own=k.cc[v]=k.cc[v]||[];
   const pool=V.ch.filter(c=>own.indexOf(c[0])<0);if(!pool.length)return;
   const c=pool[Math.floor(Math.random()*pool.length)];
@@ -1572,19 +1586,26 @@ function mornState(){                                    // off · idle(시작 �
   if(wd>=1&&wd<=5&&now>=lv-3*3600000&&now<lv)return 'idle';       // 월~금, 출발 3시간 전부터 "시작" 버튼이 보여요
   return 'off';
 }
+function mornMon(r){                                       // 로켓단에게 잡혀간 포켓몬 (서비 마을에 있는 친구 중 한 마리)
+  const k=mornKid(),id=r&&r.pm;
+  if(id)return {id,n:r.pn||'포켓몬'};
+  const m=k&&(k.mons[k.sel]||k.mons[0]);
+  return m?{id:m.id,n:m.name}:{id:25,n:'피카츄'};
+}
 function mornCalc(){                                     // 화면에 그릴 값 (시간·단계 → 위치)
   const c=morningCfg(),r=S.mrun,st=mornSteps(),n=st.length,dn=(r.done||[]).filter(i=>i<n).length,lv=leaveAt(),now=r.fin||Date.now();
   const ft=Math.max(0,Math.min(1,(now-r.start)/Math.max(lv-r.start,60000))),sf=n?dn/n:1;
-  const kx=r.fin?84:Math.round(4+24*sf);                      // 단계를 끝낼수록 위험에 빠진 가족(60%)에게 가까워져요 → 구하면 학교로!
-  const behind=!r.fin&&ft>.2&&ft>sf+.25,rem=lv-Date.now();
-  const bub=r.fin?(r.ok?'🎉 구출 성공! 이제 학교 가자!':'😅 늦었지만 구했어요!'):rem<=0?'⏰ 출발 시간이에요!':behind?'😰 서둘러요! 가족이 기다려요':dn===0?'🦸 출동 준비!':'💪 힘내라 영웅!';
+  const rx=Math.round(50+8*ft);                                // 로켓단은 시간이 갈수록 조금씩 멀어져요
+  const kx=r.fin?Math.max(4,rx-15):Math.round(4+(rx-24-4)*sf);   // 단계를 끝낼수록 서비가 가까워져요 → 다 하면 구출!
+  const behind=!r.fin&&ft>.2&&ft>sf+.25,rem=lv-Date.now(),pn=mornMon(r).n;
+  const bub=r.fin?(r.ok?'🎉 구출 성공! 이제 학교 가자!':'😅 늦었지만 구했어요!'):rem<=0?'⏰ 출발 시간이에요!':behind?'😰 서둘러요! 로켓단이 멀어져요!':dn===0?'🚀 로켓단이 '+pn+'를 데려갔어!':'💪 조금만 더! 가까워졌어요!';
   const timer=r.fin?(r.ok?`${Math.max(1,Math.round((lv-r.fin)/60000))}분 일찍 끝!`:'준비 끝!'):rem>0?(rem>=600000?`${Math.ceil(rem/60000)}분 남았어요`:`${Math.floor(rem/60000)}분 ${pad(Math.floor(rem%60000/1000))}초`):'⏰ 지금 출발해요!';
-  return {c,n,dn,kx,px:kx-10,behind,bub,timer,free:!!r.fin,over:rem<=0&&!r.fin};
+  return {c,n,dn,kx,rx,behind,bub,timer,free:!!r.fin,over:rem<=0&&!r.fin};
 }
 function mornBanner(){
   if(mornState()!=='idle')return '';
   const c=morningCfg(),k=mornKid();
-  return `<div class="sec mbanner" id="mbn"><div class="sh" style="--c:#ff8f00;color:#e65100">🦸 ${esc(k.name)} 영웅 출동 준비 · ${esc(c.place)}</div><div class="mbrow"><span>출발 <b>${esc(c.leave)}</b></span><button class="go" data-act="mstart">🏃 준비 시작!</button></div></div>`;
+  return `<div class="sec mbanner" id="mbn"><div class="sh" style="--c:#ff8f00;color:#e65100">🚀 로켓단이 포켓몬을 데려갔어요! ${esc(k.name)} 출동 · ${esc(c.place)}</div><div class="mbrow"><span>출발 <b>${esc(c.leave)}</b></span><button class="go" data-act="mstart">🏃 준비 시작!</button></div></div>`;
 }
 function famCluster(hero){                                  // 구해야 할 가족 (영웅 빼고). 사진이 있으면 얼굴로, 없으면 이모지로
   const names=famNames().filter(n=>n!==hero.name),fam=S.family||{};
@@ -1594,19 +1615,20 @@ function famCluster(hero){                                  // 구해야 할 가
   return people.slice(0,5).map((q,i)=>`<div class="mfp" style="animation-delay:-${(i*0.23).toFixed(2)}s">${q.img?`<img class="mfpf" src="${q.img}">`:`<span class="mfpe">${q.emo}</span>`}<span class="mfpb" style="animation-delay:-${(i*0.31).toFixed(2)}s">🙌</span></div>`).join('');
 }
 function morningView(){
-  const k=mornKid(),r=S.mrun,m=mornCalc(),st=mornSteps(),c=m.c,done=!!r.fin;
+  const k=mornKid(),r=S.mrun,m=mornCalc(),st=mornSteps(),c=m.c,done=!!r.fin,pk=mornMon(r);
   const face=k.face&&IMG.mem[k.face]?`<img class="mface" src="${IMG.mem[k.face]}">`:`<img class="mface" src="${TRAINER(k.trainer)}">`;
-  const ch=k.mons.length?(k.mons[k.sel]||k.mons[0]).id:25;
   return `<div class="morn" id="morn">
-    <div class="mhead"><div class="mt1">🏫 ${esc(c.place)}까지</div><div class="mt2 ${m.over?'over':''}" id="mtimer">${m.timer}</div><div class="mt3">출발 ${esc(c.leave)} · 🦸 가족을 구하고 가요!</div></div>
+    <div class="mhead"><div class="mt1">🏫 ${esc(c.place)}까지</div><div class="mt2 ${m.over?'over':''}" id="mtimer">${m.timer}</div><div class="mt3">출발 ${esc(c.leave)} · 🚀 로켓단에게서 ${esc(pk.n)}를 구해요!</div></div>
     <div class="mstage"><div class="mroad"></div><div class="mschool">🏫</div>
-      <div class="mfam ${done?'free':''}${m.behind?' worry':''}" id="mfam"><div class="mfamb" id="mfamb">${done?'':'🆘 구해줘요!'}</div><div class="mfrow">${famCluster(k)}</div><span class="mice2"></span><span class="mice">🧊</span>${done?'<span class="mheart">❤️</span><span class="mheart h2">💖</span>':''}</div>
-      <div class="mchase" id="mchase" style="left:${m.px}%"><img src="${ART(ch)}"></div>
+      <div class="mrk ${done?'gone':''}${m.behind?' worry':''}" id="mfam" style="left:${m.rx}%"><div class="mfamb" id="mfamb">${done?'':'🆘 살려줘~!'}</div>
+        <div class="mrkrow"><div class="mrkmon"><img src="${ART(pk.id)}" alt=""><span class="mnet"></span></div><span class="mrope"></span>
+          <div class="mrkr">${RK_JESSIE.replace('class="rkchar sp"','class="rkchar sp rj"')}${RK_JAMES.replace('class="rkchar sp"','class="rkchar sp rj"')}<img class="rkcat rm" src="${ART(52)}" alt="나옹"></div></div>
+        ${done?'<span class="mheart">❤️</span><span class="mheart h2">💖</span><span class="mbye">로켓단 바이바이~ ✨</span>':''}</div>
       <div class="mkid ${done?'arrive':''}" id="mkid" style="left:${m.kx}%">${face}<span class="mbody">${done?'🙌':'🦸'}</span></div>
       <div class="mbub" id="mbub" style="left:${Math.max(6,Math.min(70,m.kx-6))}%">${m.bub}</div></div>
-    ${done?`<div class="mres">${r.ok?`🎉 ${esc(k.name)} 영웅이 가족을 구했어요! 이제 ${esc(c.place)}에 가요${morningChoreTxt()}`:`😊 끝까지 가족을 구했어요! 내일은 더 빨리 출동해요`}</div>`:''}
+    ${done?`<div class="mres">${r.ok?`🎉 ${esc(k.name)} 영웅이 ${esc(pk.n)}를 구했어요! 로켓단은 도망갔어요. 이제 ${esc(c.place)}에 가요${morningChoreTxt()}`:`😊 늦었지만 ${esc(pk.n)}를 구했어요! 내일은 더 빨리 출동해요`}</div>`:''}
     <div class="msteps">${st.map((t,i)=>{const d=(r.done||[]).indexOf(i)>=0;return `<button class="mstep ${d?'done':''}" data-act="mstep" data-i="${i}" ${done?'disabled':''}><span class="mn">${d?'✓':i+1}</span><b>${esc(t)}</b></button>`}).join('')}</div>
-    <div class="acts">${done?'':`<button class="go mfin" data-act="mfin" ${m.dn<m.n?'disabled':''}>🦸 가족 구하기! (${m.dn}/${m.n})</button>`}<button data-act="mreset">${done?'확인 ✔':'↺ 처음부터'}</button></div></div>`;
+    <div class="acts">${done?'':`<button class="go mfin" data-act="mfin" ${m.dn<m.n?'disabled':''}>🦸 포켓몬 구하기! (${m.dn}/${m.n})</button>`}<button data-act="mreset">${done?'확인 ✔':'↺ 처음부터'}</button></div></div>`;
 }
 function morningChoreTxt(){const c=morningCfg();return c.chore?` · 미션 "${esc(c.chore)}" 클리어!`:''}
 function mornTick(){
@@ -1616,16 +1638,15 @@ function mornTick(){
   if(st!=='run')return;
   const v=mornCalc(),set=(id,f)=>{const e=document.getElementById(id);if(e)f(e)};
   set('mtimer',e=>{e.textContent=v.timer;e.className='mt2'+(v.over?' over':'')});
-  set('mchase',e=>{e.style.left=v.px+'%'});
   set('mkid',e=>{e.style.left=v.kx+'%'});
-  set('mfam',e=>{e.className='mfam'+(v.behind?' worry':'')});
+  set('mfam',e=>{e.className='mrk'+(v.behind?' worry':'');e.style.left=v.rx+'%'});
   set('mbub',e=>{e.textContent=v.bub;e.style.left=Math.max(6,Math.min(70,v.kx-6))+'%'});
 }
 setInterval(mornTick,1000);
 function mornAct(a,t){
   const k=mornKid();if(!k)return;
   const r=S.mrun&&S.mrun.day===today()?S.mrun:null;
-  if(a==='mstart'){S.mrun={day:today(),start:Date.now(),done:[],fin:0,ok:false};sfx('coin');toast('🏃 시작! '+morningCfg().place+'까지 달려요')}
+  if(a==='mstart'){const pool=k.mons.filter(m=>!m.box),pk=pool.length?pool[Math.floor(Math.random()*pool.length)]:null;S.mrun={day:today(),start:Date.now(),done:[],fin:0,ok:false,pm:pk?pk.id:25,pn:pk?pk.name:'피카츄'};sfx('coin');toast('🚀 로켓단이 '+(pk?pk.name:'피카츄')+'를 데려갔어요! 구하러 가요')}
   else if(a==='mstep'&&r&&!r.fin){const i=+t.dataset.i,at=(r.done||[]).indexOf(i);r.done=r.done||[];if(at<0){r.done.push(i);sfx('coin')}else r.done.splice(at,1);S.mrun=Object.assign({},r)}
   else if(a==='mfin'&&r&&!r.fin){
     const n=mornSteps().length;if((r.done||[]).filter(i=>i<n).length<n)return;
@@ -2900,7 +2921,7 @@ function setView(){
     <div class="row"><label class="filebtn">👪 가족 사진 고르기<input type="file" id="famfile" accept="image/*" style="display:none"></label><button data-act="famdel">모두 지우기</button></div>
     <p class="small">가족이 함께 찍힌 사진을 고르면, 한 사람씩 얼굴을 눌러서 동그랗게 저장해요. 아침 준비에서 영웅이 구하는 가족이 이 얼굴로 나와요. 사진은 이 기기와 비공개 클라우드 저장소에만 저장돼요. (영웅이 된 아이는 구해야 할 가족 목록에서 자동으로 빠져요)</p></div>
   <div class="card"><h2>🌅 아침 준비 (등원 챌린지)</h2>
-    <div class="row"><input type="checkbox" data-morn="on" ${morningCfg().on?'checked':''}><span>월~금 아침, 아이가 준비하는 모습을 달리기 게임으로 보여줘요</span></div>
+    <div class="row"><input type="checkbox" data-morn="on" ${morningCfg().on?'checked':''}><span>월~금 아침, 로켓단에게 잡혀간 포켓몬을 준비하면서 구하는 게임으로 보여줘요</span></div>
     <div class="row"><span>누구?</span><select data-morn="kid" style="width:110px">${S.kids.map(q=>`<option ${q.name===morningCfg().kid?'selected':''}>${esc(q.name)}</option>`).join('')}</select><span>가는 곳</span><input data-morn="place" value="${esc(morningCfg().place)}" style="width:100px"></div>
     <div class="row"><span>출발(나가는) 시간</span><input type="time" data-morn="leave" value="${esc(morningCfg().leave)}"></div>
     <label class="small">준비 단계 (한 줄에 하나씩)</label>${ta('data-morn="steps"',morningCfg().steps,'',130)}
