@@ -894,7 +894,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261124k';
+const BUILD='20261124l';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1338,6 +1338,7 @@ function chiTown(k){                                    // 내 마을(포켓몬 
 }
 function vdoorTap(k,v){
   const V=VIL[v];if(!V)return;
+  if(k.adult&&!askPin())return;                          // 엄마·아빠 마을의 문은 부모 PIN을 눌러야 열려요 (아이들이 맘대로 못 들어가게)
   if(vOpen(k,v)){sfx('hatch');ovRaw(vilView(k,v));return}
   if(k.coins<SDOOR_COST){toast('🔒 비밀의 문이에요... 코인 '+SDOOR_COST+'개가 있으면 열 수 있을 것 같아요!');return}
   ovRaw(`<h2>🚪 비밀의 문 ${V.e}</h2><p>이 문 너머에는 <b>${esc(V.n)}</b>이(가) 있대요...<br>코인 <b>💰${SDOOR_COST}</b>개로 문을 열 수 있어요.<br><small>한 번 열면 계속 오갈 수 있어요</small></p><p><button class="go" data-act="vopen" data-v="${v}">💰${SDOOR_COST}으로 문 열기!</button> <button style="background:#eee" onclick="closeOv()">다음에</button></p>`);
