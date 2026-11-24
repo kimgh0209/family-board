@@ -803,7 +803,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261124a';
+const BUILD='20261124b';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1755,7 +1755,7 @@ async function pullPhotos(){
   return got;
 }
 /* ---- 아이 기록(코인·포켓몬·할 일 체크 등) 기기 간 동기화: 아이별로 "나중에 바뀐 쪽"이 이겨요 ---- */
-const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev','deco','out','bw','bl','bday','bn','freeEgg','tix','fday','fn','stolen','rday','rn'];
+const PF=['coins','mons','sel','dex','evos','earned','streak','best','perfect','bought','hist','badges','lastPerfect','bonusDate','bonusAmt','done','hatched','trainer','prev','deco','out','bw','bl','bday','bn','freeEgg','tix','fday','fn','stolen','rday','rn','gf','wp'];
 const progOf=k=>{const o={};PF.forEach(f=>{if(k[f]!==undefined)o[f]=k[f]});return o};
 function sweepTodo(){                                       // 오늘이 아닌 날 체크된 할 일은 지워요
   let n=0;Object.keys(S.todoDone).forEach(x=>{const v=S.todoDone[x];if(x.indexOf('__ck|')!==0&&typeof v==='string'&&v!==today()){delete S.todoDone[x];n++}});return n}
@@ -1926,7 +1926,8 @@ function todoView(){
 }
 
 /* ---- ⚔️ 전투력 · 훈련 · 배틀 ---- */
-const MAX_LV=20,WILD_DAILY=3,FRIEND_DAILY=2;
+const MAX_LV=20,WILD_DAILY=5,WILD_WINS=2,WILD_COIN=5;          // 야생 배틀: 하루 5번 중 딱 2번만 이기고, 이기면 코인 5개 고정
+function wildPlan(){const a=[];for(let i=0;i<WILD_DAILY;i++)a.push(0);let n=0;while(n<WILD_WINS){const i=Math.floor(Math.random()*WILD_DAILY);if(!a[i]){a[i]=1;n++}}return a.join('')}   // 예: '01010' (1=이기는 판)
 const trainCost=m=>30*((m.lv||0)+1);
 const powerOf=m=>Math.round((m.bst>0?m.bst:300)*(1+0.06*(m.lv||0)));
 const bstTried={};
@@ -1961,7 +1962,8 @@ const typeChips=ts=>(ts||[]).map(t=>`<i class="tchip">${T_EMO[t]||''}${T_KO[t]||
 async function battleStart(me,mine,opp){                      // opp: {name,id,power,onEnd(win),winTxt}
   fighting=true;
   let ta=[],tb=[];try{ta=await typesOf(mine.id);tb=await typesOf(opp.id)}catch(e){}
-  const pa=powerOf(mine),pb=opp.power,res=simBattle(pa,pb,null,ta,tb);
+  const pa=powerOf(mine);let pb=opp.power,res=simBattle(pa,pb,null,ta,tb);
+  if(opp.force===true||opp.force===false){for(let i=0;i<400&&(res.winner===0)!==opp.force;i++){if(i>=60)pb=Math.max(10,Math.round(pb*(opp.force?0.93:1.07)));res=simBattle(pa,pb,null,ta,tb)}}   // 정해진 승패가 나올 때까지 다시 굴려요
   overlay(`<div class="bstage" id="bstage"><div class="bsky"></div><div class="bground"></div>
     <div class="bsh" style="right:11%;top:46%"></div><div class="bsh" style="left:9%;bottom:6%;width:120px"></div>
     <img id="bimgB" class="bmon foe" src="${ART(opp.id)}" style="transform:scaleX(-1)">
@@ -2021,35 +2023,27 @@ async function battleStart(me,mine,opp){                      // opp: {name,id,p
 }
 async function wildBattle(k){
   const m=k.mons[k.sel];if(!m||fighting)return;
-  if(k.bday!==today()){k.bday=today();k.bn=0}
+  if(k.bday!==today()){k.bday=today();k.bn=0;k.wp=wildPlan()}
+  if(typeof k.wp!=='string'||k.wp.length!==WILD_DAILY)k.wp=wildPlan();
   if(k.bn>=WILD_DAILY){toast('오늘은 야생 배틀을 다 했어요! 내일 또 만나요 😊');return}
   fighting=true;
   await ensureBst(m);
+  const want=k.wp.charAt(k.bn)==='1';
   k.bn++;
   let id=1+Math.floor(Math.random()*151),name='야생 포켓몬';
   try{const tot=await speciesCount();id=1+Math.floor(Math.random()*Math.min(tot,1000));name=koName(await jget(API+'pokemon-species/'+id))}catch(e){}
   fighting=false;
-  const pw=Math.max(60,Math.round(powerOf(m)*(0.6+0.8*Math.random()))),gain=Math.max(10,Math.min(35,Math.round(15+10*(pw/Math.max(1,powerOf(m))-1)*2)));
-  battleStart(k,m,{name:'야생 '+name,id,power:pw,winTxt:`💰 +${gain}`,onEnd:win=>{if(win){k.coins+=gain;k.earned+=gain;k.bw=(k.bw||0)+1}else k.bl=(k.bl||0)+1}});
-}
-async function friendBattle(k,q){
-  const m=k.mons[k.sel],o=q&&q.mons[q.sel];if(!m||!o||fighting)return;
-  if(k.fday!==today()){k.fday=today();k.fn=0}
-  if((k.fn||0)>=FRIEND_DAILY){toast('오늘은 가족 배틀을 다 했어요! 내일 또 겨뤄요 😊');return}
-  k.fn=(k.fn||0)+1;
-  fighting=true;await ensureBst(m);await ensureBst(o);fighting=false;
-  battleStart(k,m,{name:`${q.name}의 ${o.name}`,id:o.id,power:powerOf(o),onEnd:win=>{if(win){k.bw=(k.bw||0)+1;q.bl=(q.bl||0)+1}else{k.bl=(k.bl||0)+1;q.bw=(q.bw||0)+1}}});
+  const pw=Math.max(60,Math.round(powerOf(m)*(0.6+0.8*Math.random()))),gain=WILD_COIN;
+  battleStart(k,m,{name:'야생 '+name,id,power:pw,force:want,winTxt:`💰 +${gain}`,onEnd:win=>{if(win){k.coins+=gain;k.earned+=gain;k.bw=(k.bw||0)+1}else k.bl=(k.bl||0)+1}});
 }
 function battleCards(k){                                    // 마을 화면 안에 들어가는 배틀 카드
   const m=k.mons[k.sel];
   if(!m)return '';
   const lv=m.lv||0,left=k.bday===today()?Math.max(0,WILD_DAILY-(k.bn||0)):WILD_DAILY;
-  const friends=ents().filter(q=>q!==k&&q.mons[q.sel]);
   return `<div class="card"><h2>⚔️ 배틀</h2>
     <div class="giverow"><img src="${ART(m.id)}" style="width:64px;height:64px;object-fit:contain"><span style="flex:1;margin-left:8px"><b>${esc(m.name)}</b> <span class="chip">Lv.${lv}</span> <span class="chip" style="background:#fff3e0">⚡ ${powerOf(m)}</span><br><span class="small">🏆 ${k.bw||0}승 ${k.bl||0}패 · 아래 "내 포켓몬"에서 싸울 친구를 골라요</span></span></div>
     <div class="acts"><button class="go" data-act="train" ${lv>=MAX_LV||k.coins<trainCost(m)?'disabled':''}>${lv>=MAX_LV?'💪 최고 레벨이에요!':`💪 훈련하기 (💰${won(trainCost(m))})`}</button><button class="egg" data-act="wild" ${left<=0?'disabled':''}>🌿 야생 배틀 (오늘 ${left}번)</button></div>
-    <div class="small" style="text-align:center">훈련하면 전투력이 올라가요. 진화하면 훨씬 더 세져요! 야생 배틀에서 이기면 코인을 받아요.</div>
-    ${friends.length?`<div class="small" style="margin-top:8px"><b>🤝 가족과 겨뤄요</b> (코인은 걸리지 않아요 · 오늘 남은 ${k.fday===today()?Math.max(0,FRIEND_DAILY-(k.fn||0)):FRIEND_DAILY}번)</div>`+friends.map(q=>{const o=q.mons[q.sel];return `<div class="giverow"><img src="${ART(o.id)}" style="width:44px;height:44px;object-fit:contain"><span style="flex:1;margin-left:6px"><b style="color:${q.color}">${esc(q.name)}</b>의 ${esc(o.name)} ⚡${powerOf(o)}</span><button class="go" data-fight="${esc(q.name)}">⚔️ 겨루기</button></div>`}).join(''):''}</div>`;
+    <div class="small" style="text-align:center">훈련하면 전투력이 올라가요. 진화하면 훨씬 더 세져요! 야생 배틀에서 이기면 코인 5개를 받아요.</div></div>`;
 }
 /* ---- 🎟 종이 뽑기: 옛날 문방구 뽑기처럼 종이를 뜯어서 안에 적힌 상품을 확인해요 (상품은 부모가 정해요) ---- */
 const DRAW_DEF={on:false,price:30,size:120,items:[{n:'아이스크림',c:4},{n:'게임 30분',c:4},{n:'스티커',c:10},{n:'코인 50',c:6}]};
@@ -2515,8 +2509,13 @@ function shopCard(k){
   return `<div class="card"><h2>🛍 마을 꾸미기 상점</h2><div class="small">코인으로 마을에 놓을 것을 사요 · 산 것 ${own.length}/${SHOP.length}</div>
     <div class="shopg">${left.map(d=>`<button class="shopi" data-buy="${d.id}" ${k.coins<d.p?'disabled':''}><span>${d.e}</span><b>${d.n}</b><small>💰${won(d.p)}</small></button>`).join('')||'<div class="small">모두 샀어요! 🎉</div>'}</div></div>`;
 }
+function giveTotals(q){                                   // 누가 지금까지 얼마를 선물했는지 누적으로 보여줘요
+  const g=q.gf||{},names=S.kids.map(c=>c.name);Object.keys(g).forEach(n=>{if(names.indexOf(n)<0)names.push(n)});
+  const tot=names.reduce((a,n)=>a+(g[n]||0),0);
+  return `<div style="margin-top:8px">${names.map(n=>{const c=S.kids.find(x=>x.name===n);return `<div class="giverow"><b style="color:${c?c.color:'#555'}">${esc(n)}</b><span style="flex:1;text-align:right">💰 ${won(g[n]||0)}</span></div>`}).join('')}<div class="giverow"><b>모두 합쳐서</b><span style="flex:1;text-align:right"><b>💰 ${won(tot)}</b></span></div></div>`;
+}
 function giveCard(k){
-  if(k.adult)return `<div class="card"><h2>💝 아이들이 선물해 준 코인</h2><div class="small">${esc(k.name)}의 코인은 아이들이 나눠 준 것으로만 채워져요. 고맙다고 말해 주세요! 😊</div></div>`;
+  if(k.adult)return `<div class="card"><h2>💝 아이들이 선물해 준 코인</h2><div class="small">${esc(k.name)}의 코인은 아이들이 나눠 준 것으로만 채워져요. 고맙다고 말해 주세요! 😊</div>${giveTotals(k)}</div>`;
   return `<div class="card"><h2>💝 엄마·아빠에게 코인 선물</h2><div class="small">모은 코인을 나눠 주면 엄마·아빠도 포켓몬 알을 뽑을 수 있어요</div>
     ${S.parents.map((q,j)=>`<div class="giverow"><b style="color:${q.color}">${esc(q.name)}</b>${[10,50,100].map(v=>`<button data-give="${j}|${v}" ${k.coins<v?'disabled':''}>💰${v}</button>`).join('')}</div>`).join('')}</div>`;
 }
@@ -2795,7 +2794,6 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.starter){await hatchStarter(k,+t.dataset.starter)}
   else if(t.dataset.act==='train'){const m=k.mons[k.sel];if(m&&(m.lv||0)<MAX_LV&&k.coins>=trainCost(m)){k.coins-=trainCost(m);m.lv=(m.lv||0)+1;sfx('evo');toast(`💪 훈련 성공! ${m.name} Lv.${m.lv} ⚡${powerOf(m)}`)}}
   else if(t.dataset.act==='wild'){wildBattle(k);return}
-  else if(t.dataset.fight!==undefined){friendBattle(k,ents().find(q=>q.name===t.dataset.fight));return}
   else if(t.dataset.act==='bdayclose'){const r=bdayRun();if(r)bdayStop(r.name);return}
   else if(t.dataset.act==='bdaytest'){const q=S.kids[+t.dataset.i];if(q){const o=bdLoad();delete o.done[q.name];o.run=null;bdSave(o);unlockAudio();bdayStart(q);tab='home'}}
   else if(t.dataset.draw!==undefined){drawConfirm(k,+t.dataset.draw);return}
@@ -2827,7 +2825,7 @@ document.addEventListener('click',async e=>{
   }
   else if(t.dataset.act==='vback'){const cur=outOf(k);k.out=cur.filter((_,j)=>j!==+t.dataset.j);toast('🏠 돌아왔어요!')}
   else if(t.dataset.buy){const d=SHOP.find(x=>x.id===t.dataset.buy);if(d&&(k.deco||[]).indexOf(d.id)<0&&k.coins>=d.p){k.coins-=d.p;k.deco.push(d.id);sfx('hatch');toast(d.e+' '+d.n+' 샀어요! 마을에 놓였어요')}}
-  else if(t.dataset.give){const a=t.dataset.give.split('|'),q=S.parents[+a[0]],v=+a[1];if(q&&!k.adult&&v>0&&k.coins>=v){k.coins-=v;q.coins+=v;sfx('hatch');toast('💝 '+q.name+'에게 코인 '+v+'개를 선물했어요!')}}
+  else if(t.dataset.give){const a=t.dataset.give.split('|'),q=S.parents[+a[0]],v=+a[1];if(q&&!k.adult&&v>0&&k.coins>=v){k.coins-=v;q.coins+=v;q.gf=q.gf||{};q.gf[k.name]=(q.gf[k.name]||0)+v;sfx('hatch');toast('💝 '+q.name+'에게 코인 '+v+'개를 선물했어요!')}}
   else if(t.dataset.act==='evo'&&!busy){
     const p=leadOf(k);if(!p||p.final||k.coins<S.evoCost)return;
     busy=true;t.disabled=true;t.textContent='진화 중...';
