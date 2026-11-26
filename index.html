@@ -930,7 +930,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261127a';
+const BUILD='20261127b';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1161,12 +1161,15 @@ async function rollLegend(k){                         // 7번째 알: 전설·�
   const p=await rollWith(()=>LEGENDS[Math.floor(Math.random()*LEGENDS.length)],true,k);
   return p||await rollEgg(k);
 }
+/* 알 예약: 정한 아이의 정한 번째 알에서는 정한 포켓몬이 나와요 (화면에는 알리지 않아요) */
+const EGG_BOOK=[{who:'이현',n:7,mon:{id:151,sp:'mew',name:'뮤',root:151,legend:true}}];
+const bookedEgg=(k,n)=>{const b=!k.adult&&EGG_BOOK.find(x=>x.who===k.name&&x.n===n);return b?JSON.parse(JSON.stringify(b.mon)):null};
 async function hatchEgg(k,btn){
   busy=true;
   if(btn){btn.disabled=true;btn.innerHTML='<span class="shake" style="display:inline-block">🥚</span> 부화 중...'}
   const n=k.hatched+1,legend=n===7||n%20===0;   // 7번째, 그리고 20번째마다 (화면에는 알리지 않음)
   try{
-    const p=legend?await rollLegend(k):await rollEgg(k);
+    const p=bookedEgg(k,n)||(legend?await rollLegend(k):await rollEgg(k));
     if(k.freeEgg>0)k.freeEgg--;else k.coins-=S.eggCost;k.mons.push(p);ensureBst(p);k.dex[p.id]=1;k.hatched++;k.sel=k.mons.length-1;
     sfx('hatch');confetti();
     overlay((p.legend?'<h2>🌟 대박! 전설의 포켓몬이에요!</h2>':'')+'<h2>🎉 '+esc(p.name)+' 등장!</h2><img class="big" src="'+ART(p.id)+'">');
