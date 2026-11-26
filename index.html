@@ -432,6 +432,33 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 @keyframes evfl{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
 .evtx{margin-top:12px;font-size:20px;font-weight:700;min-height:56px}
 @keyframes pop{from{transform:scale(0) rotate(-20deg)}to{transform:scale(1)}}
+/* 🔴 몬스터볼로 잡는 연출 (무대 300x300) */
+.cxst{position:relative;width:300px;height:300px;border-radius:20px;background:#8fd3ff;background:linear-gradient(#8fd3ff 0%,#d9f3ff 62%,#8bd169 62%,#5fae45 100%);overflow:hidden;margin:0 auto}
+.cxmon{position:absolute;left:75px;top:30px;width:150px;height:150px;object-fit:contain}
+.cxmon.in{animation:cxin .55s ease-in forwards}
+.cxmon.gone{opacity:0}
+.cxmon.out{animation:pop .7s}
+.cxball{position:absolute;left:122px;top:77px;width:56px;height:56px;box-sizing:border-box;border:3px solid #222;border-radius:50%;background:#fff;background:linear-gradient(#e53935 0%,#e53935 45%,#222 45%,#222 55%,#fff 55%,#fff 100%);transform:translate(-112px,153px);z-index:2}
+.cxball:after{content:'';position:absolute;left:17px;top:17px;width:16px;height:16px;box-sizing:border-box;border:3px solid #222;border-radius:50%;background:#fff}
+.cxball.fly{animation:cxfly .8s linear forwards}
+.cxball.hit{transform:translate(0,0)}
+.cxball.fall{animation:cxfall .8s forwards}
+.cxball.rest{transform:translate(0,138px)}
+.cxball.wob{transform:translate(0,138px);animation:cxwob .7s ease-in-out}
+.cxball.done{transform:translate(0,138px);animation:cxclick .4s}
+.cxball.done:after{background:#ffeb3b}
+.cxball.side{transform:translate(0,138px) scale(.8)}
+.cxfl{position:absolute;left:90px;top:45px;width:120px;height:120px;border-radius:50%;background:#fff;opacity:0;pointer-events:none;z-index:1}
+.cxfl.go{animation:cxflash .6s}
+.cxstars span{position:absolute;font-size:28px;opacity:0;z-index:3}
+.cxstars.on span{animation:cxstar 1s ease-out}
+@keyframes cxfly{0%{transform:translate(-112px,153px) rotate(0)}30%{transform:translate(-80px,20px) rotate(250deg)}60%{transform:translate(-45px,-48px) rotate(480deg)}100%{transform:translate(0,0) rotate(720deg)}}
+@keyframes cxin{0%{transform:scale(1);opacity:1;-webkit-filter:brightness(1);filter:brightness(1)}35%{transform:scale(1.08);-webkit-filter:brightness(4);filter:brightness(4)}100%{transform:scale(.05);opacity:0;-webkit-filter:brightness(4);filter:brightness(4)}}
+@keyframes cxfall{0%{transform:translate(0,0)}50%{transform:translate(0,138px)}68%{transform:translate(0,104px)}83%{transform:translate(0,138px)}91%{transform:translate(0,126px)}100%{transform:translate(0,138px)}}
+@keyframes cxwob{0%{transform:translate(0,138px) rotate(0)}25%{transform:translate(-14px,138px) rotate(-35deg)}55%{transform:translate(14px,138px) rotate(35deg)}80%{transform:translate(-5px,138px) rotate(-12deg)}100%{transform:translate(0,138px) rotate(0)}}
+@keyframes cxclick{0%{transform:translate(0,138px) scale(1)}40%{transform:translate(0,138px) scale(1.25)}100%{transform:translate(0,138px) scale(1)}}
+@keyframes cxflash{0%{opacity:0;transform:scale(.3)}30%{opacity:.95}100%{opacity:0;transform:scale(1.9)}}
+@keyframes cxstar{0%{opacity:0;transform:translateY(24px) scale(.2)}35%{opacity:1;transform:translateY(0) scale(1.2)}100%{opacity:0;transform:translateY(-34px) scale(.9)}}
 #toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#333;color:#fff;padding:12px 22px;border-radius:99px;font-size:22px;opacity:0;transition:.3s;pointer-events:none;z-index:30;max-width:90vw;text-align:center}
 #toast.show{opacity:1}
 .cf{position:absolute;top:-40px;animation:fall linear forwards}
@@ -903,7 +930,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261126b';
+const BUILD='20261127a';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1234,7 +1261,7 @@ async function loadBoard(){
 const lines=v=>(Array.isArray(v)?v:String(v||'').split('\n')).map(s=>String(s).trim()).filter(Boolean);
 
 /* ---------- 화면 ---------- */
-function overlay(html){document.getElementById('ovbox').innerHTML=html+'<p><button style="background:#eee" onclick="document.getElementById(\'ov\').classList.remove(\'show\')">확인!</button></p>';document.getElementById('ov').classList.add('show')}
+function overlay(html){catchOffer=null;catchLock=false;document.getElementById('ovbox').innerHTML=html+'<p><button style="background:#eee" onclick="document.getElementById(\'ov\').classList.remove(\'show\')">확인!</button></p>';document.getElementById('ov').classList.add('show')}
 function evoAnim(oldName,oldId,newName,newId){        // 진화 연출: 흔들 → 하얗게 빛남 → 커지며 모습이 바뀜 → 번쩍! → 새 모습
   try{const pre=new Image();pre.src=ART(newId)}catch(e){}
   const ob=document.getElementById('ovbox'),T=[];
@@ -1385,7 +1412,7 @@ function vilPull(k,v){
     ovRaw(`<h2>🎉 새 친구!</h2><div class="vbig">${vImg(c,v)}</div><div class="chb">${esc(c[1])}</div><div class="small">${esc(V.n)} · ${own.length}/${V.ch.length}</div><p><button class="go" data-act="vilback" data-v="${v}">${V.e} ${esc(V.n)}로 돌아가기</button></p>`);
   },1000);
 }
-function closeOv(){document.getElementById('ov').classList.remove('show')}
+function closeOv(){catchOffer=null;catchLock=false;document.getElementById('ov').classList.remove('show')}
 let tt;function toast(m,ms){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),ms||1400)}
 function clockHtml(){const d=new Date();return `${pad(d.getHours())}:${pad(d.getMinutes())}`}
 function dateHtml(){return new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})}
@@ -2243,7 +2270,7 @@ function todoView(){
 }
 
 /* ---- ⚔️ 전투력 · 훈련 · 배틀 ---- */
-const MAX_LV=20,WILD_DAILY=5,WILD_WINS=2,WILD_COIN=5;          // 야생 배틀: 하루 5번 중 딱 2번만 이기고, 이기면 코인 5개 고정
+const MAX_LV=20,WILD_DAILY=5,WILD_WINS=2,WILD_COIN=5,CATCH_COST=200;   // 야생 배틀: 하루 5번 중 딱 2번만 이기고, 이기면 코인 5개 고정. 이긴 포켓몬은 코인 200개로 잡을 수 있어요
 function wildPlan(){const a=[];for(let i=0;i<WILD_DAILY;i++)a.push(0);let n=0;while(n<WILD_WINS){const i=Math.floor(Math.random()*WILD_DAILY);if(!a[i]){a[i]=1;n++}}return a.join('')}   // 예: '01010' (1=이기는 판)
 const trainCost=m=>30*((m.lv||0)+1);
 const powerOf=m=>Math.round((m.bst>0?m.bst:300)*(1+0.06*(m.lv||0)));
@@ -2337,6 +2364,7 @@ async function battleStart(me,mine,opp){                      // opp: {name,id,p
   }catch(e){}
   finish();                                                    // 중간에 이상이 있어도 결과는 꼭 반영돼요
   const sk=document.getElementById('bskip');if(sk)sk.style.display='none';
+  if(opp.after)opp.after(res.winner===0);
 }
 async function wildBattle(k){
   const m=k.mons[k.sel];if(!m||fighting)return;
@@ -2347,11 +2375,56 @@ async function wildBattle(k){
   await ensureBst(m);
   const want=k.wp.charAt(k.bn)==='1';
   k.bn++;
-  let id=1+Math.floor(Math.random()*151),name='야생 포켓몬';
-  try{const tot=await speciesCount();id=1+Math.floor(Math.random()*Math.min(tot,1000));name=koName(await jget(API+'pokemon-species/'+id))}catch(e){}
+  let id=1+Math.floor(Math.random()*151),name='야생 포켓몬',spec=null;
+  const who=kid;
+  try{const tot=await speciesCount();id=1+Math.floor(Math.random()*Math.min(tot,1000));spec=await jget(API+'pokemon-species/'+id);name=koName(spec)}catch(e){spec=null}
   fighting=false;
   const pw=Math.max(60,Math.round(powerOf(m)*(0.6+0.8*Math.random()))),gain=WILD_COIN;
-  battleStart(k,m,{name:'야생 '+name,id,power:pw,force:want,winTxt:`💰 +${gain}`,onEnd:win=>{if(win){k.coins+=gain;k.earned+=gain;k.bw=(k.bw||0)+1}else k.bl=(k.bl||0)+1}});
+  battleStart(k,m,{name:'야생 '+name,id,power:pw,force:want,winTxt:`💰 +${gain}`,onEnd:win=>{if(win){k.coins+=gain;k.earned+=gain;k.bw=(k.bw||0)+1}else k.bl=(k.bl||0)+1},
+    after:win=>{if(!win||!spec||!spec.name)return;                 // 포켓몬 정보를 못 읽었으면 잡기는 없어요
+      const mon={id,sp:spec.name,name};if(spec.is_legendary||spec.is_mythical)mon.legend=true;
+      setTimeout(()=>{if(!fighting)catchShow({who,kname:k.name,mon})},1600)}});
+}
+/* ---- 🔴 야생 포켓몬 잡기: 이긴 뒤에 코인 200개로 데려와요. 버튼으로만 닫혀요 (바깥을 눌러도 안 사라져요) ---- */
+let catchOffer=null,catchLock=false;      // catchLock: 잡는 연출 중에는 바깥을 눌러도 안 닫혀요
+const catchKid=o=>{const all=S.kids.concat(S.parents||[]),a=all[o.who];return a&&a.name===o.kname?a:all.find(q=>q.name===o.kname)};   // 그사이 동기화돼도 지금 기록을 써요
+const catchPic=m=>`<img src="${ART(m.id)}" style="width:180px;height:180px;object-fit:contain">`;
+function catchShow(o){
+  catchOffer=o;
+  ovRaw(`<h2>✨ 이 포켓몬 잡을 수 있어요!</h2>${catchPic(o.mon)}<div class="bar" style="justify-content:center">야생 ${esc(o.mon.name)}</div>
+    <div class="acts"><button class="go" data-act="catchask">🔴 잡을래!</button><button style="background:#eee" data-act="catchno">그냥 보내 줄래</button></div>`);
+}
+function catchAsk(){
+  const o=catchOffer,k=o&&catchKid(o);if(!k){closeOv();return}
+  const can=k.coins>=CATCH_COST;
+  ovRaw(`<h2>잡으려면 코인 ${CATCH_COST}개가 필요해요</h2>${catchPic(o.mon)}<div class="bar" style="justify-content:center">${esc(k.name)}의 코인 <span class="chip coin">💰 ${won(k.coins)}</span></div>
+    ${can?`<p class="small">잡으면 💰${won(k.coins-CATCH_COST)}개가 남아요. 잘 생각해 보고 골라요!</p>
+    <div class="acts"><button class="go" data-act="catchyes">💰${CATCH_COST} 내고 잡기</button><button style="background:#eee" data-act="catchno">안 잡을래</button></div>`
+    :`<p class="small">코인이 ${won(CATCH_COST-k.coins)}개 모자라서 지금은 못 잡아요 😢</p>
+    <div class="acts"><button style="background:#eee" data-act="catchno">확인</button></div>`}`);
+}
+const batchim=w=>{const c=String(w).charCodeAt(String(w).length-1)-44032;return c>=0&&c<11172&&c%28>0};   // 받침이 있으면 '이/을'
+function catchAnim(name,id){              // 연출: 볼 던지기 → 빨려 들어감 → 바닥에 톡 → 세 번 흔들 → 딸깍! → 짠
+  catchLock=true;
+  const stars=[[70,190],[200,185],[135,150],[45,235],[228,232]].map(p=>`<span style="left:${p[0]}px;top:${p[1]}px">⭐</span>`).join('');
+  ovRaw(`<div class="cxst"><img class="cxmon" id="cxmon" src="${ART(id)}"><div class="cxfl" id="cxfl"></div><div class="cxball" id="cxball"></div><div class="cxstars" id="cxstars">${stars}</div></div><div class="evtx" id="cxtx">가라! 몬스터볼!</div>`);
+  const ob=document.getElementById('ovbox'),g=i=>document.getElementById(i),at=(ms,f)=>setTimeout(()=>{try{f()}catch(e){}},ms);
+  const ball=c=>{const b=g('cxball');if(b){b.className='cxball';void b.offsetWidth;b.className='cxball '+c}},txt=t=>{g('cxtx').textContent=t};
+  at(500,()=>{ball('fly');sfx('buy')});
+  at(1300,()=>{ball('hit');g('cxfl').className='cxfl go';g('cxmon').className='cxmon in';txt(name+(batchim(name)?'이':'가')+' 볼 속으로 빨려 들어가요!');sfx('hatch')});
+  at(2100,()=>{g('cxmon').className='cxmon gone';ball('fall')});
+  ['흔들...','흔들... 흔들...','흔들... 흔들... 흔들...'].forEach((t,i)=>at(3200+i*1100,()=>{ball('wob');txt(t);sfx('coin')}));
+  at(6700,()=>{ball('done');g('cxstars').className='cxstars on';txt('딸깍! ✨');sfx('win')});
+  at(7800,()=>{catchLock=false;ball('side');g('cxmon').className='cxmon out';
+    g('cxtx').innerHTML='🎉 신난다!<br><span style="color:#e53935">'+esc(name)+'</span>'+(batchim(name)?'을':'를')+' 잡았어요!';sfx('evo');confetti();
+    ob.insertAdjacentHTML('beforeend','<p><button style="background:#eee" onclick="closeOv()">확인!</button></p>')});
+}
+function catchBuy(){
+  if(catchLock)return;
+  const o=catchOffer,k=o&&catchKid(o);if(!k||k.coins<CATCH_COST){closeOv();return}   // 두 번 눌러도 한 번만
+  const m=monCopy(o.mon);k.coins-=CATCH_COST;k.mons.push(m);k.dex=k.dex||{};k.dex[m.id]=1;k.sel=k.sel||0;
+  catchOffer=null;catchAnim(m.name,m.id);
+  ensureBst(m).then(()=>{save();render()});
 }
 function battleCards(k){                                    // 마을 화면 안에 들어가는 배틀 카드
   const m=k.mons[k.sel];
@@ -2360,7 +2433,7 @@ function battleCards(k){                                    // 마을 화면 안
   return `<div class="card"><h2>⚔️ 배틀</h2>
     <div class="giverow"><img src="${ART(m.id)}" style="width:64px;height:64px;object-fit:contain"><span style="flex:1;margin-left:8px"><b>${esc(m.name)}</b> <span class="chip">Lv.${lv}</span> <span class="chip" style="background:#fff3e0">⚡ ${powerOf(m)}</span><br><span class="small">🏆 ${k.bw||0}승 ${k.bl||0}패 · 아래 "내 포켓몬"에서 싸울 친구를 골라요</span></span></div>
     <div class="acts"><button class="go" data-act="train" ${lv>=MAX_LV||k.coins<trainCost(m)?'disabled':''}>${lv>=MAX_LV?'💪 최고 레벨이에요!':`💪 훈련하기 (💰${won(trainCost(m))})`}</button><button class="egg" data-act="wild" ${left<=0?'disabled':''}>🌿 야생 배틀 (오늘 ${left}번)</button></div>
-    <div class="small" style="text-align:center">훈련하면 전투력이 올라가요. 진화하면 훨씬 더 세져요! 야생 배틀에서 이기면 코인 5개를 받아요.</div></div>`;
+    <div class="small" style="text-align:center">훈련하면 전투력이 올라가요. 진화하면 훨씬 더 세져요! 야생 배틀에서 이기면 코인 5개를 받고, 그 포켓몬을 코인 ${CATCH_COST}개로 잡을 수도 있어요.</div></div>`;
 }
 /* ---- 🎟 종이 뽑기: 옛날 문방구 뽑기처럼 종이를 뜯어서 안에 적힌 상품을 확인해요 (상품은 부모가 정해요) ---- */
 const DRAW_DEF={on:false,price:30,size:120,items:[{n:'아이스크림',c:4},{n:'게임 30분',c:4},{n:'스티커',c:10},{n:'코인 50',c:6}]};
@@ -3143,7 +3216,7 @@ setInterval(awakeTick,5000);setTimeout(awakeTick,1000);
 
 document.addEventListener('click',async e=>{
   bump();wake();awakeTick();
-  if(e.target.id==='ov'){closeOv();return}
+  if(e.target.id==='ov'){if(!catchOffer&&!catchLock)closeOv();return}
   const t=e.target.closest('button,[data-sel],[data-bx],[data-gokid],[data-gotab],[data-pick],[data-zoom],[data-tov],[data-famimg]');if(!t||t.id==='fs')return;
   if(t.id==='dimbtn'){dimManual=true;dimTick();return}
   if(t.id==='mute'){S.mute=!S.mute;save();render();return}
@@ -3171,6 +3244,9 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.starter){await hatchStarter(k,+t.dataset.starter)}
   else if(t.dataset.act==='train'){const m=k.mons[k.sel];if(m&&(m.lv||0)<MAX_LV&&k.coins>=trainCost(m)){k.coins-=trainCost(m);m.lv=(m.lv||0)+1;sfx('evo');toast(`💪 훈련 성공! ${m.name} Lv.${m.lv} ⚡${powerOf(m)}`)}}
   else if(t.dataset.act==='wild'){wildBattle(k);return}
+  else if(t.dataset.act==='catchask'){catchAsk();return}
+  else if(t.dataset.act==='catchno'){closeOv();return}
+  else if(t.dataset.act==='catchyes'){catchBuy()}
   else if(t.dataset.act==='bdayclose'){const r=bdayRun();if(r)bdayStop(r.name);return}
   else if(t.dataset.act==='bdaytest'){const q=S.kids[+t.dataset.i];if(q){const o=bdLoad();delete o.done[q.name];o.run=null;bdSave(o);unlockAudio();bdayStart(q);tab='home'}}
   else if(t.dataset.draw!==undefined){drawConfirm(k,+t.dataset.draw);return}
