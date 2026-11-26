@@ -844,7 +844,7 @@ function load(){
   const d=defaults();
   Object.keys(d).forEach(k=>{if(k!=='kids'&&s[k]===undefined)s[k]=d[k]});
   s.kids.forEach(fixKid);ensureParents(s);
-  if(s.todoDay!==today()){Object.keys(s.todoDone).forEach(x=>{if(x.indexOf('__ck|')!==0)delete s.todoDone[x]});s.todoDay=today();s.gpts=Date.now()}   // 할 일 체크는 하루가 지나면 풀려요 (gpts: 풀린 상태가 클라우드의 어제 체크보다 새것이 되게)
+  if(s.todoDay!==today()){Object.keys(s.todoDone).forEach(x=>{if(x.indexOf('__ck|')!==0)delete s.todoDone[x]});s.todoDay=today()}   // 할 일 체크는 하루가 지나면 풀려요 (시각은 새로 찍지 않아요: 오래 쉰 기기가 새 기록을 덮지 않게)
   Object.keys(s.thanks).forEach(x=>{if(s.thanks[x].date<dkey(-90))delete s.thanks[x]});
   Object.keys(s.outfit).forEach(x=>{if(x<dkey(-14))delete s.outfit[x]});
   Object.keys(s.shiftOv).forEach(x=>{if(x<dkey(-60))delete s.shiftOv[x]});
@@ -903,7 +903,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261124p';
+const BUILD='20261126a';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -2062,6 +2062,13 @@ function progMark(init){                                  // 바뀐 아이가 �
   return dirty;
 }
 progMark(true);
+function quietly(fn){                                      // 자동 정리(날짜 바뀜 등)는 "방금 바뀐 기록"으로 치지 않아요 → 옛 기록이 새 기록을 덮는 것 방지
+  const same=(L,LH)=>L.map((k,i)=>LH[i]===JSON.stringify(progOf(k))),sk=same(S.kids,lastPH),sg=lastGH===JSON.stringify(progG());
+  fn();
+  S.kids.forEach((k,i)=>{if(sk[i])lastPH[i]=JSON.stringify(progOf(k))});if(sg)lastGH=JSON.stringify(progG());
+}
+let progOkAt=0;                                            // 마지막으로 아이 기록을 성공적으로 맞춘 시각
+const STALE_MS=3*60000;
 /* 엄마·아빠 매일 용돈: 엄마 50코인 · 아빠 20코인 (하루에 한 번, 어느 기기가 먼저 열어도 한 번만) */
 const ALLOW=[50,20];
 function allowanceApply(){
@@ -2075,33 +2082,41 @@ async function syncProgress(){
   if(r.status===200){const j=await r.json();sha=j.sha;remote=JSON.parse(b64d(j.content))}
   else if(r.status!==404)throw new Error(ghMsg(r.status));
   const rk=(remote&&remote.kids)||[],rp=(remote&&remote.parents)||[],rg=(remote&&remote.g)||null,now=Date.now();
-  let push=!remote,pulled=false;
+  let push=!remote,pulled=false,waiting=false;
+  const stale=now-progOkAt>STALE_MS;                       // 방금 켰거나 잠들어 있던 기기
+  const behind=(x,mine,base)=>!!x&&(x.pts>mine||(stale&&x.pts!==mine&&x.pts!==(base||0)));   // 못 본 사이에 클라우드가 바뀌었으면 클라우드가 우선
   [[S.kids,rk,lastPH,''],[S.parents,rp,lastPP,'p']].forEach(([L,R,LH,tg])=>L.forEach((k,i)=>{
     const x=R[i],lp=k.pts||0;
-    if(x&&x.pts>lp){
-      if(busy)return;
-      if(lp===0&&progScore(progOf(k))>progScore(x.d)){k.pts=now;push=true;return}   // 처음 연결한 기기에 기록이 더 많으면(예: 며칠 쓴 패드) 그 기록을 지키고 올려요
+    if(behind(x,lp,k.base)){
+      if(busy){waiting=true;return}
+      if(lp===0&&progScore(progOf(k))>progScore(x.d)){k.pts=now;k.base=x.pts;push=true;return}   // 처음 연결한 기기에 기록이 더 많으면(예: 며칠 쓴 패드) 그 기록을 지키고 올려요
       try{const bk=JSON.parse(localStorage.getItem('pkfam3_progsnap'))||{};bk[tg+i]={at:now,d:progOf(k)};localStorage.setItem('pkfam3_progsnap',JSON.stringify(bk))}catch(e){}   // 덮어쓰기 전 보관
-      Object.assign(k,JSON.parse(JSON.stringify(x.d)));k.pts=x.pts;fixKid(k,i);LH[i]=JSON.stringify(progOf(k));pulled=true;
+      Object.assign(k,JSON.parse(JSON.stringify(x.d)));k.pts=x.pts;k.base=x.pts;fixKid(k,i);LH[i]=JSON.stringify(progOf(k));pulled=true;
     }else if(!x&&lp===0){k.pts=now;push=true}
     else if(lp>(x?x.pts:0))push=true;
   }));
-  if(rg&&rg.pts>(S.gpts||0)){
-    if(!busy){S.todoDone=JSON.parse(JSON.stringify(rg.d.todoDone||{}));S.thanks=JSON.parse(JSON.stringify(rg.d.thanks||{}));S.mrun=rg.d.mrun?JSON.parse(JSON.stringify(rg.d.mrun)):null;S.drawBoard=rg.d.draw?JSON.parse(JSON.stringify(rg.d.draw)):null;S.trades=rg.d.trades?JSON.parse(JSON.stringify(rg.d.trades)):[];S.rocket=rg.d.rocket?JSON.parse(JSON.stringify(rg.d.rocket)):null;S.bdayDone=rg.d.bday?JSON.parse(JSON.stringify(rg.d.bday)):null;S.gpts=rg.pts;lastGH=JSON.stringify(progG());pulled=true;if(sweepTodo()){S.gpts=now;lastGH=JSON.stringify(progG());push=true}}
+  const gBehind=behind(rg,S.gpts||0,S.gbase);
+  if(gBehind){
+    if(busy)waiting=true;
+    if(!busy){S.gbase=rg.pts;S.todoDone=JSON.parse(JSON.stringify(rg.d.todoDone||{}));S.thanks=JSON.parse(JSON.stringify(rg.d.thanks||{}));S.mrun=rg.d.mrun?JSON.parse(JSON.stringify(rg.d.mrun)):null;S.drawBoard=rg.d.draw?JSON.parse(JSON.stringify(rg.d.draw)):null;S.trades=rg.d.trades?JSON.parse(JSON.stringify(rg.d.trades)):[];S.rocket=rg.d.rocket?JSON.parse(JSON.stringify(rg.d.rocket)):null;S.bdayDone=rg.d.bday?JSON.parse(JSON.stringify(rg.d.bday)):null;S.gpts=rg.pts;lastGH=JSON.stringify(progG());pulled=true;if(sweepTodo()){S.gpts=now;lastGH=JSON.stringify(progG());push=true}}
   }else if(!rg&&!(S.gpts)){S.gpts=now;push=true}
   else if((S.gpts||0)>(rg?rg.pts:0))push=true;
   const upToDate=S.parents.every((q,i)=>!rp[i]||(q.pts||0)>=rp[i].pts);          // 클라우드의 엄마·아빠 기록을 아직 못 받았으면(예: 입력 중이라 미룬 경우) 용돈을 주지 않아요
   if(upToDate&&allowanceApply()){progMark();push=true;pulled=true}      // 클라우드 기록을 받은 뒤에 용돈을 줘요 (옛 기록으로 두 번 주는 것 방지)
   if(pulled){try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}render()}
   if(push){
-    const mk=(L,R)=>L.map((k,i)=>{const x=R[i];return (x&&x.pts>=(k.pts||0))?x:{pts:k.pts||0,d:progOf(k)}}),kids=mk(S.kids,rk),parents=mk(S.parents,rp);
-    const g=(rg&&rg.pts>=(S.gpts||0))?rg:{pts:S.gpts||0,d:progG()};
+    const mk=(L,R)=>L.map((k,i)=>{const x=R[i];return (x&&(x.pts>=(k.pts||0)||behind(x,k.pts||0,k.base)))?x:{pts:k.pts||0,d:progOf(k)}}),kids=mk(S.kids,rk),parents=mk(S.parents,rp);
+    const g=(rg&&(rg.pts>=(S.gpts||0)||behind(rg,S.gpts||0,S.gbase)))?rg:{pts:S.gpts||0,d:progG()};
     const body={message:'progress',content:b64e(JSON.stringify({kids,parents,g}))};
     if(sha)body.sha=sha;
     const w=await ghReq('PUT','progress.json',body);
     if(!w.ok&&w.status!==409&&w.status!==422)throw new Error(ghMsg(w.status));
-    try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}
+    if(w.ok){S.kids.forEach((k,i)=>{if(kids[i]&&kids[i].pts===k.pts)k.base=k.pts});S.parents.forEach((k,i)=>{if(parents[i]&&parents[i].pts===k.pts)k.base=k.pts});if(g.pts===S.gpts)S.gbase=g.pts}
+    else waiting=true;
   }
+  if(!push){[[S.kids,rk],[S.parents,rp]].forEach(([L,R])=>L.forEach((k,i)=>{if(R[i]&&R[i].pts===k.pts)k.base=k.pts}));if(rg&&rg.pts===S.gpts)S.gbase=rg.pts}
+  if(!waiting)progOkAt=Date.now();
+  try{localStorage.setItem('pkfam3',JSON.stringify(S))}catch(e){}
 }
 async function syncNow(){
   const sc=S.sync;
@@ -3392,8 +3407,12 @@ document.addEventListener('error',e=>{const i=e.target;if(!i||i.tagName!=='IMG')
 setInterval(()=>{
   const c=document.getElementById('clk');
   if(c){const n=new Date();c.textContent=clockText(n);document.getElementById('apm').textContent=apText(n);document.getElementById('dt').textContent=`${n.getMonth()+1}월 ${n.getDate()}일 ${WD[n.getDay()]}요일`}
-  if(sweepTodo())save();
-  if(today()!==lastDay){lastDay=today();Object.keys(S.todoDone).forEach(x=>{if(x.indexOf('__ck|')!==0)delete S.todoDone[x]});S.todoDay=today();S.kids.forEach(k=>{k.done={}});runPurge();save();if(!busy)render()}
+  let swept=0;quietly(()=>{swept=sweepTodo()});if(swept)save();
+  if(today()!==lastDay){
+    lastDay=today();
+    quietly(()=>{Object.keys(S.todoDone).forEach(x=>{if(x.indexOf('__ck|')!==0)delete S.todoDone[x]});S.todoDay=today();S.kids.forEach(k=>{k.done={}})});
+    const on=S.sync&&S.sync.on;if(!on)runPurge();      // 동기화 중이면 옷 사진 정리는 클라우드 설정을 받은 뒤(syncNow 안)에 해요
+    save();if(on)syncNow();if(!busy)render()}
 },15000);
 setInterval(loadWeather,30*60000);
 setInterval(()=>{if(!W)loadWeather()},120000);       // 못 불러왔으면 2분마다 다시 시도해요
@@ -3452,7 +3471,7 @@ function autoConnectFromHash(){
   }catch(e){return false}
 }
 render();loadWeather();loadBoard();bump();speciesCount();setTimeout(autoConnectFromHash,800);
-IMG.init().then(()=>{runPurge();render()});
+IMG.init().then(()=>{if(!(S.sync&&S.sync.on))runPurge();render()});   // 동기화 중이면 정리는 클라우드를 받은 뒤에
 </script>
 </body>
 </html>
