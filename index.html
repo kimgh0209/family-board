@@ -903,7 +903,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261126a';
+const BUILD='20261126b';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -3023,6 +3023,9 @@ function setView(){
     <div class="row"><span>🥚 알 뽑기</span><input class="num" type="number" min="1" value="${S.eggCost}" data-eggcost><span>코인</span></div>
     <div class="row"><span>✨ 진화시키기</span><input class="num" type="number" min="1" value="${S.evoCost}" data-evocost><span>코인</span></div>
     <div class="row"><span>🎉 전부 완료 보너스</span><input class="num" type="number" min="0" value="${S.bonus}" data-bonus><span>코인~</span></div></div>
+  <div class="card"><h2>📺 화면 안 꺼지게 (스탠바이미)</h2>
+    <div class="row"><input type="checkbox" data-awake ${awakeOn()?'checked':''}><span>가만히 둬도 화면보호기(시계 화면)로 안 넘어가게 해 봐요 (이 기기에만 적용돼요)</span></div>
+    <p class="small">${awakeOn()?(awakeV&&!awakeV.paused?'지금 상태: 작동 중 ✅':'지금 상태: 화면을 한 번 눌러 주세요'):'기기에 따라 안 통할 수도 있어요. 스탠바이미에서만 켜고 시험해 보세요.'}</p></div>
   <div class="card"><h2>🌙 밤에 화면 어둡게</h2>
     <div class="row"><input type="checkbox" data-dim="on" ${dimCfg().on?'checked':''}><span>밤에는 화면을 어둡게 해요 (실제로 꺼지지는 않아요)</span></div>
     <div class="row"><input type="time" data-dim="from" value="${dimCfg().from}"><span>에 가장 어둡게 (아주 까맣게)</span></div>
@@ -3122,12 +3125,24 @@ function recordDay(k){
 let idle;function bump(){clearTimeout(idle);idle=setTimeout(()=>{if(tab==='home'&&calOff&&!busy){calOff=0;render()}if(tab!=='home'&&!editMode&&!busy&&!document.getElementById('ov').classList.contains('show')&&!(tab==='set'&&document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))){tab='home';render()}},IDLE_MS)}
 async function wake(){try{if('wakeLock' in navigator)await navigator.wakeLock.request('screen')}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){wake();syncNow()}});
+/* 화면 안 꺼지게(스탠바이미 화면보호기 방지): 안 보이는 작은 영상을 계속 틀어 둬요. 켠 기기에만 적용돼요 */
+const AW_KEY='pkfam3_awake',AW_SRC='data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAS1bW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAATiAAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAA+B0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAATiAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAEAAAABAAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAE4gAAAAAAABAAAAAANYbWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAAAoAAADIABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAADA21pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAAsNzdGJsAAAAu3N0c2QAAAAAAAAAAQAAAKthdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAEAAQABIAAAASAAAAAAAAAABFExhdmM2My4xLjEwMiBsaWJ4MjY0AAAAAAAAAAAAAAAAGP//AAAAMWF2Y0MBQsAe/+EAGGdCwB6mERCbARAAAAMAEAAAAwCg8WLhGAEABmjIQgOSyAAAABBwYXNwAAAAAQAAAAEAAAAUYnRydAAAAAAAAAKYAAAAAAAAABhzdHRzAAAAAAAAAAEAAABkAAAIAAAAABRzdHNzAAAAAAAAAAEAAAABAAAAHHN0c2MAAAAAAAAAAQAAAAEAAABkAAAAAQAAAaRzdHN6AAAAAAAAAAAAAABkAAACkAAAAAoAAAALAAAACwAAAAsAAAALAAAACwAAAAsAAAALAAAACwAAAAsAAAALAAAACwAAAAsAAAALAAAACwAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAABRzdGNvAAAAAAAAAAEAAATlAAAAYXVkdGEAAABZbWV0YQAAAAAAAAAhaGRscgAAAAAAAAAAbWRpcmFwcGwAAAAAAAAAAAAAAAAsaWxzdAAAACSpdG9vAAAAHGRhdGEAAAABAAAAAExhdmY2My4xLjEwMgAAAAhmcmVlAAAGhG1kYXQAAAJyBgX//27cRem95tlIt5Ys2CDZI+7veDI2NCAtIGNvcmUgMTY1IHIzMjIzIDA0ODBjYjAgLSBILjI2NC9NUEVHLTQgQVZDIGNvZGVjIC0gQ29weWxlZnQgMjAwMy0yMDI1IC0gaHR0cDovL3d3dy52aWRlb2xhbi5vcmcveDI2NC5odG1sIC0gb3B0aW9uczogY2FiYWM9MCByZWY9MTYgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MToweDEzMSBtZT11bWggc3VibWU9MTAgcHN5PTEgcHN5X3JkPTEuMDA6MC4wMCBtaXhlZF9yZWY9MSBtZV9yYW5nZT0yNCBjaHJvbWFfbWU9MSB0cmVsbGlzPTIgOHg4ZGN0PTAgY3FtPTAgZGVhZHpvbmU9MjEsMTEgZmFzdF9wc2tpcD0xIGNocm9tYV9xcF9vZmZzZXQ9LTIgdGhyZWFkcz0yIGxvb2thaGVhZF90aHJlYWRzPTEgc2xpY2VkX3RocmVhZHM9MCBucj0wIGRlY2ltYXRlPTEgaW50ZXJsYWNlZD0wIGJsdXJheV9jb21wYXQ9MCBjb25zdHJhaW5lZF9pbnRyYT0wIGJmcmFtZXM9MCB3ZWlnaHRwPTAga2V5aW50PTI1MCBrZXlpbnRfbWluPTUgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD02MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTQwLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjAwAIAAAAAWZYiCAj5MUAARbb776666666666668AAAAAZBmhwEfCMAAAAHQZoqAR8IwAAAAAdBmjsBHwjAAAAAB0GaSQBHwjAAAAAHQZpZQEfCMAAAAAdBmmmAR8IwAAAAB0GaecBHwjAAAAAHQZqIgBHwjAAAAAdBmpiQEfCMAAAAB0GaqKAR8IwAAAAHQZq4sBHwjAAAAAdBmsjAEfCMAAAAB0Ga2NAR8IwAAAAHQZro4BHwjAAAAAdBmvjwEfCMAAAABkGbAAj4RgAAAAZBmxAI+EYAAAAGQZsgCPhGAAAABkGbMAj4RgAAAAZBm0AI+EYAAAAGQZtQCPhGAAAABkGbYAj4RgAAAAZBm3AI+EYAAAAGQZuACPhGAAAABkGbkAj4RgAAAAZBm6AI+EYAAAAGQZuwCPhGAAAABkGbwAj4RgAAAAZBm9AI+EYAAAAGQZvgCPhGAAAABkGb8Aj4RgAAAAZBmgAI+EYAAAAGQZoQCPhGAAAABkGaIAj4RgAAAAZBmjAI+EYAAAAGQZpACPhGAAAABkGaUAj4RgAAAAZBmmAI+EYAAAAGQZpwCPhGAAAABkGagAj4RgAAAAZBmpAI+EYAAAAGQZqgCPhGAAAABkGasAj4RgAAAAZBmsAI+EYAAAAGQZrQCPhGAAAABkGa4Aj4RgAAAAZBmvAI+EYAAAAGQZsACPhGAAAABkGbEAj4RgAAAAZBmyAI+EYAAAAGQZswCPhGAAAABkGbQAj4RgAAAAZBm1AI+EYAAAAGQZtgCPhGAAAABkGbcAj4RgAAAAZBm4AI+EYAAAAGQZuQCPhGAAAABkGboAj4RgAAAAZBm7AI+EYAAAAGQZvACPhGAAAABkGb0Aj4RgAAAAZBm+AI+EYAAAAGQZvwCPhGAAAABkGaAAj4RgAAAAZBmhAI+EYAAAAGQZogCPhGAAAABkGaMAj4RgAAAAZBmkAI+EYAAAAGQZpQCPhGAAAABkGaYAj4RgAAAAZBmnAI+EYAAAAGQZqACPhGAAAABkGakAj4RgAAAAZBmqAI+EYAAAAGQZqwCPhGAAAABkGawAj4RgAAAAZBmtAI+EYAAAAGQZrgCPhGAAAABkGa8Aj4RgAAAAZBmwAI+EYAAAAGQZsQCPhGAAAABkGbIAj4RgAAAAZBmzAI+EYAAAAGQZtACPhGAAAABkGbUAj4RgAAAAZBm2AI+EYAAAAGQZtwCPhGAAAABkGbgAj4RgAAAAZBm5AI+EYAAAAGQZugCPhGAAAABkGbsAj4RgAAAAZBm8AI+EYAAAAGQZvQCPhGAAAABkGb4Aj4RgAAAAZBm/AI+EYAAAAGQZoACPhGAAAABkGaEAj4RgAAAAZBmiAIeEYAAAAGQZowH+EY';
+let awakeV=null;
+const awakeOn=()=>{try{return localStorage.getItem(AW_KEY)==='on'}catch(e){return false}};
+function awakeTick(){
+  try{
+    if(!awakeOn()){if(awakeV){awakeV.pause();awakeV.remove();awakeV=null}return}
+    if(!awakeV){const v=document.createElement('video');v.muted=true;v.loop=true;v.setAttribute('muted','');v.setAttribute('playsinline','');v.style.cssText='position:fixed;right:0;bottom:0;width:4px;height:4px;opacity:.02;pointer-events:none;z-index:2';v.src=AW_SRC;document.body.appendChild(v);awakeV=v}
+    if(awakeV.paused){const p=awakeV.play();if(p&&p.catch)p.catch(()=>{})}
+  }catch(e){}
+}
+setInterval(awakeTick,5000);setTimeout(awakeTick,1000);
 (function(){const b=document.getElementById('fs'),d=document.documentElement;
   if(!d.requestFullscreen){b.style.display='none';return} // 아이패드 Safari는 미지원 → 홈 화면에 추가해서 전체화면으로 사용
   b.onclick=()=>{document.fullscreenElement?document.exitFullscreen():d.requestFullscreen().catch(()=>{})}})();
 
 document.addEventListener('click',async e=>{
-  bump();wake();
+  bump();wake();awakeTick();
   if(e.target.id==='ov'){closeOv();return}
   const t=e.target.closest('button,[data-sel],[data-bx],[data-gokid],[data-gotab],[data-pick],[data-zoom],[data-tov],[data-famimg]');if(!t||t.id==='fs')return;
   if(t.id==='dimbtn'){dimManual=true;dimTick();return}
@@ -3377,6 +3392,7 @@ document.addEventListener('change',e=>{
   else if(D.dpn!==undefined){const c=drawCfg(),it=c.items.map(x=>Object.assign({},x));if(it[+D.dpn])it[+D.dpn].n=t.value;S.drawCfg=Object.assign(c,{items:it})}
   else if(D.dpc!==undefined){const c=drawCfg(),it=c.items.map(x=>Object.assign({},x));if(it[+D.dpc])it[+D.dpc].c=Math.max(0,Math.min(150,Math.round(+t.value)||0));S.drawCfg=Object.assign(c,{items:it})}
   else if(D.bdc!==undefined){S.bdayCfg=Object.assign(bdayCfg(),{[D.bdc]:(D.bdc==='on'||D.bdc==='voice')?t.checked:D.bdc==='min'?+t.value:t.value})}
+  else if(D.awake!==undefined){try{localStorage.setItem(AW_KEY,t.checked?'on':'off')}catch(e){}awakeTick();setTimeout(()=>{if(tab==='set')render()},800);return}
   else if(D.bdcdev!==undefined){try{localStorage.setItem(BD_AUTO,t.checked?'on':'off')}catch(e){}return}
   else if(D.vsel!==undefined){vSel[D.vsel]=t.value;return}
   else if(D.tsel!==undefined){tSel[D.tsel]=t.value;if(D.tsel==='to'){tSel.theirs=''}render();return}
