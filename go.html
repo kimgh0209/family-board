@@ -70,6 +70,38 @@ input[type=text],input[type=password]{width:100%;padding:12px;border:3px solid #
 .pal{position:absolute;transform:translate(-50%,-50%);pointer-events:none}
 .pal img{display:block;width:100%}
 .pal.card-img img{border-radius:18%;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+/* 지도 첫 화면 */
+#home{position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden}
+#mapslot,#map,#spawns{position:absolute;top:0;left:0;right:0;bottom:0}
+#mapslot{background:var(--scene) center/cover no-repeat,#8bd169}
+#map{z-index:1;background:#bfe6a8}
+#map .leaflet-tile-pane{filter:saturate(1.5) hue-rotate(8deg) brightness(1.03)}
+#map .leaflet-bottom{bottom:calc(172px + env(safe-area-inset-bottom))}
+#spawns{z-index:2;pointer-events:none}
+.spmark{background:none;border:0}
+.spawn{display:block;width:76px;height:76px;animation:bob 1.8s ease-in-out infinite}
+.spawn img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 4px rgba(0,0,0,.4))}
+.spawn img.framed{border-radius:50%;object-fit:cover;border:3px solid #fff}
+.spawn.rocket img{image-rendering:pixelated}
+.spawn.rocket em{position:absolute;right:-4px;top:-6px;font-style:normal;font-size:26px}
+button.spawn{position:absolute;margin:-38px 0 0 -38px;width:84px;height:84px;padding:0;border:0;background:none;box-shadow:none;pointer-events:auto}
+button.spawn:active{transform:scale(.9);box-shadow:none}
+.meicon{width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,rgba(47,111,208,.45) 0 45%,rgba(47,111,208,.15) 46% 70%,transparent 71%)}
+.meicon img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated;margin-top:-10px}
+.fixedme{position:absolute;left:50%;top:54%;margin:-35px 0 0 -35px}
+.hud{position:absolute;left:10px;right:10px;top:calc(10px + env(safe-area-inset-top));z-index:5;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+.hud .me{display:flex;align-items:center;background:#fff;border:3px solid #1d2b53;border-radius:30px;padding:3px 14px 3px 4px;box-shadow:0 4px 0 rgba(29,43,83,.45)}
+.hud .me img{width:42px;height:42px;object-fit:contain;image-rendering:pixelated;margin-right:6px}
+.hud .me b{font-weight:400;font-size:20px;margin-right:10px}
+.geo{max-width:46%;background:rgba(255,255,255,.92);border-radius:14px;padding:5px 10px;font-size:12px;text-align:right}
+.recenter{position:absolute;right:12px;top:calc(84px + env(safe-area-inset-top));z-index:5;width:52px;height:52px;border-radius:50%;padding:0;font-size:24px}
+.foot{position:absolute;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:5}
+.foot .menu{margin:10px -5px 0}
+.foot .menu b{font-size:24px}
+.banner{background:#fff;border:4px double #1f4fa8;border-radius:16px;padding:8px 10px;text-align:center;font-size:15px}
+.banner.bad{color:#c62828;margin-bottom:6px}
+#memobox{position:absolute;left:12px;right:12px;top:calc(140px + env(safe-area-inset-top));z-index:5;background:#fffdf4;border:3px solid #1d2b53;border-radius:18px;padding:10px;box-shadow:0 5px 0 rgba(29,43,83,.35)}
+#memobox input{-webkit-user-select:text;user-select:text}
 /* 탐험 화면 */
 #hunt{-webkit-touch-callout:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
 #hunt .sky{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
@@ -183,11 +215,11 @@ async function putMem(r){
   try{if(!db)throw 0;await dbRun('readwrite',s=>s.put(r))}catch(e){saveBroken=true;alert('추억을 저장하지 못했어요. 저장 공간을 확인해 주세요. 사파리의 "개인정보 보호" 창에서는 저장이 안 돼요.')}
 }
 async function delMem(id){MEM=MEM.filter(x=>x.id!==id);try{if(db)await dbRun('readwrite',s=>s.delete(id))}catch(e){}}
-function samePlace(r,place){                            // 위치를 알면 거리로, 모르면 장소 이름으로 비교해요
+function samePlace(r){                                // 거리로 비교해요. 위치를 모르면 같은 곳으로 셈해요
   if(here&&r.lat!=null)return meters(here,r)<SET().near;
-  return (r.place||'')===(place||'');
+  return true;
 }
-const countHere=(who,place)=>MEM.filter(r=>r.who===who&&dstr(r.id)===dstr(Date.now())&&samePlace(r,place)).length;
+const countHere=who=>MEM.filter(r=>r.who===who&&dstr(r.id)===dstr(Date.now())&&samePlace(r)).length;
 /* ---------- 관리자 설정: 아빠 폰에서 저장하면 설정 저장소를 거쳐 모든 폰에 적용돼요 (사진·위치는 올리지 않아요) ---------- */
 const SET_REPO='kimgh0209/family-go-settings',KEY_NAME='famgo_key';
 const DEF={limit:5,near:500,chii:50,rocket:'normal',bonusMax:2,rename:false,names:['아빠','엄마','한율','이현','서비'],updatedAt:0};
@@ -266,36 +298,97 @@ function revive(who,key){
   if(!isDown(who,key)||shardsOf(who)<1)return;addShard(who,-1);setDown(who,key,false);if(navigator.vibrate)navigator.vibrate(120);
   const f=bagOf(who).find(x=>x.key===key),n=f?f.r.name:'친구',text=`✨ ${n}${batchim(n)?'이':'가'} 다시 기운을 차렸어요!`;
   if(H){$('msg').textContent=text;const m=$('mine');if(m)m.className=m.className.replace(' faint','');
-    $('bar').innerHTML=(leftOf(who)>0?'<button class="go" data-act="hunt">🔍 계속 탐험</button>':'')+'<button data-act="quit">처음으로</button>'}
+    $('bar').innerHTML='<button class="go" data-act="quit">🗺 지도로</button>'}
   else{render()}
 }
 const rkOf=who=>{cfg.rk=cfg.rk||{};return cfg.rk[who]=cfg.rk[who]||{win:0,lose:0,met:0,since:0,day:'',bonus:0}};
 const bonusOf=who=>{const k=(cfg.rk||{})[who];return k&&k.day===dstr(Date.now())?k.bonus:0};
-const leftOf=(who,place)=>Math.max(0,SET().limit+bonusOf(who)-countHere(who,place===undefined?cfg.place:place));
-const huntLabel=n=>n?`탐험 시작!<small>${n>500?'마음껏 잡을 수 있어요':`여기서 ${n}마리 남음`}</small>`:'여기서는 다 잡았어요!<small>다른 곳이나 내일 만나요</small>';
-
+const leftOf=who=>Math.max(0,SET().limit+bonusOf(who)-countHere(who));
 /* ---------- 위치 ---------- */
-let here=null,geoState='',typed=null;                 // typed: 이번에 직접 적은 장소 이름
+let here=null,geoState='📍 위치를 찾는 중...',watchId=null;
 const meters=(a,b)=>{const R=6371000,r=Math.PI/180,x=(b.lon-a.lon)*r*Math.cos((a.lat+b.lat)*r/2),y=(b.lat-a.lat)*r;return Math.sqrt(x*x+y*y)*R};
-function suggestPlace(){                              // 전에 와 본 곳(500m 안)이면 그때 이름을 알려 줘요
-  if(typed!==null)return typed;
-  if(!here)return cfg.place&&!cfg.placeAt?cfg.place:'';
-  if(cfg.place&&cfg.placeAt&&meters(here,cfg.placeAt)<500)return cfg.place;
-  const r=MEM.find(m=>m.place&&m.lat!=null&&meters(here,m)<500);return r?r.place:'';
+function suggestPlace(){                              // 전에 이 근처에서 적어 둔 메모가 있으면 미리 넣어 줘요
+  if(!here)return '';const r=MEM.find(m=>m.place&&m.lat!=null&&meters(here,m)<150);return r?r.place:'';
 }
-function geoRefresh(){                                // 글자를 적는 중이면 화면을 다시 그리지 않아요
-  if(screen!=='home')return;const a=document.activeElement;
-  if(a&&a.id==='place'){$('geo').textContent=geoState}else render();
-}
-function locate(){
+function geoRefresh(){if(screen!=='home')return;if($('mapslot'))updateHome();else render()}
+function locate(){                                    // 걸어 다니면 내 위치가 따라와요
   if(!navigator.geolocation){geoState='위치를 쓸 수 없는 기기예요';return}
-  geoState='위치 확인 중...';
-  navigator.geolocation.getCurrentPosition(p=>{
-    here={lat:+p.coords.latitude.toFixed(5),lon:+p.coords.longitude.toFixed(5)};geoState='📍 위치 확인됨';
-    if(cfg.placeAt&&meters(here,cfg.placeAt)>=SET().near)typed=null;      // 다른 곳에 왔으면 예전에 적은 이름은 비워요
-    geoRefresh();
-  },()=>{geoState='위치를 확인하지 못했어요 (장소 이름은 직접 적을 수 있어요)';geoRefresh()},{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
+  if(watchId!==null)return;
+  watchId=navigator.geolocation.watchPosition(p=>{
+    here={lat:+p.coords.latitude.toFixed(5),lon:+p.coords.longitude.toFixed(5)};geoState='📍 내 위치';geoRefresh();
+  },()=>{if(!here){geoState='📍 위치를 못 찾았어요. 설정에서 위치를 허용해 주세요';geoRefresh()}},{enableHighAccuracy:true,timeout:20000,maximumAge:10000});
 }
+function stopLocate(){if(watchId!==null&&navigator.geolocation.clearWatch)navigator.geolocation.clearWatch(watchId);watchId=null}
+
+/* 지도: OpenStreetMap (Leaflet). 못 불러오면 그림 배경에 친구들이 나타나요 */
+let LMap=null,mapNode=null,meMark=null,meWho='',marks={},follow=true,leafletP=null;
+function loadLeaflet(){
+  if(window.L)return Promise.resolve(true);if(leafletP)return leafletP;
+  return leafletP=new Promise(ok=>{try{
+    const c=document.createElement('link');c.rel='stylesheet';c.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';c.integrity='sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';c.crossOrigin='';document.head.appendChild(c);
+    const j=document.createElement('script');j.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';j.integrity='sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';j.crossOrigin='';
+    j.onload=()=>ok(true);j.onerror=()=>{leafletP=null;ok(false)};document.head.appendChild(j);
+  }catch(e){leafletP=null;ok(false)}});
+}
+async function ensureMap(){
+  if(!here||LMap||!(await loadLeaflet())||!window.L||LMap||screen!=='home'||!$('mapslot'))return;
+  mapNode=document.createElement('div');mapNode.id='map';$('mapslot').appendChild(mapNode);
+  LMap=L.map(mapNode,{zoomControl:false,attributionControl:true}).setView([here.lat,here.lon],18);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(LMap);
+  LMap.on('dragstart',()=>{follow=false});drawSpawns();
+}
+const NEAR_SPAWN=150,SPAWN_MAX=3,SPAWN_LIFE=10*60000;
+let SP=null,spawning=false,spawnSeq=0;
+function newSpot(){                                    // 내 주위 25~65m 어딘가 (지도가 없을 때는 화면 안 어딘가)
+  const a=Math.random()*Math.PI*2,m=25+Math.random()*40,c=here?Math.cos(here.lat*Math.PI/180):1;
+  const used=SP?SP.list.length:0;
+  return {dLat:m*Math.cos(a)/111320,dLon:m*Math.sin(a)/(111320*c),x:[.24,.72,.46,.75][used%4]+(Math.random()-.5)*.1,y:[.32,.42,.66,.7][used%4]+(Math.random()-.5)*.08};
+}
+async function refreshSpawns(){
+  const who=cfg.me;if(!who||spawning)return;
+  if(SP&&here&&!SP.center)SP.center={lat:here.lat,lon:here.lon};          // 위치를 늦게 찾아도 보이던 친구는 그대로
+  if(SP&&(SP.who!==who||Date.now()-SP.at>SPAWN_LIFE||(here&&meters(here,SP.center)>NEAR_SPAWN)))SP=null;
+  if(!SP)SP={who,center:here?{lat:here.lat,lon:here.lon}:null,at:Date.now(),list:[],rolled:false};
+  const mine=SP;spawning=true;
+  try{
+    const want=Math.min(SPAWN_MAX,leftOf(who));
+    let wild=mine.list.filter(x=>x.type==='wild');
+    while(wild.length>want){mine.list.splice(mine.list.indexOf(wild.pop()),1)}
+    if(!mine.rolled){mine.rolled=true;if(!mine.list.some(x=>x.type==='rocket')&&rocketDue(who))mine.list.push(Object.assign({id:++spawnSeq,type:'rocket'},newSpot()))}
+    drawSpawns();
+    for(let n=wild.length;n<want;n++){
+      const w=await pickWild();if(SP!==mine||!w)break;
+      mine.list.push(Object.assign({id:++spawnSeq,type:'wild',w},newSpot()));drawSpawns();
+    }
+  }finally{spawning=false;if(SP!==mine&&screen==='home')refreshSpawns()}   // 찾는 사이에 장소가 바뀌었으면 다시
+}
+const ROCKET_ICON=()=>TR('rocketgrunt');
+const spawnImg=p=>p.type==='rocket'?`<img src="${ROCKET_ICON()}" alt=""><em>🚀</em>`:`<img class="${p.w.show.framed?'framed':''}" src="${p.w.show.src}" alt="">`;
+function drawSpawns(){
+  if(screen!=='home')return;const layer=$('spawns'),list=SP&&SP.who===cfg.me?SP.list:[];
+  if(LMap&&window.L&&here){
+    if(layer)layer.innerHTML='';
+    // 바뀐 것만 고쳐요 (위치가 갱신될 때마다 새로 그리면 누르는 순간 사라질 수 있어요)
+    Object.keys(marks).forEach(id=>{if(!list.some(p=>String(p.id)===id)){marks[id].remove();delete marks[id]}});
+    list.forEach(p=>{if(marks[p.id])return;
+      const c=SP.center||here,m=L.marker([c.lat+p.dLat,c.lon+p.dLon],{icon:L.divIcon({className:'spmark',html:`<div class="spawn ${p.type}">${spawnImg(p)}</div>`,iconSize:[76,76],iconAnchor:[38,60]})}).addTo(LMap);
+      m.on('click',()=>startHunt(p.id));marks[p.id]=m});
+    if(meMark&&meWho!==cfg.me){meMark.remove();meMark=null}
+    if(!meMark){meWho=cfg.me;meMark=L.marker([here.lat,here.lon],{icon:L.divIcon({className:'spmark',html:`<div class="meicon"><img src="${trainerOf(cfg.me)}" alt=""></div>`,iconSize:[70,70],iconAnchor:[35,62]}),interactive:false,zIndexOffset:-100}).addTo(LMap)}
+    else meMark.setLatLng([here.lat,here.lon]);
+    if(follow)LMap.setView([here.lat,here.lon],LMap.getZoom(),{animate:false});
+  }else if(layer){
+    const html=`<div class="meicon fixedme"><img src="${trainerOf(cfg.me)}" alt=""></div>`+list.map(p=>`<button class="spawn ${p.type}" data-spawn="${p.id}" style="left:${p.x*100}%;top:${p.y*100}%">${spawnImg(p)}</button>`).join('');
+    if(layer._drawn!==html){layer._drawn=html;layer.innerHTML=html}
+  }
+  homeTexts();
+}
+function homeTexts(){
+  const g=$('geo'),b=$('banner'),sh=$('shards');if(g)g.textContent=geoState;if(sh)sh.textContent=`💎 ${shardsOf(cfg.me)}`;
+  if(!b)return;const n=leftOf(cfg.me),has=SP&&SP.list.length;
+  b.textContent=n?(has?`친구를 눌러서 만나요! 여기서 ${n>500?'마음껏':n+'마리 더'} 잡을 수 있어요`:'주위를 살펴보는 중... 👀'):'여기서는 다 잡았어요! 다른 곳에 가거나 내일 만나요';
+}
+function updateHome(){homeTexts();drawSpawns();ensureMap();refreshSpawns()}
 
 /* ---------- 그림 ---------- */
 const loadImg=(src,cors)=>new Promise((ok,no)=>{const i=new Image();if(cors)i.crossOrigin='anonymous';const t=setTimeout(()=>no(new Error('timeout')),9000);i.onload=()=>{clearTimeout(t);ok(i)};i.onerror=()=>{clearTimeout(t);no(new Error('img'))};i.src=src});
@@ -396,7 +489,7 @@ async function adminAct(a){
 const palHtml=(r,id)=>`<div class="pal" data-pal="${id}" style="left:${r.pos.x*100}%;top:${r.pos.y*100}%;width:${r.pos.w*100}%"><img alt="${esc(r.name)}"></div>`;
 const frameHtml=r=>`<div class="frame" style="padding-top:${(r.ratio||1.33)*100}%"><img class="bg" src="${r.photo||sceneSrc(r.bg)}" alt="">${palHtml(r,r.id)}</div>`;
 const bagImg=r=>`<div class="bagimg t${r.kind==='chii'?5:Math.abs(+r.cid||0)%5}" data-pal="${r.id}"><img alt="${esc(r.name)}"></div>`;
-const memCard=r=>`<button class="mem" data-open="${r.id}">${frameHtml(r)}<b>${esc(r.name)}</b>${esc(r.place||'장소 이름 없음')}<br>${dstr(r.id)} · ${esc(r.who)}</button>`;
+const memCard=r=>`<button class="mem" data-open="${r.id}">${frameHtml(r)}<b>${esc(r.name)}</b>${esc(r.place||'메모 없음')}<br>${dstr(r.id)} · ${esc(r.who)}</button>`;
 function fillPals(){document.querySelectorAll('[data-pal]').forEach(async el=>{const r=MEM.find(m=>m.id===+el.dataset.pal);if(!r)return;const s=await palSrc(r);el.classList.toggle('card-img',s.framed);el.querySelector('img').src=s.src})}
 function render(){
   const app=$('app');
@@ -407,21 +500,19 @@ function render(){
         <div class="card" style="text-align:center"><div class="tag">🧢 나는 누구야?</div>${meChips(P)}<div class="small">한 번 고르면 이 폰은 계속 내 이름으로 시작해요</div></div></div>`;return;
     }
     cfg.who=cfg.me;
-    const left=leftOf(cfg.who,suggestPlace().trim());
-    app.innerHTML=`<div class="wrap">
-      <header class="hero"><div class="ribbon">우리가족</div><h1 class="logo">포켓몬 탐험</h1>
-        <div class="stage"><img class="h1" src="${ART(25)}" alt=""><img class="h2" src="${trainerOf(cfg.who)}" alt=""><img class="h3" src="${ART(133)}" alt=""></div></header>
-      <div class="card mecard"><img src="${trainerOf(cfg.me)}" alt=""><div>트레이너 <b>${esc(cfg.me)}</b><div class="small">💎 기력의 조각 ${shardsOf(cfg.me)}개</div></div></div>
-      <div class="card"><div class="tag">🗺 지금 어디에 왔어?</div><input type="text" id="place" maxlength="30" placeholder="예: 에버랜드, 할머니 댁" value="${esc(suggestPlace())}"><div class="small" id="geo">${esc(geoState)}</div></div>
-      <button class="huntbtn" data-act="hunt" id="huntBtn" ${left?'':'disabled'}><i class="pb"></i><span>${huntLabel(left)}</span></button>
-      <nav class="menu"><button data-act="bag" class="m1"><b>🎒</b>가방<small>${bagOf(cfg.who).length}명</small></button><button data-act="album" class="m2"><b>📖</b>추억 앨범<small>${MEM.length}개</small></button><button data-act="admin" class="m3"><b>⚙️</b>관리자<small>설정</small></button></nav>
-      <p class="note">사진과 추억은 <b>이 휴대폰에만</b> 저장돼요. 소중한 사진은 앨범에서 "사진 저장"을 눌러 두세요.${saveBroken?'<br><b style="color:#c62828">⚠️ 지금은 저장이 안 되는 상태예요.</b>':''}</p></div>`;
+    app.innerHTML=`<div id="home"><div id="mapslot"><div id="spawns"></div></div>
+      <div class="hud"><div class="me"><img src="${trainerOf(cfg.me)}" alt=""><b>${esc(cfg.me)}</b><span id="shards"></span></div><div class="geo" id="geo"></div></div>
+      <button class="recenter" data-act="recenter" aria-label="내 위치로">🎯</button>
+      <div class="foot">${saveBroken?'<div class="banner bad">⚠️ 지금은 저장이 안 되는 상태예요</div>':''}<div class="banner" id="banner"></div>
+      <nav class="menu"><button data-act="bag" class="m1"><b>🎒</b>가방<small>${bagOf(cfg.me).length}명</small></button><button data-act="album" class="m2"><b>📖</b>추억 앨범<small>${MEM.length}개</small></button><button data-act="admin" class="m3"><b>⚙️</b>관리자<small>설정</small></button></nav></div></div>`;
+    if(mapNode){$('mapslot').appendChild(mapNode);if(LMap)setTimeout(()=>{try{LMap.invalidateSize();drawSpawns()}catch(e){}},50)}
+    updateHome();
   }else if(screen==='admin'){
     renderAdmin(app);
   }else if(screen==='album'){
     const kinds=new Set(MEM.map(m=>m.kind+m.cid)).size;
     app.innerHTML=`<div class="wrap"><button class="backb" data-act="home">← 처음으로</button><h2 class="title">📖 추억 앨범</h2><div class="count">모두 ${MEM.length}번 만났고, 서로 다른 친구는 ${kinds}명이에요</div>
-      <div class="grid">${MEM.map(memCard).join('')||'<p class="empty">아직 추억이 없어요. 탐험을 시작해 보세요!</p>'}</div></div>`;
+      <p class="note">사진과 추억은 <b>이 휴대폰에만</b> 저장돼요. 소중한 사진은 추억을 눌러 "사진 저장"을 해 두세요.</p><div class="grid">${MEM.map(memCard).join('')||'<p class="empty">아직 추억이 없어요. 탐험을 시작해 보세요!</p>'}</div></div>`;
     fillPals();
   }else if(screen==='bag'){
     const P=people(),B=bagOf(bagWho),k=(cfg.rk||{})[bagWho]||{};
@@ -440,7 +531,7 @@ function render(){
     const r=MEM.find(m=>m.id===openId);if(!r){screen=back;return render()}
     app.innerHTML=`<div class="wrap"><button class="backb" data-act="back">← ${back==='friend'?'친구':'앨범'}</button><div class="card">${frameHtml(r)}<h2 style="margin:12px 0 4px;text-align:center">${esc(r.name)}</h2>
       <div style="text-align:center">${esc(r.who)}${batchim(r.who)?'이':'가'} 잡았어요<br><span class="small">${nice(r.id)}</span></div>
-      <b>장소</b><input type="text" id="mplace" maxlength="30" placeholder="장소 이름" value="${esc(r.place||'')}">
+      <b>📝 메모</b><input type="text" id="mplace" maxlength="60" placeholder="여기가 어디였는지 적어요" value="${esc(r.place||'')}">
       ${r.lat!=null?`<p><a href="https://maps.apple.com/?ll=${r.lat},${r.lon}&q=${encodeURIComponent(r.place||r.name)}" target="_blank" rel="noopener">🗺 지도에서 보기</a></p>`:''}
       <button class="go big" data-act="share" id="shareBtn" disabled>📤 사진 준비 중...</button>
       <button class="big" data-act="del">🗑 이 추억 지우기</button></div></div>`;
@@ -468,22 +559,20 @@ function rocketDue(who){                              // 로켓단: 처음 한 �
   const mode=SET().rocket;if(mode==='off'||!bagOf(who).some(f=>!isDown(who,f.key)))return false;const k=rkOf(who),often=mode==='often';
   return !k.met||k.since>=(often?1:3)||Math.random()<(often?.5:.25);
 }
-async function startHunt(){
-  const pl=$('place');if(pl){cfg.place=pl.value.trim();cfg.placeAt=here}saveCfg();
-  if(leftOf(cfg.who)<=0){screen='home';render();return}
-  screen='hunt';stopBattle();stopCam();
-  const me=H={who:cfg.who,place:cfg.place,front:false,camOn:!!cfg.cam,scene:sceneNow(),state:'seek',stream:null,wild:null,pos:{x:.5,y:.45,w:.52},rec:null};
+async function startHunt(id){
+  const p=SP&&SP.list.find(x=>x.id===id);if(!p||H)return;
+  if(p.type==='wild'&&leftOf(cfg.me)<=0){updateHome();return}
+  cfg.who=cfg.me;screen='hunt';stopBattle();stopCam();
+  const me=H={who:cfg.me,spawn:id,front:false,camOn:!!cfg.cam,scene:sceneNow(),state:'seek',stream:null,wild:null,pos:{x:.5,y:.45,w:.52},rec:null};
   $('app').innerHTML=`<div id="hunt"><img class="sky" src="${sceneSrc(me.scene)}" alt=""><video id="cam" autoplay playsinline muted style="display:none"></video>
-    <div class="top"><button data-act="quit">✕ 그만</button><span><button data-act="flip" id="flipBtn" style="display:none">🔄</button> <button data-act="camtoggle" id="camBtn"></button></span></div><div id="msg">주위를 살펴보는 중... 👀</div><div class="bottom" id="bar"></div></div>`;
+    <div class="top"><button data-act="quit">✕ 그만</button><span><button data-act="flip" id="flipBtn" style="display:none">🔄</button> <button data-act="camtoggle" id="camBtn"></button></span></div><div id="msg">앗...! 👀</div><div class="bottom" id="bar"></div></div>`;
   camButtons();
   if(me.camOn)await startCam();
   if(H!==me)return;
-  if(rocketDue(me.who)){await sleep(1500);if(H===me)rocketAppear();return}
-  const [w]=await Promise.all([pickWild(),sleep(1500+Math.random()*2500)]);
-  if(H!==me)return;
-  if(!w){$('msg').textContent='친구를 부르지 못했어요. 인터넷을 확인해 주세요';return}
-  if(bagOf(me.who).length){rkOf(me.who).since++;saveCfg()}
-  me.wild=w;me.pos={x:.3+Math.random()*.4,y:.38+Math.random()*.16,w:w.kind==='chii'?.42:.56};
+  await sleep(500);if(H!==me)return;
+  if(p.type==='rocket'){dropSpawn(id);rocketAppear();return}
+  const w=p.w;
+  me.wild=w;me.pos={x:.3+Math.random()*.4,y:.4+Math.random()*.14,w:w.kind==='chii'?.42:.56};
   const el=document.createElement('div');el.id='wild';el.className='appear'+(w.show.framed?' card-img':'');el.innerHTML=`<div class="bob"><img src="${w.show.src}" alt=""></div>`;
   $('hunt').appendChild(el);placeWild();setTimeout(()=>el.classList.remove('appear'),650);
   const b=document.createElement('div');b.id='ball';$('hunt').appendChild(b);moveBall(.5,.84);
@@ -492,6 +581,7 @@ async function startHunt(){
   $('bar').innerHTML='<b style="color:#fff;text-shadow:0 1px 4px #000">몬스터볼을 위로 휙! (눌러도 돼요)</b>';
   if(navigator.vibrate)navigator.vibrate(200);
 }
+function dropSpawn(id){if(SP)SP.list=SP.list.filter(x=>x.id!==id)}
 function camButtons(){
   const c=$('camBtn'),f=$('flipBtn');if(c)c.textContent=H&&H.camOn?'🖼 일반 배경':'📷 카메라 켜기';if(f)f.style.display=H&&H.camOn?'':'none';
 }
@@ -511,7 +601,7 @@ async function startCam(){
   }
 }
 function stopCam(){if(H&&H.stream){H.stream.getTracks().forEach(t=>t.stop());H.stream=null}}
-function quitHunt(){stopBattle();stopCam();H=null;screen='home';render();locate();pullSettings()}
+function quitHunt(){if(H&&H.state==='caught')saveMemo();stopBattle();stopCam();H=null;screen='home';render();locate();pullSettings()}
 function placeWild(){const el=$('wild');if(!el||!H)return;el.style.left=H.pos.x*100+'%';el.style.top=H.pos.y*100+'%';el.style.width=H.pos.w*100+'%'}
 function moveBall(x,y){const b=$('ball');if(b){b.style.left=x*100+'%';b.style.top=y*100+'%'}}
 function snap(){                                      // 화면에 보이는 모습 그대로 카메라 사진을 찍어요 (친구는 따로 겹쳐요)
@@ -539,17 +629,20 @@ async function throwBall(){
   for(let i=1;i<=3;i++){b.className='';void b.offsetWidth;b.className='wob';$('msg').textContent=Array(i).fill('흔들...').join(' ');await sleep(950);if(!alive())return}
   b.className='done';$('msg').textContent='딸깍! ✨';
   [[-70,-40],[60,-50],[0,-90],[-40,30],[55,20]].forEach(p=>{const s=document.createElement('div');s.className='star';s.textContent='⭐';s.style.left=`calc(${me.pos.x*100}% + ${p[0]}px)`;s.style.top=`calc(72% + ${p[1]}px)`;$('hunt').appendChild(s);setTimeout(()=>s.remove(),1100)});
-  me.rec={id:Math.max(Date.now(),MEM.length?MEM[0].id+1:0),who:me.who,place:me.place,lat:here?here.lat:null,lon:here?here.lon:null,kind:me.wild.kind,cid:me.wild.cid,name:me.wild.name,img:me.wild.img,photo:shot,bg:me.scene,ratio,pos:Object.assign({},me.pos)};
+  me.rec={id:Math.max(Date.now(),MEM.length?MEM[0].id+1:0),who:me.who,place:suggestPlace(),lat:here?here.lat:null,lon:here?here.lon:null,kind:me.wild.kind,cid:me.wild.cid,name:me.wild.name,img:me.wild.img,photo:shot,bg:me.scene,ratio,pos:Object.assign({},me.pos)};
   await putMem(me.rec);                               // 잡자마자 저장해요 (사진은 다시 찍을 수 있어요)
   const gotShard=countCatch(me.who);
+  dropSpawn(me.spawn);if(SP)SP.rolled=false;if(bagOf(me.who).length){rkOf(me.who).since++;saveCfg()}
   await sleep(1000);if(!alive())return;
   b.remove();w.style.opacity=1;w.className=me.wild.show.framed?'card-img':'';
   me.state='caught';
   $('msg').textContent=`🎉 ${me.wild.name}${batchim(me.wild.name)?'을':'를'} 잡았어요! 🎒 가방에 쏙!${gotShard?' 💎 기력의 조각 +1':''}`;
-  $('bar').innerHTML='<button class="go" data-act="photo">📸 같이 사진 찍기</button><button data-act="done">이대로 저장</button>';
+  $('bar').innerHTML='<button class="go" data-act="photo">📸 같이 사진 찍기</button><button data-act="done">💾 저장</button>';
+  const m=document.createElement('div');m.id='memobox';m.innerHTML=`<label>📝 여기가 어디야? 메모해 두자</label><input type="text" id="memo" maxlength="60" placeholder="예: 에버랜드 사파리 앞" value="${esc(me.rec.place)}">`;$('hunt').appendChild(m);
 }
+function saveMemo(){const e=$('memo');if(!e||!H||!H.rec)return null;H.rec.place=String(e.value||'').trim();return putMem(H.rec)}
 function photoMode(){
-  H.state='photo';$('msg').textContent='친구를 손가락으로 옮기고 찰칵!';
+  saveMemo();const mb=$('memobox');if(mb)mb.remove();H.state='photo';$('msg').textContent='친구를 손가락으로 옮기고 찰칵!';
   $('bar').innerHTML='<button data-act="smaller">➖</button><button class="shutter" data-act="shutter" aria-label="찰칵"></button><button data-act="bigger">➕</button><br><button data-act="done">끝내기</button>';
   if(!H.camOn)setCam(true,false);
 }
@@ -558,9 +651,9 @@ async function shutter(){
   if(!shot&&H.camOn){$('msg').textContent='카메라가 아직 준비 안 됐어요';return}
   H.rec.photo=shot;H.rec.ratio=screenRatio();H.rec.pos=Object.assign({},H.pos);
   await putMem(H.rec);
-  finishHunt();
+  finishHunt(true);
 }
-function finishHunt(){const id=H&&H.rec&&H.rec.id;stopCam();H=null;if(id){openId=id;back='album';screen='detail'}else screen='home';render()}
+function finishHunt(show){if(H&&H.state==='caught')saveMemo();const id=H&&H.rec&&H.rec.id;stopCam();H=null;if(id&&show){openId=id;back='album';screen='detail'}else screen='home';render()}
 
 /* ---------- 로켓단 배틀 (져도 잡은 친구는 안 사라져요) ---------- */
 const ROCKETS=[['jessiejames-gen1','로켓단 로사와 로이'],['rocketgrunt','로켓단 대원'],['rocketgruntf','로켓단 대원']];
@@ -659,7 +752,7 @@ async function battleEnd(win){
   await sleep(1000);if(H!==me)return;
   if(win){const r=$('rocket');if(r)r.className='fig side blast';$('msg').textContent='로켓단: "이번에도 날아간다~!" 💫';await sleep(1500);if(H!==me)return}
   $('msg').textContent=win?(plus?'🎁 이겼다! 💎 조각 +1, 오늘 한 마리 더!':'🏆 이겼다! 💎 기력의 조각 +1'):shardsOf(me.who)?'잡은 친구는 안 뺏겨요. 다시 살려 줄까?':SHARD_HELP;
-  $('bar').innerHTML=(win?'':reviveBtn(me.who,keyOf(R.mine)))+(leftOf(me.who)>0?'<button class="go" data-act="hunt">🔍 계속 탐험</button>':'')+'<button data-act="quit">처음으로</button>';
+  $('bar').innerHTML=(win?'':reviveBtn(me.who,keyOf(R.mine)))+'<button class="go" data-act="quit">🗺 지도로</button>';
 }
 
 /* ---------- 손가락 ---------- */
@@ -693,7 +786,8 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.fighter){startBattle(t.dataset.fighter)}
   else if(t.dataset.move){battleMove(t.dataset.move)}
   else if(t.dataset.revive){revive(H?H.who:bagWho,t.dataset.revive)}
-  else if(a==='hunt')startHunt();
+  else if(t.dataset.spawn){startHunt(+t.dataset.spawn)}
+  else if(a==='recenter'){follow=true;stopLocate();locate();drawSpawns()}
   else if(a==='home'){screen='home';render();locate();pullSettings()}
   else if(a==='album'){screen='album';render()}
   else if(a==='bag'){if(screen==='home')bagWho=cfg.who;screen='bag';render()}
@@ -706,7 +800,7 @@ document.addEventListener('click',async e=>{
   else if(a==='photo'&&H)photoMode();
   else if(a==='shutter'&&H)shutter();
   else if((a==='bigger'||a==='smaller')&&H){H.pos.w=Math.max(.15,Math.min(.95,H.pos.w*(a==='bigger'?1.18:1/1.18)));placeWild()}
-  else if(a==='done'&&H)finishHunt();
+  else if(a==='done'&&H)finishHunt(false);
   else if(a==='share'&&shareFile){
     if(navigator.canShare&&navigator.canShare({files:[shareFile]}))navigator.share({files:[shareFile]}).catch(()=>{});
     else{const l=document.createElement('a');l.href=URL.createObjectURL(shareFile);l.download=shareFile.name;l.click()}
@@ -716,9 +810,7 @@ document.addEventListener('click',async e=>{
 document.addEventListener('change',async e=>{
   if(e.target.id==='mplace'){const r=MEM.find(m=>m.id===openId);if(r){r.place=e.target.value.trim();await putMem(r);prepareShare(r)}}
 });
-document.addEventListener('input',e=>{if(e.target.id==='place'){typed=e.target.value;cfg.place=typed.trim();cfg.placeAt=here;saveCfg();
-  const n=leftOf(cfg.who),b=$('huntBtn');if(b){b.disabled=!n;b.innerHTML=`<i class="pb"></i><span>${huntLabel(n)}</span>`}}});
-document.addEventListener('visibilitychange',()=>{if(!H){if(!document.hidden){pullSettings();if(screen==='home')locate()}return}if(document.hidden)stopCam();else if(H.camOn)startCam()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopLocate();else locate();if(!H){if(!document.hidden){pullSettings();if(screen==='home')updateHome()}return}if(document.hidden)stopCam();else if(H.camOn)startCam()});
 
 (async()=>{
   try{document.documentElement.style.setProperty('--scene',`url("${sceneSrc(sceneNow())}")`)}catch(e){}
