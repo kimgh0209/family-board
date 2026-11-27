@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="포켓몬탐험">
+<link rel="apple-touch-icon" href="icon.png">
+<title>우리가족 포켓몬 탐험</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#eaf6ff;color:#223}
+button,input{font:inherit}
+button{border:0;border-radius:16px;padding:12px 18px;font-weight:700;background:#fff;color:#223;box-shadow:0 2px 0 rgba(0,0,0,.15)}
+button.go{background:#43a047;color:#fff}
+button.red{background:#e53935;color:#fff}
+button.big{display:block;width:100%;padding:18px;font-size:21px;margin-top:12px}
+button:disabled{opacity:.45}
+.wrap{max-width:520px;margin:0 auto;padding:16px 14px 40px;padding-top:calc(16px + env(safe-area-inset-top))}
+h1{font-size:23px;text-align:center;margin:4px 0 14px}
+.card{background:#fff;border-radius:20px;padding:14px;margin-top:12px;box-shadow:0 2px 8px rgba(0,40,80,.08)}
+.chips button{margin:4px 6px 0 0;padding:9px 15px;background:#eef1f5}
+.chips button.on{background:#e53935;color:#fff}
+input[type=text]{width:100%;padding:12px;border:2px solid #dde3ea;border-radius:12px;margin-top:6px}
+.small{font-size:13px;color:#678;line-height:1.55}
+.grid{display:flex;flex-wrap:wrap;margin:0 -5px}
+.mem{width:calc(50% - 10px);margin:5px;background:#fff;border-radius:16px;padding:6px;box-shadow:0 2px 8px rgba(0,40,80,.1);font-size:13px;text-align:left}
+.mem b{display:block;margin-top:5px;font-size:15px}
+.frame{position:relative;width:100%;overflow:hidden;border-radius:12px;background:linear-gradient(#8fd3ff 0%,#d9f3ff 62%,#8bd169 62%,#5fae45 100%)}
+.frame>.bg{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover}
+.pal{position:absolute;transform:translate(-50%,-50%);pointer-events:none}
+.pal img{display:block;width:100%}
+.pal.card-img img{border-radius:18%;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+/* 탐험 화면 */
+#hunt{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+#hunt .sky{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(#8fd3ff 0%,#d9f3ff 62%,#8bd169 62%,#5fae45 100%)}
+#cam{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+#cam.mirror{transform:scaleX(-1)}
+.top{position:absolute;left:10px;right:10px;top:calc(10px + env(safe-area-inset-top));display:flex;justify-content:space-between;z-index:5}
+#msg{position:absolute;left:12px;right:12px;top:calc(70px + env(safe-area-inset-top));background:rgba(255,255,255,.93);border-radius:16px;padding:12px;text-align:center;font-size:19px;font-weight:700;z-index:4}
+#msg:empty{display:none}
+#wild{position:absolute;transform:translate(-50%,-50%);z-index:2;transition:opacity .3s}
+#wild img{display:block;width:100%}
+#wild.card-img img{border-radius:18%;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+#wild .bob{animation:bob 1.6s ease-in-out infinite}
+#wild.appear .bob{animation:appear .6s}
+#wild.suck .bob{animation:suck .55s ease-in forwards}
+#ball{position:absolute;width:76px;height:76px;margin:-38px 0 0 -38px;border:4px solid #222;border-radius:50%;background:linear-gradient(#e53935 0%,#e53935 45%,#222 45%,#222 55%,#fff 55%,#fff 100%);z-index:3}
+#ball:after{content:'';position:absolute;left:23px;top:23px;width:22px;height:22px;border:4px solid #222;border-radius:50%;background:#fff}
+#ball.wob{animation:wob .7s ease-in-out}
+#ball.done:after{background:#ffeb3b}
+.bottom{position:absolute;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom));text-align:center;z-index:5}
+.bottom button{margin:4px}
+.shutter{width:78px;height:78px;border-radius:50%;background:#fff;border:6px solid #cfd8dc;padding:0;vertical-align:middle}
+.star{position:absolute;font-size:34px;z-index:4;animation:star 1s ease-out forwards}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+@keyframes appear{0%{transform:scale(.1);opacity:0}70%{transform:scale(1.2);opacity:1}100%{transform:scale(1)}}
+@keyframes suck{35%{transform:scale(1.1);filter:brightness(4)}100%{transform:scale(.05);opacity:0;filter:brightness(4)}}
+@keyframes wob{25%{transform:translateX(-18px) rotate(-35deg)}55%{transform:translateX(18px) rotate(35deg)}80%{transform:translateX(-6px) rotate(-12deg)}}
+@keyframes star{0%{opacity:0;transform:scale(.2)}35%{opacity:1}100%{opacity:0;transform:translateY(-60px) scale(1.2)}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const API='https://pokeapi.co/api/v2/';
+const ART=id=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+const AL='https://s4.anilist.co/file/anilistcdn/character/large/';           // 가족보드 치이카와 마을과 같은 그림
+const CHII=[[288497,'치이카와','b288497-SwvcX32INEHD.png'],[288498,'하치와레','b288498-OdHiY9TX3Qpm.png'],[288499,'우사기','b288499-BR8llXagiDBS.png'],[288500,'모몽가','b288500-5e0XSZz0W97a.png'],[288503,'라코','b288503-nBgwdHdBixfG.png'],[288502,'쿠리만쥬','b288502-aepNSDaAQQev.png'],[320258,'시사','b320258-nu08J3r0IZ21.png'],[288501,'포셰트 갑옷씨','b288501-1HKeRw1U4PWB.png'],[288507,'노동 갑옷씨','b288507-lZEhW71MnC1u.png'],[288508,'라멘 갑옷씨','b288508-TIwVO7FlM5qA.png']];
+const SPARE=[[25,'피카츄'],[133,'이브이'],[1,'이상해씨'],[4,'파이리'],[7,'꼬부기'],[39,'푸린'],[52,'나옹'],[54,'고라파덕'],[143,'잠만보'],[151,'뮤'],[175,'토게피'],[94,'팬텀']];   // 도감을 못 읽을 때 써요
+const CHII_RATE=.5,DEX_MAX=1025;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const batchim=w=>{const c=String(w).charCodeAt(String(w).length-1)-44032;return c>=0&&c<11172&&c%28>0};
+const dstr=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const nice=t=>{const d=new Date(t);return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 ${d.getHours()}시 ${String(d.getMinutes()).padStart(2,'0')}분`};
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ---------- 저장 (사진까지 이 휴대폰 안에만) ---------- */
+let MEM=[],db=null,saveBroken=false;
+const CFG_KEY='famgo_cfg';
+let cfg={who:'아빠',limit:3,place:'',placeAt:null};
+try{Object.assign(cfg,JSON.parse(localStorage.getItem(CFG_KEY)||'{}'))}catch(e){}
+const saveCfg=()=>{try{localStorage.setItem(CFG_KEY,JSON.stringify(cfg))}catch(e){}};
+function openDb(){return new Promise((ok,no)=>{try{const r=indexedDB.open('famgo',1);r.onupgradeneeded=()=>r.result.createObjectStore('mem',{keyPath:'id'});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)}catch(e){no(e)}})}
+function dbRun(mode,fn){return new Promise((ok,no)=>{const t=db.transaction('mem',mode),q=fn(t.objectStore('mem'));t.oncomplete=()=>ok(q&&q.result);t.onerror=t.onabort=()=>no(t.error)})}
+async function loadMem(){
+  try{db=await openDb();MEM=(await dbRun('readonly',s=>s.getAll()))||[]}catch(e){db=null;saveBroken=true}
+  MEM.sort((a,b)=>b.id-a.id);
+}
+async function putMem(r){
+  const i=MEM.findIndex(x=>x.id===r.id);if(i<0)MEM.unshift(r);else MEM[i]=r;
+  try{if(!db)throw 0;await dbRun('readwrite',s=>s.put(r))}catch(e){saveBroken=true;alert('추억을 저장하지 못했어요. 저장 공간을 확인해 주세요. 사파리의 "개인정보 보호" 창에서는 저장이 안 돼요.')}
+}
+async function delMem(id){MEM=MEM.filter(x=>x.id!==id);try{if(db)await dbRun('readwrite',s=>s.delete(id))}catch(e){}}
+const todayCount=who=>MEM.filter(r=>r.who===who&&dstr(r.id)===dstr(Date.now())).length;
+function people(){                                     // 가족보드를 쓰던 브라우저라면 이름을 그대로 가져와요
+  try{const S=JSON.parse(localStorage.getItem('pkfam3'));const a=(S.parents||[]).concat(S.kids||[]).map(k=>k.name).filter(Boolean);if(a.length)return a}catch(e){}
+  return ['아빠','엄마','한율','이현','서비'];
+}
+
+/* ---------- 위치 ---------- */
+let here=null,geoState='',typed=null;                 // typed: 이번에 직접 적은 장소 이름
+const meters=(a,b)=>{const R=6371000,r=Math.PI/180,x=(b.lon-a.lon)*r*Math.cos((a.lat+b.lat)*r/2),y=(b.lat-a.lat)*r;return Math.sqrt(x*x+y*y)*R};
+function suggestPlace(){                              // 전에 와 본 곳(500m 안)이면 그때 이름을 알려 줘요
+  if(typed!==null)return typed;
+  if(!here)return cfg.place&&!cfg.placeAt?cfg.place:'';
+  if(cfg.place&&cfg.placeAt&&meters(here,cfg.placeAt)<500)return cfg.place;
+  const r=MEM.find(m=>m.place&&m.lat!=null&&meters(here,m)<500);return r?r.place:'';
+}
+function geoRefresh(){                                // 글자를 적는 중이면 화면을 다시 그리지 않아요
+  if(screen!=='home')return;const a=document.activeElement;
+  if(a&&a.id==='place'){$('geo').textContent=geoState}else render();
+}
+function locate(){
+  if(!navigator.geolocation){geoState='위치를 쓸 수 없는 기기예요';return}
+  geoState='위치 확인 중...';
+  navigator.geolocation.getCurrentPosition(p=>{
+    here={lat:+p.coords.latitude.toFixed(5),lon:+p.coords.longitude.toFixed(5)};geoState='📍 위치 확인됨';
+    geoRefresh();
+  },()=>{geoState='위치를 확인하지 못했어요 (장소 이름은 직접 적을 수 있어요)';geoRefresh()},{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
+}
+
+/* ---------- 그림 ---------- */
+const loadImg=(src,cors)=>new Promise((ok,no)=>{const i=new Image();if(cors)i.crossOrigin='anonymous';const t=setTimeout(()=>no(new Error('timeout')),9000);i.onload=()=>{clearTimeout(t);ok(i)};i.onerror=()=>{clearTimeout(t);no(new Error('img'))};i.src=src});
+const CUT={};
+function cutPixels(o){                                // 치이카와 그림의 한 가지 색 배경을 지워요 (가족보드와 같은 방식)
+  const W=o.naturalWidth,H=o.naturalHeight,c=document.createElement('canvas');c.width=W;c.height=H;
+  const x=c.getContext('2d');x.drawImage(o,0,0);
+  const d=x.getImageData(0,0,W,H),p=d.data,N=W*H;
+  if(p[3]<20)return o.src;
+  const edge=[];for(let i=0;i<W;i++)edge.push(i,(H-1)*W+i);for(let j=0;j<H;j++)edge.push(j*W,j*W+W-1);
+  const key=i=>(p[i*4]>>4)+','+(p[i*4+1]>>4)+','+(p[i*4+2]>>4),bins={};let bk='',bc=0;
+  edge.forEach(i=>{const k=key(i);bins[k]=(bins[k]||0)+1;if(bins[k]>bc){bc=bins[k];bk=k}});
+  if(bc/edge.length<.55)return null;
+  let r=0,g=0,b=0,n=0;edge.forEach(i=>{if(key(i)===bk){r+=p[i*4];g+=p[i*4+1];b+=p[i*4+2];n++}});r/=n;g/=n;b/=n;
+  const dist=i=>{const a=p[i*4]-r,e=p[i*4+1]-g,f=p[i*4+2]-b;return a*a+e*e+f*f},T2=44*44;
+  const seen=new Uint8Array(N),q=new Int32Array(N);let h=0,t=0;
+  const push=i=>{if(!seen[i]&&dist(i)<T2){seen[i]=1;q[t++]=i}};edge.forEach(push);
+  while(h<t){const i=q[h++],cx=i%W;if(cx>0)push(i-1);if(cx<W-1)push(i+1);if(i>=W)push(i-W);if(i<N-W)push(i+W)}
+  if(t<N*.12||t>N*.9)return null;
+  let x0=W,y0=H,x1=0,y1=0;
+  for(let i=0;i<N;i++){
+    if(seen[i]){p[i*4+3]=0;continue}
+    const cx=i%W,cy=(i-cx)/W;
+    if(((cx>0&&seen[i-1])||(cx<W-1&&seen[i+1])||(cy>0&&seen[i-W])||(cy<H-1&&seen[i+W]))&&dist(i)<T2*3)p[i*4+3]=110;
+    if(cx<x0)x0=cx;if(cx>x1)x1=cx;if(cy<y0)y0=cy;if(cy>y1)y1=cy;
+  }
+  if(x1<=x0||y1<=y0)return null;
+  x.putImageData(d,0,0);
+  const c2=document.createElement('canvas');c2.width=x1-x0+1;c2.height=y1-y0+1;c2.getContext('2d').drawImage(c,x0,y0,c2.width,c2.height,0,0,c2.width,c2.height);
+  return c2.toDataURL('image/png');
+}
+async function palSrc(r){                             // {src, framed}: 배경을 못 지우면 둥근 카드 모양으로 보여줘요
+  if(r.kind!=='chii')return {src:r.img,framed:false};
+  if(CUT[r.img])return CUT[r.img];
+  try{const o=await loadImg(r.img+'?c=1',true),u=cutPixels(o);if(u){await loadImg(u);return CUT[r.img]={src:u,framed:false}}}catch(e){}
+  return {src:r.img,framed:true};
+}
+async function pickWild(){                            // 포켓몬 반, 치이카와 반. 그림이 안 뜨면 다시 골라요
+  for(let n=0;n<4;n++){
+    let w;
+    if(Math.random()<CHII_RATE){const c=CHII[Math.floor(Math.random()*CHII.length)];w={kind:'chii',cid:c[0],name:c[1],img:AL+c[2]}}
+    else{
+      let id=1+Math.floor(Math.random()*DEX_MAX),name='';
+      try{const res=await fetch(API+'pokemon-species/'+id);if(!res.ok)throw 0;const s=await res.json();name=(s.names.find(x=>x.language.name==='ko')||{name:s.name}).name}
+      catch(e){const s=SPARE[Math.floor(Math.random()*SPARE.length)];id=s[0];name=s[1]}
+      w={kind:'poke',cid:id,name,img:ART(id)};
+    }
+    try{await loadImg(w.img);w.show=await palSrc(w);return w}catch(e){}
+  }
+  return null;
+}
+
+/* ---------- 화면 ---------- */
+let screen='home',openId=null,H=null,shareFile=null;
+const palHtml=(r,id)=>`<div class="pal" data-pal="${id}" style="left:${r.pos.x*100}%;top:${r.pos.y*100}%;width:${r.pos.w*100}%"><img alt="${esc(r.name)}"></div>`;
+const frameHtml=r=>`<div class="frame" style="padding-top:${(r.ratio||1.33)*100}%">${r.photo?`<img class="bg" src="${r.photo}" alt="">`:''}${palHtml(r,r.id)}</div>`;
+function fillPals(){document.querySelectorAll('[data-pal]').forEach(async el=>{const r=MEM.find(m=>m.id===+el.dataset.pal);if(!r)return;const s=await palSrc(r);el.classList.toggle('card-img',s.framed);el.querySelector('img').src=s.src})}
+function render(){
+  const app=$('app');
+  if(screen==='home'){
+    const left=Math.max(0,cfg.limit-todayCount(cfg.who)),P=people();
+    if(P.indexOf(cfg.who)<0)cfg.who=P[0];
+    app.innerHTML=`<div class="wrap"><h1>🔴 우리가족 포켓몬 탐험</h1>
+      <div class="card"><b>누가 잡을까?</b><div class="chips">${P.map(n=>`<button data-who="${esc(n)}" class="${n===cfg.who?'on':''}">${esc(n)}</button>`).join('')}</div></div>
+      <div class="card"><b>지금 어디에 왔어?</b><input type="text" id="place" maxlength="30" placeholder="예: 에버랜드, 할머니 댁" value="${esc(suggestPlace())}"><div class="small" id="geo">${esc(geoState)}</div></div>
+      <button class="go big" data-act="hunt" ${left?'':'disabled'}>${left?`🔍 탐험 시작 (오늘 ${left}마리 남음)`:'오늘은 다 잡았어요! 내일 또 만나요'}</button>
+      <button class="big" data-act="album">📖 추억 앨범 (${MEM.length})</button>
+      <div class="card small"><b>한 사람이 하루에 잡는 수</b><div class="chips">${[3,5,10].map(n=>`<button data-limit="${n}" class="${n===cfg.limit?'on':''}">${n}마리</button>`).join('')}</div>
+      <p>사진과 추억은 <b>이 휴대폰에만</b> 저장돼요. 앱을 지우거나 인터넷 기록을 지우면 사라지니, 소중한 사진은 앨범에서 "사진 저장"을 눌러 두세요.</p>${saveBroken?'<p style="color:#c00">⚠️ 지금은 저장이 안 되는 상태예요.</p>':''}</div></div>`;
+  }else if(screen==='album'){
+    const kinds=new Set(MEM.map(m=>m.kind+m.cid)).size;
+    app.innerHTML=`<div class="wrap"><button data-act="home">← 처음으로</button><h1>📖 추억 앨범</h1><div class="small" style="text-align:center">모두 ${MEM.length}번 만났고, 서로 다른 친구는 ${kinds}명이에요</div>
+      <div class="grid">${MEM.map(r=>`<button class="mem" data-open="${r.id}">${frameHtml(r)}<b>${esc(r.name)}</b>${esc(r.place||'장소 이름 없음')}<br>${dstr(r.id)} · ${esc(r.who)}</button>`).join('')||'<p style="width:100%;text-align:center">아직 추억이 없어요. 탐험을 시작해 보세요!</p>'}</div></div>`;
+    fillPals();
+  }else if(screen==='detail'){
+    const r=MEM.find(m=>m.id===openId);if(!r){screen='album';return render()}
+    app.innerHTML=`<div class="wrap"><button data-act="album">← 앨범</button><div class="card">${frameHtml(r)}<h1 style="margin:12px 0 4px">${esc(r.name)}</h1>
+      <div style="text-align:center">${esc(r.who)}${batchim(r.who)?'이':'가'} 잡았어요<br><span class="small">${nice(r.id)}</span></div>
+      <b>장소</b><input type="text" id="mplace" maxlength="30" placeholder="장소 이름" value="${esc(r.place||'')}">
+      ${r.lat!=null?`<p><a href="https://maps.apple.com/?ll=${r.lat},${r.lon}&q=${encodeURIComponent(r.place||r.name)}" target="_blank" rel="noopener">🗺 지도에서 보기</a></p>`:''}
+      <button class="go big" data-act="share" id="shareBtn" disabled>📤 사진 준비 중...</button>
+      <button class="big" data-act="del">🗑 이 추억 지우기</button></div></div>`;
+    fillPals();prepareShare(r);
+  }
+}
+async function prepareShare(r){                       // 배경 사진 + 친구를 한 장으로 합쳐 둬요 (누르자마자 공유할 수 있게)
+  shareFile=null;
+  try{
+    const s=await palSrc(r),web=s.src.indexOf('data:')!==0,pal=await loadImg(web?s.src+'?s=1':s.src,web),W=900,Hh=Math.round(W*(r.ratio||1.33));
+    const c=document.createElement('canvas');c.width=W;c.height=Hh;const x=c.getContext('2d');
+    if(r.photo)x.drawImage(await loadImg(r.photo),0,0,W,Hh);else{x.fillStyle='#bfe6ff';x.fillRect(0,0,W,Hh);x.fillStyle='#74c258';x.fillRect(0,Hh*.62,W,Hh*.38)}
+    const pw=W*r.pos.w,ph=pw*pal.naturalHeight/pal.naturalWidth;x.drawImage(pal,W*r.pos.x-pw/2,Hh*r.pos.y-ph/2,pw,ph);
+    x.fillStyle='rgba(0,0,0,.55)';x.fillRect(0,Hh-74,W,74);x.fillStyle='#fff';x.font='bold 30px sans-serif';x.fillText(`${r.name} · ${r.place||''} ${dstr(r.id)}`,22,Hh-27,W-44);
+    const blob=await new Promise(ok=>c.toBlob(ok,'image/jpeg',.9));
+    if(openId!==r.id||!blob)return;
+    shareFile=new File([blob],`추억_${dstr(r.id)}_${r.name}.jpg`,{type:'image/jpeg'});
+    const b=$('shareBtn');if(b){b.disabled=false;b.textContent='📤 사진 저장 · 보내기'}
+  }catch(e){const b=$('shareBtn');if(b&&openId===r.id)b.textContent='이 사진은 합치지 못했어요 (화면 캡처를 써 주세요)'}
+}
+
+/* ---------- 탐험 ---------- */
+async function startHunt(){
+  if(todayCount(cfg.who)>=cfg.limit){render();return}
+  const pl=$('place');cfg.place=pl?pl.value.trim():cfg.place;cfg.placeAt=here;saveCfg();
+  screen='hunt';
+  const me=H={who:cfg.who,place:cfg.place,front:false,state:'seek',stream:null,wild:null,pos:{x:.5,y:.45,w:.52},rec:null};
+  $('app').innerHTML=`<div id="hunt"><div class="sky"></div><video id="cam" autoplay playsinline muted></video>
+    <div class="top"><button data-act="quit">✕ 그만</button><button data-act="flip">🔄 카메라 전환</button></div><div id="msg">주위를 살펴보는 중... 👀</div><div class="bottom" id="bar"></div></div>`;
+  await startCam();
+  if(H!==me)return;
+  const [w]=await Promise.all([pickWild(),sleep(1500+Math.random()*2500)]);
+  if(H!==me)return;
+  if(!w){$('msg').textContent='친구를 부르지 못했어요. 인터넷을 확인해 주세요';return}
+  me.wild=w;me.pos={x:.3+Math.random()*.4,y:.38+Math.random()*.16,w:w.kind==='chii'?.42:.56};
+  const el=document.createElement('div');el.id='wild';el.className='appear'+(w.show.framed?' card-img':'');el.innerHTML=`<div class="bob"><img src="${w.show.src}" alt=""></div>`;
+  $('hunt').appendChild(el);placeWild();setTimeout(()=>el.classList.remove('appear'),650);
+  const b=document.createElement('div');b.id='ball';$('hunt').appendChild(b);moveBall(.5,.84);
+  me.state='ready';
+  $('msg').textContent=`앗! 야생 ${w.name}${batchim(w.name)?'이':'가'} 나타났다!`;
+  $('bar').innerHTML='<b style="color:#fff;text-shadow:0 1px 4px #000">몬스터볼을 위로 휙! (눌러도 돼요)</b>';
+  if(navigator.vibrate)navigator.vibrate(200);
+}
+async function startCam(){
+  const me=H;stopCam();
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:me.front?'user':'environment',width:{ideal:1280}},audio:false});
+    if(H!==me){s.getTracks().forEach(t=>t.stop());return}
+    me.stream=s;const v=$('cam');v.srcObject=s;v.className=me.front?'mirror':'';v.style.display='';v.play().catch(()=>{});
+  }catch(e){const v=$('cam');if(v)v.style.display='none';if(H===me&&me.state==='photo')$('msg').textContent='카메라를 쓸 수 없어요. 설정에서 카메라를 허용해 주세요'}
+}
+function stopCam(){if(H&&H.stream){H.stream.getTracks().forEach(t=>t.stop());H.stream=null}}
+function quitHunt(){stopCam();H=null;screen='home';render()}
+function placeWild(){const el=$('wild');if(!el||!H)return;el.style.left=H.pos.x*100+'%';el.style.top=H.pos.y*100+'%';el.style.width=H.pos.w*100+'%'}
+function moveBall(x,y){const b=$('ball');if(b){b.style.left=x*100+'%';b.style.top=y*100+'%'}}
+function snap(){                                      // 화면에 보이는 모습 그대로 카메라 사진을 찍어요 (친구는 따로 겹쳐요)
+  const v=$('cam'),box=$('hunt');if(!v||!H.stream||!v.videoWidth)return null;
+  const bw=box.clientWidth,bh=box.clientHeight,vw=v.videoWidth,vh=v.videoHeight,k=Math.max(bw/vw,bh/vh),sw=bw/k,sh=bh/k;
+  const W=Math.min(900,Math.round(sw)),Hh=Math.round(W*bh/bw),c=document.createElement('canvas');c.width=W;c.height=Hh;const x=c.getContext('2d');
+  if(H.front){x.translate(W,0);x.scale(-1,1)}
+  x.drawImage(v,(vw-sw)/2,(vh-sh)/2,sw,sh,0,0,W,Hh);
+  return c.toDataURL('image/jpeg',.82);
+}
+const screenRatio=()=>{const b=$('hunt');return b&&b.clientWidth?b.clientHeight/b.clientWidth:1.9};
+async function throwBall(){
+  const me=H;if(!me||me.state!=='ready')return;
+  me.state='throw';$('bar').innerHTML='';
+  const b=$('ball'),w=$('wild'),alive=()=>H===me;
+  b.style.transition='left .6s linear,top .6s cubic-bezier(.2,.7,.4,1),transform .6s linear';b.style.transform='rotate(720deg)';
+  moveBall(me.pos.x,me.pos.y);$('msg').textContent='가라! 몬스터볼!';
+  await sleep(650);if(!alive())return;
+  const shot=snap(),ratio=screenRatio();              // 잡히는 순간의 풍경
+  w.className+=' suck';$('msg').textContent=`${me.wild.name}${batchim(me.wild.name)?'이':'가'} 볼 속으로!`;
+  await sleep(600);if(!alive())return;
+  w.style.opacity=0;b.style.transition='top .45s cubic-bezier(.5,0,.8,.5)';moveBall(me.pos.x,.72);
+  await sleep(750);if(!alive())return;
+  b.style.transform='none';
+  for(let i=1;i<=3;i++){b.className='';void b.offsetWidth;b.className='wob';$('msg').textContent=Array(i).fill('흔들...').join(' ');await sleep(950);if(!alive())return}
+  b.className='done';$('msg').textContent='딸깍! ✨';
+  [[-70,-40],[60,-50],[0,-90],[-40,30],[55,20]].forEach(p=>{const s=document.createElement('div');s.className='star';s.textContent='⭐';s.style.left=`calc(${me.pos.x*100}% + ${p[0]}px)`;s.style.top=`calc(72% + ${p[1]}px)`;$('hunt').appendChild(s);setTimeout(()=>s.remove(),1100)});
+  me.rec={id:Date.now(),who:me.who,place:me.place,lat:here?here.lat:null,lon:here?here.lon:null,kind:me.wild.kind,cid:me.wild.cid,name:me.wild.name,img:me.wild.img,photo:shot,ratio,pos:Object.assign({},me.pos)};
+  await putMem(me.rec);                               // 잡자마자 저장해요 (사진은 다시 찍을 수 있어요)
+  await sleep(1000);if(!alive())return;
+  b.remove();w.style.opacity=1;w.className=me.wild.show.framed?'card-img':'';
+  me.state='caught';
+  $('msg').textContent=`🎉 ${me.wild.name}${batchim(me.wild.name)?'을':'를'} 잡았어요!`;
+  $('bar').innerHTML='<button class="go" data-act="photo">📸 같이 사진 찍기</button><button data-act="done">이대로 저장</button>';
+}
+function photoMode(){
+  H.state='photo';$('msg').textContent='친구를 손가락으로 옮기고 찰칵!';
+  $('bar').innerHTML='<button data-act="smaller">➖</button><button class="shutter" data-act="shutter" aria-label="찰칵"></button><button data-act="bigger">➕</button><br><button data-act="done">끝내기</button>';
+  if(!H.stream)startCam();
+}
+async function shutter(){
+  const shot=snap();
+  if(!shot){$('msg').textContent='카메라가 아직 준비 안 됐어요';return}
+  H.rec.photo=shot;H.rec.ratio=screenRatio();H.rec.pos=Object.assign({},H.pos);
+  await putMem(H.rec);
+  finishHunt();
+}
+function finishHunt(){const id=H&&H.rec&&H.rec.id;stopCam();H=null;if(id){openId=id;screen='detail'}else screen='home';render()}
+
+/* ---------- 손가락 ---------- */
+let touch=null;
+document.addEventListener('pointerdown',e=>{
+  if(!H||e.target.closest('button'))return;
+  if(H.state==='ready'&&(e.target.id==='ball'||e.clientY>innerHeight*.6))touch={type:'ball',y:e.clientY};
+  else if(H.state==='photo'){const r=$('hunt').getBoundingClientRect();touch={type:'drag',dx:H.pos.x-(e.clientX-r.left)/r.width,dy:H.pos.y-(e.clientY-r.top)/r.height}}
+});
+document.addEventListener('pointermove',e=>{
+  if(!H||!touch||touch.type!=='drag')return;
+  const r=$('hunt').getBoundingClientRect(),c=v=>Math.max(.05,Math.min(.95,v));
+  H.pos.x=c((e.clientX-r.left)/r.width+touch.dx);H.pos.y=c((e.clientY-r.top)/r.height+touch.dy);placeWild();
+});
+document.addEventListener('pointerup',e=>{const t=touch;touch=null;if(H&&t&&t.type==='ball'&&e.clientY<=t.y+10)throwBall()});
+document.addEventListener('pointercancel',()=>{touch=null});
+document.addEventListener('click',async e=>{
+  const t=e.target.closest('button');if(!t)return;
+  const a=t.dataset.act;
+  if(t.dataset.who!==undefined){cfg.who=t.dataset.who;saveCfg();render()}
+  else if(t.dataset.limit){cfg.limit=+t.dataset.limit;saveCfg();render()}
+  else if(t.dataset.open){openId=+t.dataset.open;screen='detail';render();scrollTo(0,0)}
+  else if(a==='hunt')startHunt();
+  else if(a==='home'){screen='home';render()}
+  else if(a==='album'){screen='album';render()}
+  else if(a==='quit')quitHunt();
+  else if(a==='flip'&&H){H.front=!H.front;startCam()}
+  else if(a==='photo'&&H)photoMode();
+  else if(a==='shutter'&&H)shutter();
+  else if((a==='bigger'||a==='smaller')&&H){H.pos.w=Math.max(.15,Math.min(.95,H.pos.w*(a==='bigger'?1.18:1/1.18)));placeWild()}
+  else if(a==='done'&&H)finishHunt();
+  else if(a==='share'&&shareFile){
+    if(navigator.canShare&&navigator.canShare({files:[shareFile]}))navigator.share({files:[shareFile]}).catch(()=>{});
+    else{const l=document.createElement('a');l.href=URL.createObjectURL(shareFile);l.download=shareFile.name;l.click()}
+  }
+  else if(a==='del'){if(confirm('이 추억을 지울까요? 되돌릴 수 없어요.')){await delMem(openId);screen='album';render()}}
+});
+document.addEventListener('change',async e=>{
+  if(e.target.id==='mplace'){const r=MEM.find(m=>m.id===openId);if(r){r.place=e.target.value.trim();await putMem(r);prepareShare(r)}}
+});
+document.addEventListener('input',e=>{if(e.target.id==='place'){typed=e.target.value;cfg.place=typed.trim();cfg.placeAt=here;saveCfg()}});
+document.addEventListener('visibilitychange',()=>{if(!H)return;if(document.hidden)stopCam();else startCam()});
+
+(async()=>{
+  render();
+  await loadMem();
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+  render();locate();
+})();
+</script>
+</body>
+</html>
