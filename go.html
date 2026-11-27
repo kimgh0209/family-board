@@ -81,6 +81,7 @@ input[type=text],input[type=password]{width:100%;padding:12px;border:3px solid #
 .gymrow b{display:block;font-weight:400;font-size:19px}.gymrow small{font-size:13px;color:#5a6b8c}
 .boss{text-align:center;background:linear-gradient(#35205f,#7b2d5a);color:#fff}.boss img{display:block;width:60%;margin:0 auto}.boss b{font-weight:400;font-size:21px}
 .pl{width:72px;margin:4px;text-align:center;font-size:14px}.pl img{width:52px;height:52px;object-fit:contain;image-rendering:pixelated}.pl span,.pl small{display:block}.pl small{font-size:11px;color:#5a6b8c}
+.rpick button.on{background:#ffd23f}.rpick button{position:relative}.rpick em{position:absolute;left:4px;top:2px;z-index:1;font-style:normal;background:#d92b25;color:#fff;border-radius:50%;width:22px;height:22px;line-height:22px;font-size:13px}
 .rpick{display:flex;flex-wrap:wrap}.rpick button{width:calc(33.33% - 8px);margin:4px;padding:6px 2px;font-size:13px}.rpick .bagimg{height:76px;background:none}.rpick .bagimg img{max-height:72px}
 .gymdel{display:flex;justify-content:space-between;align-items:center;margin-top:10px}.gymdel button{font-size:13px;padding:5px 12px}
 .timer{background:#fff;border:3px solid #1d2b53;border-radius:16px;padding:6px 14px;font-size:18px}
@@ -681,6 +682,11 @@ async function throwBall(){
   await sleep(750);if(!alive())return;
   b.style.transform='none';
   for(let i=1;i<=3;i++){b.className='';void b.offsetWidth;b.className='wob';$('msg').textContent=Array(i).fill('흔들...').join(' ');await sleep(950);if(!alive())return}
+  if(me.catchP!==undefined&&Math.random()>=me.catchP){     // 레이드 보스는 가끔 튀어나와 도망가요
+    b.remove();w.style.opacity=1;w.className='appear';me.state='fled';$('msg').textContent=`앗! ${me.wild.name}${batchim(me.wild.name)?'이':'가'} 볼에서 튀어나왔다!`;
+    await sleep(1300);if(!alive())return;w.style.opacity=0;$('msg').textContent=`${me.wild.name}${batchim(me.wild.name)?'은':'는'} 도망가 버렸어요 😢 다음 레이드에 또 도전!`;
+    $('bar').innerHTML='<button class="go" data-act="quit">🗺 지도로</button>';return;
+  }
   b.className='done';$('msg').textContent='딸깍! ✨';
   [[-70,-40],[60,-50],[0,-90],[-40,30],[55,20]].forEach(p=>{const s=document.createElement('div');s.className='star';s.textContent='⭐';s.style.left=`calc(${me.pos.x*100}% + ${p[0]}px)`;s.style.top=`calc(72% + ${p[1]}px)`;$('hunt').appendChild(s);setTimeout(()=>s.remove(),1100)});
   me.rec={id:Math.max(Date.now(),MEM.length?MEM[0].id+1:0),who:me.who,place:me.raid||suggestPlace(),lat:here?here.lat:null,lon:here?here.lon:null,kind:me.wild.kind,cid:me.wild.cid,name:me.wild.name,img:me.wild.img,raid:!!me.raid,photo:shot,bg:me.scene,ratio,pos:Object.assign({},me.pos)};
@@ -813,7 +819,9 @@ async function battleEnd(win){
    체육관: 근처 유명한 곳(OpenStreetMap) + 아빠가 직접 만든 곳. 레이드는 체육관 200m 안에 있어야 해요.
    실시간 소식은 Firebase 실시간 데이터베이스로 주고받아요. 이름·친구·체력·체육관 위치만 올리고 사진과 메모는 올리지 않아요. */
 const RAID_RANGE=200,RAID_TIME=120000,RAID_HP=380,RAID_STALE=10*60000,BOSS_HIT=[4,7],BOSS_EVERY=1500,FLUSH_EVERY=900;
-const BOSSES=[[150,'뮤츠'],[149,'망나뇽'],[248,'마기라스'],[384,'레쿠쟈'],[383,'그란돈'],[382,'가이오가'],[249,'루기아'],[250,'칠색조'],[487,'기라티나'],[483,'디아루가'],[484,'펄기아'],[6,'리자몽'],[130,'갸라도스'],[143,'잠만보'],[445,'한카리아스'],[373,'보만다']];
+const BOSSES=[[144,'프리져'],[145,'썬더'],[146,'파이어'],[150,'뮤츠'],[151,'뮤'],[243,'라이코'],[244,'앤테이'],[245,'스이쿤'],[249,'루기아'],[250,'칠색조'],[251,'세레비'],[380,'라티아스'],[381,'라티오스'],[382,'가이오가'],[383,'그란돈'],[384,'레쿠쟈'],[385,'지라치'],[386,'테오키스'],[483,'디아루가'],[484,'펄기아'],[487,'기라티나'],[491,'다크라이'],[492,'쉐이미'],[493,'아르세우스'],[494,'비크티니'],[643,'레시라무'],[644,'제크로무'],[646,'큐레무'],[716,'제르네아스'],[717,'이벨타르'],[718,'지가르데'],[791,'솔가레오'],[792,'루나아라'],[800,'네크로즈마'],[888,'자시안'],[889,'자마젠타'],[890,'무한다이노'],[1007,'코라이돈'],[1008,'미라이돈']];   // 전설·환상의 포켓몬
+const CATCH_P=[.8,.85,.9,.95,1];                     // 레이드 보스 잡기 성공률: 함께 싸운 사람 1명~5명
+const catchChance=n=>CATCH_P[Math.max(1,Math.min(CATCH_P.length,n))-1];
 const hashNum=t=>{let h=2166136261;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0};
 const bossOf=gid=>{const b=BOSSES[hashNum(gid+'|'+dstr(Date.now()))%BOSSES.length];return {kind:'poke',cid:b[0],name:b[1],img:ART(b[0])}};   // 같은 날 같은 체육관은 모두에게 같은 보스
 
@@ -873,10 +881,11 @@ async function loadFamous(){                           // 내 주위 3km의 유�
 const distText=d=>d===undefined?'':d<1000?Math.round(d)+'m':(d/1000).toFixed(1)+'km';
 
 /* 체육관 화면 */
-let gymId='',raid=null,raidStop=null,raidErr='',gymNear=false;
+let gymId='',raid=null,raidStop=null,raidErr='',gymNear=false,raidPick=[];
+const TEAM_MAX=3;                                      // 레이드에 데려가는 친구 수
 function unwatchRaid(){if(raidStop){raidStop();raidStop=null}raid=null;raidErr=''}
 function openGym(id){
-  if(H)return;const g=gymById(id);if(!g)return;gymId=id;screen='gym';unwatchRaid();
+  if(H)return;const g=gymById(id);if(!g)return;gymId=id;screen='gym';unwatchRaid();raidPick=[];
   if(dbReady())try{raidStop=dbWatch('raids/'+id,v=>{raid=v;raidErr='';onRaid()},()=>{raidErr='서버에 연결하지 못했어요. 암호와 서버 주소를 확인해 주세요';if(screen==='gym')render()})}catch(e){raidErr='서버에 연결하지 못했어요'}
   gymNear=!!(here&&meters(here,g)<=RAID_RANGE);render();scrollTo(0,0);
 }
@@ -896,9 +905,11 @@ function renderGym(app){
   else if(raidErr)body=`<div class="card state bad">⚠️ ${esc(raidErr)}</div>`;
   else{
     const on=alive_(raid),list=on?players(raid):[],joined=list.indexOf(me)>=0;
-    const who=on?`<div class="card"><div class="tag">👨‍👩‍👧‍👦 모인 트레이너 ${list.length}명</div><div class="who">${list.map(n=>`<div class="pl"><img src="${trainerOf(n)}" alt=""><span>${esc(n)}</span><small>${esc(((raid.players[n]||{}).friend||{}).name||'')}</small></div>`).join('')}</div></div>`:'';
+    const who=on?`<div class="card"><div class="tag">👨‍👩‍👧‍👦 모인 트레이너 ${list.length}명</div><div class="who">${list.map(n=>`<div class="pl"><img src="${trainerOf(n)}" alt=""><span>${esc(n)}</span><small>${((raid.players[n]||{}).team||[(raid.players[n]||{}).friend||{}]).map(f=>esc((f&&f.name)||'')).join('<br>')}</small></div>`).join('')}</div></div>`:'';
     const mine=bagOf(me).filter(f=>!isDown(me,f.key));
-    const pick=!joined?(mine.length?`<div class="card"><div class="tag">${on?'참가할 친구를 골라요':'🔥 친구를 골라 레이드 열기'}</div><div class="rpick">${mine.map(f=>`<button data-raidjoin="${f.key}">${bagImg(f.r)}${esc(f.r.name)}</button>`).join('')}</div></div>`:'<div class="card state">싸울 수 있는 친구가 없어요. 친구를 잡거나 가방에서 살려 주세요</div>'):'';
+    raidPick=raidPick.filter(k=>mine.some(f=>f.key===k));const need=Math.min(TEAM_MAX,mine.length);
+    const pick=!joined?(mine.length?`<div class="card"><div class="tag">${on?'참가할 친구':'🔥 레이드에 데려갈 친구'}를 ${need}마리까지 골라요</div><div class="rpick">${mine.map(f=>{const i=raidPick.indexOf(f.key);return `<button data-raidpick="${f.key}" class="${i>=0?'on':''}">${i>=0?`<em>${i+1}</em>`:''}${bagImg(f.r)}${esc(f.r.name)}</button>`}).join('')}</div>
+      <button class="red big" data-act="raidjoin" ${raidPick.length?'':'disabled'}>${on?'⚔️ 이 친구들로 참가':'🔥 이 친구들로 레이드 열기'} (${raidPick.length}/${need})</button><div class="small msg">고른 순서대로 나가요. 쓰러지면 다음 친구가 나와요</div></div>`:'<div class="card state">싸울 수 있는 친구가 없어요. 친구를 잡거나 가방에서 살려 주세요</div>'):'';
     const go=joined?(raid.state==='wait'?'<button class="red big" data-act="raidstart">⚔️ 모두 모였으면 시작!</button><div class="small msg">다른 가족도 이 체육관을 누르면 참가할 수 있어요</div><button class="big" data-act="raidleave">나가기</button>':'<button class="red big" data-act="raidenter">⚔️ 함께 싸우러 가기</button>'):'';
     body=who+go+pick;
   }
@@ -908,10 +919,14 @@ function renderGym(app){
 }
 const friendOf=r=>({kind:r.kind,cid:r.cid,name:r.name,img:r.img});
 const safeKey=n=>String(n).replace(/[.$#\[\]\/]/g,'');
-async function raidJoin(key){
-  const g=gymById(gymId),me=cfg.me,f=bagOf(me).find(x=>x.key===key);
-  if(!g||!f||isDown(me,key)||!here||meters(here,g)>RAID_RANGE||!dbReady())return;
-  cfg.raidFriend=key;saveCfg();const p={friend:friendOf(f.r),hp:100,dmg:0,sp:0};
+function raidToggle(key){
+  const i=raidPick.indexOf(key);if(i>=0)raidPick.splice(i,1);else if(raidPick.length<TEAM_MAX)raidPick.push(key);else{raidPick.shift();raidPick.push(key)}
+  if(screen==='gym')render();
+}
+async function raidJoin(){
+  const g=gymById(gymId),me=cfg.me,B=bagOf(me),team=raidPick.slice(0,TEAM_MAX).filter(k=>!isDown(me,k)).map(k=>B.find(x=>x.key===k)).filter(Boolean).map(f=>friendOf(f.r));
+  if(!g||!team.length||!here||meters(here,g)>RAID_RANGE||!dbReady())return;
+  const p={team,friend:team[0],hp:100,dmg:0,sp:0};
   try{
     if(alive_(raid))await db_('PUT',`raids/${g.id}/players/${safeKey(me)}`,p);
     else await db_('PUT','raids/'+g.id,{id:Date.now(),state:'wait',boss:bossOf(g.id),hp:RAID_HP,max:RAID_HP,players:{[safeKey(me)]:p}});
@@ -936,17 +951,28 @@ function onRaid(){
 /* 레이드 전투 */
 async function enterRaid(){
   const me=safeKey(cfg.me),r=raid,g=gymById(gymId);if(H||!g||!alive_(r)||r.state!=='fight'||!r.players||!r.players[me])return;
-  cfg.entered=r.id;saveCfg();const mine=r.players[me].friend,key=keyOf(mine);
+  cfg.entered=r.id;saveCfg();const p=r.players[me],team=(p.team||[p.friend]).filter(Boolean).slice(0,TEAM_MAX);
   screen='hunt';stopCam();cfg.who=cfg.me;
+  const first=team.findIndex(f=>!isDown(cfg.me,keyOf(f)));
   const h=H={who:cfg.me,state:'raid',gym:g,spawn:0,front:false,camOn:false,scene:'night',stream:null,wild:null,pos:{x:.5,y:.42,w:.56},rec:null,
-    rd:{id:r.id,mine,key,my:100,energy:0,pending:0,spAdd:0,auto:0,boss:0,flush:0,paused:false,seen:{},over:false}};
+    rd:{id:r.id,team,i:Math.max(0,first),my:first<0?0:100,energy:0,pending:0,spAdd:0,auto:0,boss:0,flush:0,paused:true,seen:{},over:false}};
   $('app').innerHTML=`<div id="hunt"><img class="sky" src="${sceneSrc('night')}" alt=""><div class="top"><button data-act="quit">✕ 나가기</button><span class="timer" id="timer"></span></div><div id="msg">🔥 레이드 보스 ${esc(r.boss.name)}!</div><div id="team"></div><div class="bottom" id="bar"></div></div>`;
-  const s=await palSrc(mine),mv=await movesOf(mine);if(H!==h)return;h.rd.moves=mv;
-  fig('foe',r.boss.img,'boss');fig('mine',s.src,'raidme'+(s.framed?' card-img':''));
-  [['hpfoe',r.boss.name],['hpme',mine.name]].forEach(a=>{const e=document.createElement('div');e.id=a[0];e.className='hp'+(a[0]==='hpfoe'?' raidhp':'');e.innerHTML=`${esc(a[1])} <span id="${a[0]}n"></span><div class="barbg"><i id="${a[0]}b"></i></div>`;$('hunt').appendChild(e)});
+  const ready=await Promise.all(team.map(async f=>({s:await palSrc(f),mv:await movesOf(f)})));if(H!==h)return;h.rd.ready=ready;
+  fig('foe',r.boss.img,'boss');fig('mine',ready[h.rd.i].s.src,'raidme');
+  ['hpfoe','hpme'].forEach(id=>{const e=document.createElement('div');e.id=id;e.className='hp'+(id==='hpfoe'?' raidhp':'');e.innerHTML=`<span id="${id}name">${id==='hpfoe'?esc(r.boss.name):''}</span> <span id="${id}n"></span><div class="barbg"><i id="${id}b"></i></div>`;$('hunt').appendChild(e)});
+  useFriend(h.rd.i);h.rd.paused=false;h.rd.flush=setInterval(raidFlush,FLUSH_EVERY);raidUpdate();
+  if(first<0)raidFaint();
+}
+function useFriend(i){                                 // i번째 친구가 나가요
+  const R=H.rd,f=R.team[i],d=R.ready[i];R.i=i;R.mine=f;R.key=keyOf(f);R.moves=d.mv;
+  const m=$('mine');if(m){m.className='fig raidme'+(d.s.framed?' card-img':'');const img=m.querySelector('img');if(img)img.src=d.s.src}
+  const n=$('hpmename');if(n)n.textContent=`${f.name} (${i+1}/${R.team.length})`;setHp('hpme',R.my);raidButtons();
+}
+function raidButtons(){
+  const R=H.rd,mv=R.moves,going=!!R.auto;
   $('bar').innerHTML=`<div class="energy" id="energy"><i id="energyi"></i><span id="energyt">필살기 에너지</span></div>
-    <button class="go atk" data-raid="hit" id="atkBtn">👊 ${esc(mv[0])}</button><button class="red spc" data-raid="big" id="spcBtn" disabled>${mv[2]} ${esc(mv[1])}</button>`;
-  h.rd.flush=setInterval(raidFlush,FLUSH_EVERY);setHp('hpme',100);raidUpdate();
+    <button class="go atk" data-raid="hit" id="atkBtn" ${going?'disabled':''}>${going?'👊 공격 중!':'👊 '+esc(mv[0])}</button><button class="red spc" data-raid="big" id="spcBtn" disabled>${mv[2]} ${esc(mv[1])}</button>`;
+  raidBar();
 }
 function raidBar(){
   const R=H&&H.rd;if(!R)return;const full=R.energy>=100,i=$('energyi'),t=$('energyt'),s=$('spcBtn'),e=$('energy');
@@ -982,7 +1008,7 @@ async function raidFlush(){                            // 모은 피해를 한 �
   updateTimer();
   if(raid.state!=='fight')return;
   const d=R.pending,sp=R.spAdd;R.pending=0;R.spAdd=0;
-  const body={[`players/${me}/hp`]:R.my};if(d){body.hp=inc(-d);body[`players/${me}/dmg`]=inc(d)}if(sp)body[`players/${me}/sp`]=inc(sp);
+  const body={[`players/${me}/hp`]:R.my,[`players/${me}/friend`]:R.mine};if(d){body.hp=inc(-d);body[`players/${me}/dmg`]=inc(d)}if(sp)body[`players/${me}/sp`]=inc(sp);
   try{await db_('PATCH','raids/'+h.gym.id,body)}catch(e){R.pending+=d;R.spAdd+=sp}
 }
 function updateTimer(){const t=$('timer');if(t&&raid&&raid.start)t.textContent='⏱ '+Math.max(0,Math.ceil((RAID_TIME-(Date.now()-raid.start))/1000))+'초'}
@@ -996,17 +1022,22 @@ function raidUpdate(){                                 // 서버 소식이 올 �
   if(raid.state==='lost')return raidEnd(false);
   if(hp<=0&&raid.state==='fight')db_('PATCH','raids/'+h.gym.id,{state:'won'}).catch(()=>{});
 }
-function raidFaint(){
+async function raidFaint(){
   const h=H,R=h.rd;setDown(h.who,R.key,true);raidFlush();
-  const n=shardsOf(h.who);$('msg').textContent=`😵 ${R.mine.name}${batchim(R.mine.name)?'이':'가'} 쓰러졌어요!`;
+  $('msg').textContent=`😵 ${R.mine.name}${batchim(R.mine.name)?'이':'가'} 쓰러졌어요!`;
   const m=$('mine');if(m)m.className+=' faint';
+  const next=R.team.findIndex((f,i)=>i!==R.i&&!isDown(h.who,keyOf(f)));
+  if(next>=0){                                         // 다음 친구가 나가요
+    $('bar').innerHTML='';await sleep(1200);if(H!==h||R.over)return;
+    R.my=100;useFriend(next);$('msg').textContent=`가라! ${R.mine.name}!`;raidFlush();return;
+  }
+  const n=shardsOf(h.who);
   $('bar').innerHTML=`<button class="red" data-act="raidrevive" ${n?'':'disabled'}>${n?`✨ 살려서 다시 싸우기 (💎 ${n}개)`:'💎 조각이 없어요 · 가족을 응원해요!'}</button>`;
 }
 function raidRevive(){
   const h=H;if(!h||h.state!=='raid'||h.rd.over||h.rd.my>0||shardsOf(h.who)<1)return;const R=h.rd;
-  addShard(h.who,-1);setDown(h.who,R.key,false);R.my=100;setHp('hpme',100);const m=$('mine');if(m)m.className=m.className.replace(/ faint/g,'');
-  const mv=R.moves;$('bar').innerHTML=`<div class="energy" id="energy"><i id="energyi"></i><span id="energyt">필살기 에너지</span></div><button class="go atk" disabled>👊 공격 중!</button><button class="red spc" data-raid="big" id="spcBtn" disabled>${mv[2]} ${esc(mv[1])}</button>`;
-  $('msg').textContent='✨ 다시 싸워요!';raidBar();raidFlush();
+  addShard(h.who,-1);setDown(h.who,R.key,false);R.my=100;useFriend(R.i);
+  $('msg').textContent='✨ 다시 싸워요!';raidFlush();
 }
 function stopRaid(){const R=H&&H.rd;if(R){clearInterval(R.auto);clearInterval(R.boss);clearInterval(R.flush);R.auto=R.boss=R.flush=0}}
 async function raidEnd(win){
@@ -1019,10 +1050,12 @@ async function raidEnd(win){
   if((cfg.rewarded||[]).indexOf(R.id)<0){cfg.rewarded=(cfg.rewarded||[]).slice(-20).concat(R.id);addShard(h.who,1)}
   const w=Object.assign({},boss);w.show=await palSrc(w);if(H!==h)return;
   ['foe','mine','hpfoe','hpme','team','timer'].forEach(i=>{const e=$(i);if(e)e.remove()});
-  h.state='seek';h.wild=w;h.raid=h.gym.name;h.pos={x:.5,y:.42,w:.62};
+  const team=Math.max(1,players(raid).filter(n=>(raid.players[n].dmg||0)>0).length);
+  h.state='seek';h.wild=w;h.raid=h.gym.name;h.catchP=catchChance(team);h.pos={x:.5,y:.42,w:.62};
   const el=document.createElement('div');el.id='wild';el.className='appear';el.innerHTML=`<div class="bob"><img src="${w.show.src}" alt=""></div>`;$('hunt').appendChild(el);placeWild();
   const b=document.createElement('div');b.id='ball';$('hunt').appendChild(b);moveBall(.5,.84);h.state='ready';
-  $('msg').textContent=`🎁 ${w.name}${batchim(w.name)?'을':'를'} 잡을 기회! (💎 +1)`;$('bar').innerHTML='<b style="color:#fff;text-shadow:0 1px 4px #000">몬스터볼을 위로 휙!</b>';
+  $('msg').textContent=`🎁 ${w.name}${batchim(w.name)?'을':'를'} 잡을 기회! (💎 +1)`;
+  $('bar').innerHTML=`<b style="color:#fff;text-shadow:0 1px 4px #000">몬스터볼을 위로 휙!<br>${h.catchP>=1?'🌟 5명이 함께라서 무조건 잡혀요!':`${team}명이 함께 · 잡을 확률 ${Math.round(h.catchP*100)}%`}</b>`;
 }
 
 /* ---------- 손가락 ---------- */
@@ -1059,7 +1092,8 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.spawn){startHunt(+t.dataset.spawn)}
   else if(a==='gyms'){unwatchRaid();screen='gyms';render();scrollTo(0,0);loadMyGyms();loadFamous()}
   else if(t.dataset.gym){openGym(t.dataset.gym)}
-  else if(t.dataset.raidjoin){raidJoin(t.dataset.raidjoin)}
+  else if(t.dataset.raidpick){raidToggle(t.dataset.raidpick)}
+  else if(a==='raidjoin')raidJoin();
   else if(a==='raidstart')raidStart();
   else if(a==='raidleave')raidLeave();
   else if(a==='raidenter'){cfg.entered=0;enterRaid()}
