@@ -92,6 +92,7 @@ input[type=text],input[type=password]{width:100%;padding:12px;border:3px solid #
 .bottom button{margin:4px}
 .shutter{width:78px;height:78px;border-radius:50%;background:#fff;border:6px solid #cfd8dc;padding:0;vertical-align:middle}
 .star{position:absolute;font-size:34px;z-index:4;animation:star 1s ease-out forwards}
+.down .bagimg img{filter:grayscale(1);opacity:.55;transform:rotate(80deg)}
 .bagimg{height:120px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#eef5ff}
 .bagimg.t0{background:radial-gradient(circle,#fff,#ffd9a8)}.bagimg.t1{background:radial-gradient(circle,#fff,#bfe3ff)}.bagimg.t2{background:radial-gradient(circle,#fff,#c9f2b4)}.bagimg.t3{background:radial-gradient(circle,#fff,#fff0a0)}.bagimg.t4{background:radial-gradient(circle,#fff,#ddd0ff)}.bagimg.t5{background:radial-gradient(circle,#fff,#ffcfe0)}
 .bagimg img{max-width:100%;max-height:112px}
@@ -248,6 +249,15 @@ function sceneSrc(k){
 const keyOf=r=>r.kind+':'+r.cid;
 function bagOf(who){                                   // 그 사람이 잡은 친구들 (같은 친구는 하나로 묶어요)
   const m={},a=[];MEM.forEach(r=>{if(r.who!==who)return;const k=keyOf(r);if(!m[k]){m[k]={key:k,r,n:0};a.push(m[k])}m[k].n++});return a;
+}
+const isDown=(who,key)=>(((cfg.down||{})[who])||[]).indexOf(key)>=0;       // 배틀에서 쓰러진 친구 (살려 줘야 다시 싸워요)
+function setDown(who,key,on){cfg.down=cfg.down||{};const a=(cfg.down[who]||[]).filter(k=>k!==key);if(on)a.push(key);cfg.down[who]=a;saveCfg()}
+function revive(who,key){
+  if(!isDown(who,key))return;setDown(who,key,false);if(navigator.vibrate)navigator.vibrate(120);
+  const f=bagOf(who).find(x=>x.key===key),n=f?f.r.name:'친구',text=`✨ ${n}${batchim(n)?'이':'가'} 다시 기운을 차렸어요!`;
+  if(H){$('msg').textContent=text;const m=$('mine');if(m)m.className=m.className.replace(' faint','');
+    $('bar').innerHTML=(leftOf(who)>0?'<button class="go" data-act="hunt">🔍 계속 탐험</button>':'')+'<button data-act="quit">처음으로</button>'}
+  else{render()}
 }
 const rkOf=who=>{cfg.rk=cfg.rk||{};return cfg.rk[who]=cfg.rk[who]||{win:0,lose:0,met:0,since:0,day:'',bonus:0}};
 const bonusOf=who=>{const k=(cfg.rk||{})[who];return k&&k.day===dstr(Date.now())?k.bonus:0};
@@ -409,11 +419,11 @@ function render(){
     app.innerHTML=`<div class="wrap"><button class="backb" data-act="home">← 처음으로</button><h2 class="title">🎒 ${esc(bagWho)}의 가방</h2>
       ${Q.length>1?`<div class="chips">${Q.map(n=>`<button data-bag="${esc(n)}" class="${n===bagWho?'on':''}">${esc(n)}</button>`).join('')}</div>`:''}
       <p class="count">친구 ${B.length}명 · 로켓단 이긴 횟수 ${k.win||0}번</p>
-      <div class="grid">${B.map(f=>`<button class="mem" data-friend="${f.key}" style="text-align:center">${bagImg(f.r)}<b>${esc(f.r.name)}</b>${f.n>1?'× '+f.n:'&nbsp;'}</button>`).join('')||'<p class="empty">가방이 비어 있어요. 탐험해서 친구를 잡아 보세요!</p>'}</div></div>`;
+      <div class="grid">${B.map(f=>{const d=isDown(bagWho,f.key);return `<button class="mem${d?' down':''}" data-friend="${f.key}" style="text-align:center">${bagImg(f.r)}<b>${esc(f.r.name)}</b>${d?'😵 쓰러짐':f.n>1?'× '+f.n:'&nbsp;'}</button>`}).join('')||'<p class="empty">가방이 비어 있어요. 탐험해서 친구를 잡아 보세요!</p>'}</div></div>`;
     fillPals();
   }else if(screen==='friend'){
     const L=MEM.filter(r=>r.who===bagWho&&keyOf(r)===friendKey);if(!L.length){screen='bag';return render()}
-    app.innerHTML=`<div class="wrap"><button class="backb" data-act="bag">← 가방</button><h2 class="title">${esc(L[0].name)}</h2><div class="card">${bagImg(L[0])}<div class="small" style="text-align:center">${esc(bagWho)}의 친구 · ${L.length}번 만났어요</div></div>
+    app.innerHTML=`<div class="wrap"><button class="backb" data-act="bag">← 가방</button><h2 class="title">${esc(L[0].name)}</h2><div class="card">${bagImg(L[0])}<div class="small" style="text-align:center">${esc(bagWho)}의 친구 · ${L.length}번 만났어요</div>${isDown(bagWho,friendKey)?`<div class="small" style="text-align:center">😵 배틀에서 쓰러졌어요</div><button class="red big" data-revive="${friendKey}">✨ 다시 살리기</button>`:''}</div>
       <div class="grid" style="margin-top:12px">${L.map(memCard).join('')}</div></div>`;
     fillPals();
   }else if(screen==='detail'){
@@ -445,7 +455,7 @@ async function prepareShare(r){                       // 배경 사진 + 친구�
 
 /* ---------- 탐험 ---------- */
 function rocketDue(who){                              // 로켓단: 처음 한 번은 꼭, 그다음은 가끔(4번에 한 번쯤, 오래 안 나오면 꼭)
-  const mode=SET().rocket;if(mode==='off'||!bagOf(who).length)return false;const k=rkOf(who),often=mode==='often';
+  const mode=SET().rocket;if(mode==='off'||!bagOf(who).some(f=>!isDown(who,f.key)))return false;const k=rkOf(who),often=mode==='often';
   return !k.met||k.since>=(often?1:3)||Math.random()<(often?.5:.25);
 }
 async function startHunt(){
@@ -546,8 +556,8 @@ const ROCKETS=[['jessiejames-gen1','로켓단 로사와 로이'],['rocketgrunt',
 const FOES=[[23,'아보'],[24,'아보크'],[109,'또가스'],[110,'또도가스'],[52,'나옹']];
 const pick1=a=>a[Math.floor(Math.random()*a.length)];
 const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-/* 배틀 균형: 공격을 이어 치면 에너지가 차고, 가득 차면 필살기. 로켓단은 스스로 계속 공격해요 */
-const FOE_HP=220,HIT=[5,7],GAIN=13,SPECIAL=[32,40],FOE_HIT=[8,12],FOE_EVERY=1400,TAP_GAP=330;
+/* 배틀 균형: 공격을 한 번 누르면 계속 공격해요. 에너지가 가득 차면 필살기. 로켓단도 스스로 계속 공격해요 */
+const FOE_HP=220,HIT=[5,7],GAIN=13,SPECIAL=[32,40],FOE_HIT=[9,13],FOE_EVERY=1400,HIT_EVERY=500;
 /* ---- 기술 이름: 포켓몬은 타입에 맞게, 치이카와 친구들은 각자 성격에 맞게 ---- [공격, 필살기, 날아가는 그림] */
 const TYPE_MOVE={normal:['몸통박치기','파괴광선','💥'],fire:['불꽃세례','불대문자','🔥'],water:['물대포','하이드로펌프','💧'],electric:['전기쇼크','번개','⚡'],grass:['덩굴채찍','솔라빔','🍃'],ice:['얼음뭉치','눈보라','❄️'],fighting:['태권당수','인파이트','👊'],poison:['독침','오물폭탄','🟣'],ground:['진흙뿌리기','지진','🟤'],flying:['쪼기','폭풍','🌪️'],psychic:['염동력','사이코키네시스','🔮'],bug:['벌레먹음','메가폰','🐛'],rock:['돌떨구기','스톤샤워','☄️'],ghost:['핥기','섀도볼','👻'],dragon:['용의숨결','역린','🐉'],dark:['물기','악의파동','🌑'],steel:['메탈클로','러스터캐논','⚙️'],fairy:['요정의바람','문포스','🌸']};
 const CHII_MOVE={288497:['토벌봉 콕콕','눈물의 용기 일격','⭐'],288498:['토벌봉 휘두르기','"어떻게든 돼!" 파워','🎵'],288499:['우라! 연타','야하!! 회전 폭풍','🌀'],288500:['꼬리 철썩','귀여운 척 대작전','💕'],288503:['라코 베기','번개 일섬','⚔️'],288502:['밤톨 박치기','크으~ 한숨 폭발','🌰'],320258:['시사 박치기','수호신의 포효','🦁'],288501:['포셰트 휘두르기','갑옷 대돌진','👜'],288507:['성실 펀치','월급날 파워','🔨'],288508:['면발 채찍','뜨끈 라멘 파도','🍜']};
@@ -559,7 +569,7 @@ async function movesOf(r){
 function fig(id,src,cls){const e=document.createElement('div');e.id=id;e.className='fig'+(cls?' '+cls:'');e.innerHTML=`<img src="${src}" alt="">`;$('hunt').appendChild(e);return e}
 function rocketAppear(){
   const me=H,k=rkOf(me.who);k.met++;k.since=0;saveCfg();
-  const t=pick1(ROCKETS),f=pick1(FOES);me.state='rocket';me.rk={name:t[1],foe:{id:f[0],name:f[1]},hp:FOE_HP,my:100,heal:2,energy:0,next:0,paused:true,timer:0,hold:0};
+  const t=pick1(ROCKETS),f=pick1(FOES);me.state='rocket';me.rk={name:t[1],foe:{id:f[0],name:f[1]},hp:FOE_HP,my:100,energy:0,paused:true,timer:0,auto:0};
   fig('rocket',TR(t[0]));
   $('msg').textContent=`🚀 앗! ${t[1]}${batchim(t[1])?'이':'가'} 나타났다!`;
   $('bar').innerHTML='<button class="red" data-act="rkpick">⚔️ 배틀하자!</button><button data-act="rkrun">🏃 도망가기</button>';
@@ -568,11 +578,11 @@ function rocketAppear(){
 function rocketPick(){
   if(!H||H.state!=='rocket')return;H.state='pick';
   $('msg').textContent='누가 싸울까? 가방에서 골라요';$('bar').innerHTML='';
-  const p=document.createElement('div');p.id='pick';p.innerHTML=bagOf(H.who).map(f=>`<button data-fighter="${f.key}">${bagImg(f.r)}${esc(f.r.name)}</button>`).join('');
+  const p=document.createElement('div');p.id='pick';p.innerHTML=bagOf(H.who).map(f=>isDown(H.who,f.key)?`<button class="down" disabled>${bagImg(f.r)}😵 ${esc(f.r.name)}</button>`:`<button data-fighter="${f.key}">${bagImg(f.r)}${esc(f.r.name)}</button>`).join('');
   $('hunt').appendChild(p);fillPals();
 }
 async function startBattle(key){
-  const me=H;if(!me||me.state!=='pick')return;const f=bagOf(me.who).find(x=>x.key===key);if(!f)return;
+  const me=H;if(!me||me.state!=='pick')return;const f=bagOf(me.who).find(x=>x.key===key);if(!f||isDown(me.who,key))return;
   me.state='battle';const R=me.rk;R.mine=f.r;$('pick').remove();
   const [s,mv]=await Promise.all([palSrc(f.r),movesOf(f.r)]);if(H!==me)return;R.moves=mv;
   $('rocket').className='fig side';
@@ -580,38 +590,38 @@ async function startBattle(key){
   [['hpfoe',R.foe.name],['hpme',f.r.name]].forEach(a=>{const e=document.createElement('div');e.id=a[0];e.className='hp';e.innerHTML=`${esc(a[1])} <span id="${a[0]}n">${a[0]==='hpfoe'?FOE_HP:100}</span><div class="barbg"><i id="${a[0]}b"></i></div>`;$('hunt').appendChild(e)});
   $('msg').textContent=`가라! ${f.r.name}!`;
   await sleep(900);if(H!==me)return;
-  $('msg').textContent='공격을 연달아 눌러요! (꾹 눌러도 돼요)';
+  $('msg').textContent='공격 버튼을 누르면 싸움이 시작돼요!';
   $('bar').innerHTML=`<div class="energy" id="energy"><i id="energyi"></i><span id="energyt">필살기 에너지</span></div>
-    <button class="go atk" data-move="hit">👊 ${esc(R.moves[0])}</button><button class="red spc" data-move="big" id="spcBtn" disabled>${R.moves[2]} ${esc(R.moves[1])}</button><br><button data-move="heal" id="healBtn" disabled></button>`;
-  R.paused=false;R.timer=setInterval(foeTick,FOE_EVERY);updateBar();
+    <button class="go atk" data-move="hit" id="atkBtn">👊 ${esc(R.moves[0])}</button><button class="red spc" data-move="big" id="spcBtn" disabled>${R.moves[2]} ${esc(R.moves[1])}</button>`;
+  R.paused=false;updateBar();
 }
 function updateBar(){
-  const R=H&&H.rk;if(!R)return;const full=R.energy>=100,i=$('energyi'),t=$('energyt'),s=$('spcBtn'),h=$('healBtn');
+  const R=H&&H.rk;if(!R)return;const full=R.energy>=100,i=$('energyi'),t=$('energyt'),s=$('spcBtn');
   if(i)i.style.width=R.energy+'%';if(t)t.textContent=full?'⚡ 필살기 준비 완료! ⚡':'필살기 에너지';
   const e=$('energy');if(e)e.className='energy'+(full?' full':'');
   if(s){s.disabled=!full;s.className='red spc'+(full?' ready':'')}
-  if(h){h.disabled=!R.heal||R.my>=100;h.textContent=`💖 응원 (${R.heal})`}
 }
-function stopBattle(){const R=H&&H.rk;if(R){clearInterval(R.timer);clearInterval(R.hold);R.timer=R.hold=0}}
+function stopBattle(){const R=H&&H.rk;if(R){clearInterval(R.timer);clearInterval(R.auto);R.timer=R.auto=0}}
 function shoot(emoji,fromX,fromY,toX,toY){            // 기술 그림이 상대에게 날아가요
   const d=document.createElement('div');d.className='fx';d.textContent=emoji;d.style.left=fromX+'%';d.style.top=fromY+'%';$('hunt').appendChild(d);
   void d.offsetWidth;d.style.left=toX+'%';d.style.top=toY+'%';setTimeout(()=>d.remove(),420);
 }
 function foeDamage(d){const R=H.rk;R.hp=Math.max(0,R.hp-d);anim('foe','hit');popText('-'+d,62+rnd(-7,7),28);setHp('hpfoe',R.hp,Math.round(R.hp/FOE_HP*100))}
 function fighting(){return !!(H&&H.state==='battle'&&H.rk&&!H.rk.paused)}
+function autoHit(){
+  if(!fighting()||document.hidden)return;const R=H.rk;
+  anim('mine','lunge');shoot(R.moves[2],36,52,60,34);foeDamage(rnd(HIT[0],HIT[1]));R.energy=Math.min(100,R.energy+GAIN);
+  $('msg').textContent=`${R.mine.name}의 ${R.moves[0]}!`;updateBar();if(R.hp<=0)battleEnd(true);
+}
 function battleMove(mv){
   if(!fighting())return;const R=H.rk;
-  if(mv==='hit'){
-    const now=Date.now();if(now<R.next)return;R.next=now+TAP_GAP;
-    anim('mine','lunge');shoot(R.moves[2],36,52,60,34);foeDamage(rnd(HIT[0],HIT[1]));R.energy=Math.min(100,R.energy+GAIN);
-    $('msg').textContent=`${R.mine.name}의 ${R.moves[0]}!`;updateBar();if(R.hp<=0)battleEnd(true);
-  }else if(mv==='heal'){
-    if(!R.heal||R.my>=100)return;R.heal--;const g=Math.min(100-R.my,rnd(28,38));R.my+=g;
-    $('msg').textContent=`💖 힘내라 ${R.mine.name}! 힘이 솟았다!`;popText('+'+g,32,52);setHp('hpme',R.my);updateBar();
+  if(mv==='hit'&&!R.auto){                             // 한 번만 누르면 끝날 때까지 계속 공격해요
+    const b=$('atkBtn');if(b){b.disabled=true;b.textContent='👊 공격 중!'}
+    R.auto=setInterval(autoHit,HIT_EVERY);R.timer=setInterval(foeTick,FOE_EVERY);autoHit();
   }else if(mv==='big'&&R.energy>=100)special();
 }
 async function special(){                              // 필살기를 쓰는 동안에는 로켓단이 멈춰요
-  const me=H,R=me.rk;R.paused=true;R.energy=0;clearInterval(R.hold);updateBar();
+  const me=H,R=me.rk;R.paused=true;R.energy=0;updateBar();
   const f=document.createElement('div');f.className='spfx';f.innerHTML=`<b>${esc(R.moves[1])}!</b>`;$('hunt').appendChild(f);
   $('msg').textContent=`✨ ${R.mine.name}의 필살기!`;if(navigator.vibrate)navigator.vibrate([80,40,160]);
   await sleep(700);if(H!==me)return;
@@ -632,23 +642,19 @@ async function battleEnd(win){
   const me=H,R=me.rk,k=rkOf(me.who),today=dstr(Date.now());me.state='over';stopBattle();$('bar').innerHTML='';
   let plus=false;
   if(win){k.win++;if(k.day!==today){k.day=today;k.bonus=0}if(k.bonus<SET().bonusMax){k.bonus++;plus=true}}else k.lose++;
-  saveCfg();
+  saveCfg();if(!win)setDown(me.who,keyOf(R.mine),true);
   const lose=$(win?'foe':'mine');if(lose)lose.className+=' faint';
-  $('msg').textContent=win?`🎉 ${R.mine.name}의 승리!`:'😢 졌어요...';
+  $('msg').textContent=win?`🎉 ${R.mine.name}의 승리!`:`😵 ${R.mine.name}${batchim(R.mine.name)?'이':'가'} 쓰러졌어요...`;
   await sleep(1000);if(H!==me)return;
   if(win){const r=$('rocket');if(r)r.className='fig side blast';$('msg').textContent='로켓단: "이번에도 날아간다~!" 💫';await sleep(1500);if(H!==me)return}
-  $('msg').textContent=win?(plus?'🎁 이겼다! 오늘 한 마리 더 잡을 수 있어요':'🏆 이겼다! 로켓단을 물리쳤어요'):'친구들은 모두 안전해요. 다음에 다시 도전! 💪';
-  $('bar').innerHTML=(leftOf(me.who)>0?'<button class="go" data-act="hunt">🔍 계속 탐험</button>':'')+'<button data-act="quit">처음으로</button>';
+  $('msg').textContent=win?(plus?'🎁 이겼다! 오늘 한 마리 더 잡을 수 있어요':'🏆 이겼다! 로켓단을 물리쳤어요'):'잡은 친구는 안 뺏겨요. 다시 살려 줄까?';
+  $('bar').innerHTML=(win?'':`<button class="red" data-revive="${keyOf(R.mine)}">✨ 다시 살리기</button>`)+(leftOf(me.who)>0?'<button class="go" data-act="hunt">🔍 계속 탐험</button>':'')+'<button data-act="quit">처음으로</button>';
 }
 
 /* ---------- 손가락 ---------- */
 let touch=null;
 document.addEventListener('pointerdown',e=>{
-  if(!H)return;const btn=e.target.closest('button');
-  if(btn){                                             // 공격: 누를 때마다, 꾹 누르면 계속
-    if(btn.dataset.move==='hit'&&H.rk){clearInterval(H.rk.hold);battleMove('hit');if(H&&H.rk&&H.state==='battle')H.rk.hold=setInterval(()=>battleMove('hit'),TAP_GAP+30)}
-    return;
-  }
+  if(!H||e.target.closest('button'))return;
   if(H.state==='ready'&&(e.target.id==='ball'||e.clientY>innerHeight*.6))touch={type:'ball',y:e.clientY};
   else if(H.state==='photo'){const r=$('hunt').getBoundingClientRect();touch={type:'drag',dx:H.pos.x-(e.clientX-r.left)/r.width,dy:H.pos.y-(e.clientY-r.top)/r.height}}
 });
@@ -657,9 +663,8 @@ document.addEventListener('pointermove',e=>{
   const r=$('hunt').getBoundingClientRect(),c=v=>Math.max(.05,Math.min(.95,v));
   H.pos.x=c((e.clientX-r.left)/r.width+touch.dx);H.pos.y=c((e.clientY-r.top)/r.height+touch.dy);placeWild();
 });
-const release=()=>{if(H&&H.rk){clearInterval(H.rk.hold);H.rk.hold=0}};
-document.addEventListener('pointerup',e=>{release();const t=touch;touch=null;if(H&&t&&t.type==='ball'&&e.clientY<=t.y+10)throwBall()});
-document.addEventListener('pointercancel',()=>{release();touch=null});
+document.addEventListener('pointerup',e=>{const t=touch;touch=null;if(H&&t&&t.type==='ball'&&e.clientY<=t.y+10)throwBall()});
+document.addEventListener('pointercancel',()=>{touch=null});
 document.addEventListener('contextmenu',e=>{if(H)e.preventDefault()});
 document.addEventListener('click',async e=>{
   const t=e.target.closest('button');if(!t)return;
@@ -675,7 +680,8 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.bag!==undefined){bagWho=t.dataset.bag;render()}
   else if(t.dataset.friend){friendKey=t.dataset.friend;screen='friend';render();scrollTo(0,0)}
   else if(t.dataset.fighter){startBattle(t.dataset.fighter)}
-  else if(t.dataset.move){if(t.dataset.move!=='hit')battleMove(t.dataset.move)}   // 공격은 손가락이 닿는 순간 처리해요
+  else if(t.dataset.move){battleMove(t.dataset.move)}
+  else if(t.dataset.revive){revive(H?H.who:bagWho,t.dataset.revive)}
   else if(a==='hunt')startHunt();
   else if(a==='home'){screen='home';render();locate();pullSettings()}
   else if(a==='album'){screen='album';render()}
