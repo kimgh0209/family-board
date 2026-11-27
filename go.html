@@ -252,8 +252,18 @@ function bagOf(who){                                   // 그 사람이 잡은 �
 }
 const isDown=(who,key)=>(((cfg.down||{})[who])||[]).indexOf(key)>=0;       // 배틀에서 쓰러진 친구 (살려 줘야 다시 싸워요)
 function setDown(who,key,on){cfg.down=cfg.down||{};const a=(cfg.down[who]||[]).filter(k=>k!==key);if(on)a.push(key);cfg.down[who]=a;saveCfg()}
+/* 기력의 조각: 처음 3개, 친구를 3마리 잡을 때마다 1개, 로켓단을 이기면 1개. 쓰러진 친구를 살릴 때 1개 써요 */
+const SHARD_START=3,SHARD_EVERY=3;
+const shardsOf=who=>{const v=(cfg.shard||{})[who];return v===undefined?SHARD_START:v};
+function addShard(who,n){cfg.shard=cfg.shard||{};cfg.shard[who]=Math.max(0,shardsOf(who)+n);saveCfg()}
+function countCatch(who){                              // 조각이 생기면 true
+  cfg.caught=cfg.caught||{};cfg.caught[who]=(cfg.caught[who]||0)+1;saveCfg();
+  if(cfg.caught[who]%SHARD_EVERY)return false;addShard(who,1);return true;
+}
+const reviveBtn=(who,key,cls)=>{const n=shardsOf(who);return `<button class="red${cls||''}" data-revive="${key}" ${n?'':'disabled'}>${n?`✨ 다시 살리기 (💎 ${n}개)`:'💎 조각이 없어요'}</button>`};
+const SHARD_HELP='친구를 3마리 잡거나 로켓단을 이기면 기력의 조각이 생겨요';
 function revive(who,key){
-  if(!isDown(who,key))return;setDown(who,key,false);if(navigator.vibrate)navigator.vibrate(120);
+  if(!isDown(who,key)||shardsOf(who)<1)return;addShard(who,-1);setDown(who,key,false);if(navigator.vibrate)navigator.vibrate(120);
   const f=bagOf(who).find(x=>x.key===key),n=f?f.r.name:'친구',text=`✨ ${n}${batchim(n)?'이':'가'} 다시 기운을 차렸어요!`;
   if(H){$('msg').textContent=text;const m=$('mine');if(m)m.className=m.className.replace(' faint','');
     $('bar').innerHTML=(leftOf(who)>0?'<button class="go" data-act="hunt">🔍 계속 탐험</button>':'')+'<button data-act="quit">처음으로</button>'}
@@ -401,7 +411,7 @@ function render(){
     app.innerHTML=`<div class="wrap">
       <header class="hero"><div class="ribbon">우리가족</div><h1 class="logo">포켓몬 탐험</h1>
         <div class="stage"><img class="h1" src="${ART(25)}" alt=""><img class="h2" src="${trainerOf(cfg.who)}" alt=""><img class="h3" src="${ART(133)}" alt=""></div></header>
-      <div class="card mecard"><img src="${trainerOf(cfg.me)}" alt=""><div>트레이너 <b>${esc(cfg.me)}</b></div></div>
+      <div class="card mecard"><img src="${trainerOf(cfg.me)}" alt=""><div>트레이너 <b>${esc(cfg.me)}</b><div class="small">💎 기력의 조각 ${shardsOf(cfg.me)}개</div></div></div>
       <div class="card"><div class="tag">🗺 지금 어디에 왔어?</div><input type="text" id="place" maxlength="30" placeholder="예: 에버랜드, 할머니 댁" value="${esc(suggestPlace())}"><div class="small" id="geo">${esc(geoState)}</div></div>
       <button class="huntbtn" data-act="hunt" id="huntBtn" ${left?'':'disabled'}><i class="pb"></i><span>${huntLabel(left)}</span></button>
       <nav class="menu"><button data-act="bag" class="m1"><b>🎒</b>가방<small>${bagOf(cfg.who).length}명</small></button><button data-act="album" class="m2"><b>📖</b>추억 앨범<small>${MEM.length}개</small></button><button data-act="admin" class="m3"><b>⚙️</b>관리자<small>설정</small></button></nav>
@@ -418,12 +428,12 @@ function render(){
     const Q=P.filter(n=>n===cfg.me||MEM.some(r=>r.who===n));
     app.innerHTML=`<div class="wrap"><button class="backb" data-act="home">← 처음으로</button><h2 class="title">🎒 ${esc(bagWho)}의 가방</h2>
       ${Q.length>1?`<div class="chips">${Q.map(n=>`<button data-bag="${esc(n)}" class="${n===bagWho?'on':''}">${esc(n)}</button>`).join('')}</div>`:''}
-      <p class="count">친구 ${B.length}명 · 로켓단 이긴 횟수 ${k.win||0}번</p>
+      <p class="count">친구 ${B.length}명 · 로켓단 이긴 횟수 ${k.win||0}번<br>💎 기력의 조각 ${shardsOf(bagWho)}개</p>
       <div class="grid">${B.map(f=>{const d=isDown(bagWho,f.key);return `<button class="mem${d?' down':''}" data-friend="${f.key}" style="text-align:center">${bagImg(f.r)}<b>${esc(f.r.name)}</b>${d?'😵 쓰러짐':f.n>1?'× '+f.n:'&nbsp;'}</button>`}).join('')||'<p class="empty">가방이 비어 있어요. 탐험해서 친구를 잡아 보세요!</p>'}</div></div>`;
     fillPals();
   }else if(screen==='friend'){
     const L=MEM.filter(r=>r.who===bagWho&&keyOf(r)===friendKey);if(!L.length){screen='bag';return render()}
-    app.innerHTML=`<div class="wrap"><button class="backb" data-act="bag">← 가방</button><h2 class="title">${esc(L[0].name)}</h2><div class="card">${bagImg(L[0])}<div class="small" style="text-align:center">${esc(bagWho)}의 친구 · ${L.length}번 만났어요</div>${isDown(bagWho,friendKey)?`<div class="small" style="text-align:center">😵 배틀에서 쓰러졌어요</div><button class="red big" data-revive="${friendKey}">✨ 다시 살리기</button>`:''}</div>
+    app.innerHTML=`<div class="wrap"><button class="backb" data-act="bag">← 가방</button><h2 class="title">${esc(L[0].name)}</h2><div class="card">${bagImg(L[0])}<div class="small" style="text-align:center">${esc(bagWho)}의 친구 · ${L.length}번 만났어요</div>${isDown(bagWho,friendKey)?`<div class="small" style="text-align:center">😵 배틀에서 쓰러졌어요${shardsOf(bagWho)?'':'<br>'+SHARD_HELP}</div>${reviveBtn(bagWho,friendKey,' big')}`:''}</div>
       <div class="grid" style="margin-top:12px">${L.map(memCard).join('')}</div></div>`;
     fillPals();
   }else if(screen==='detail'){
@@ -531,10 +541,11 @@ async function throwBall(){
   [[-70,-40],[60,-50],[0,-90],[-40,30],[55,20]].forEach(p=>{const s=document.createElement('div');s.className='star';s.textContent='⭐';s.style.left=`calc(${me.pos.x*100}% + ${p[0]}px)`;s.style.top=`calc(72% + ${p[1]}px)`;$('hunt').appendChild(s);setTimeout(()=>s.remove(),1100)});
   me.rec={id:Math.max(Date.now(),MEM.length?MEM[0].id+1:0),who:me.who,place:me.place,lat:here?here.lat:null,lon:here?here.lon:null,kind:me.wild.kind,cid:me.wild.cid,name:me.wild.name,img:me.wild.img,photo:shot,bg:me.scene,ratio,pos:Object.assign({},me.pos)};
   await putMem(me.rec);                               // 잡자마자 저장해요 (사진은 다시 찍을 수 있어요)
+  const gotShard=countCatch(me.who);
   await sleep(1000);if(!alive())return;
   b.remove();w.style.opacity=1;w.className=me.wild.show.framed?'card-img':'';
   me.state='caught';
-  $('msg').textContent=`🎉 ${me.wild.name}${batchim(me.wild.name)?'을':'를'} 잡았어요! 🎒 가방에 쏙!`;
+  $('msg').textContent=`🎉 ${me.wild.name}${batchim(me.wild.name)?'을':'를'} 잡았어요! 🎒 가방에 쏙!${gotShard?' 💎 기력의 조각 +1':''}`;
   $('bar').innerHTML='<button class="go" data-act="photo">📸 같이 사진 찍기</button><button data-act="done">이대로 저장</button>';
 }
 function photoMode(){
@@ -641,14 +652,14 @@ function popText(t,x,y){const d=document.createElement('div');d.className='dmg';
 async function battleEnd(win){
   const me=H,R=me.rk,k=rkOf(me.who),today=dstr(Date.now());me.state='over';stopBattle();$('bar').innerHTML='';
   let plus=false;
-  if(win){k.win++;if(k.day!==today){k.day=today;k.bonus=0}if(k.bonus<SET().bonusMax){k.bonus++;plus=true}}else k.lose++;
+  if(win){addShard(me.who,1);k.win++;if(k.day!==today){k.day=today;k.bonus=0}if(k.bonus<SET().bonusMax){k.bonus++;plus=true}}else k.lose++;
   saveCfg();if(!win)setDown(me.who,keyOf(R.mine),true);
   const lose=$(win?'foe':'mine');if(lose)lose.className+=' faint';
   $('msg').textContent=win?`🎉 ${R.mine.name}의 승리!`:`😵 ${R.mine.name}${batchim(R.mine.name)?'이':'가'} 쓰러졌어요...`;
   await sleep(1000);if(H!==me)return;
   if(win){const r=$('rocket');if(r)r.className='fig side blast';$('msg').textContent='로켓단: "이번에도 날아간다~!" 💫';await sleep(1500);if(H!==me)return}
-  $('msg').textContent=win?(plus?'🎁 이겼다! 오늘 한 마리 더 잡을 수 있어요':'🏆 이겼다! 로켓단을 물리쳤어요'):'잡은 친구는 안 뺏겨요. 다시 살려 줄까?';
-  $('bar').innerHTML=(win?'':`<button class="red" data-revive="${keyOf(R.mine)}">✨ 다시 살리기</button>`)+(leftOf(me.who)>0?'<button class="go" data-act="hunt">🔍 계속 탐험</button>':'')+'<button data-act="quit">처음으로</button>';
+  $('msg').textContent=win?(plus?'🎁 이겼다! 💎 조각 +1, 오늘 한 마리 더!':'🏆 이겼다! 💎 기력의 조각 +1'):shardsOf(me.who)?'잡은 친구는 안 뺏겨요. 다시 살려 줄까?':SHARD_HELP;
+  $('bar').innerHTML=(win?'':reviveBtn(me.who,keyOf(R.mine)))+(leftOf(me.who)>0?'<button class="go" data-act="hunt">🔍 계속 탐험</button>':'')+'<button data-act="quit">처음으로</button>';
 }
 
 /* ---------- 손가락 ---------- */
