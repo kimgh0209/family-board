@@ -7,27 +7,65 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="포켓몬탐험">
 <link rel="apple-touch-icon" href="icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
 <title>우리가족 포켓몬 탐험</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#eaf6ff;color:#223}
+body{margin:0;font-family:'Jua',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#1d2b53;min-height:100vh;background:#7cc662}
+body:before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;z-index:-1;background:var(--scene) center/cover no-repeat,#8fd3ff}
 button,input{font:inherit}
-button{border:0;border-radius:16px;padding:12px 18px;font-weight:700;background:#fff;color:#223;box-shadow:0 2px 0 rgba(0,0,0,.15)}
-button.go{background:#43a047;color:#fff}
-button.red{background:#e53935;color:#fff}
-button.big{display:block;width:100%;padding:18px;font-size:21px;margin-top:12px}
-button:disabled{opacity:.45}
-.wrap{max-width:520px;margin:0 auto;padding:16px 14px 40px;padding-top:calc(16px + env(safe-area-inset-top))}
-h1{font-size:23px;text-align:center;margin:4px 0 14px}
-.card{background:#fff;border-radius:20px;padding:14px;margin-top:12px;box-shadow:0 2px 8px rgba(0,40,80,.08)}
-.chips button{margin:4px 6px 0 0;padding:9px 15px;background:#eef1f5}
-.chips button.on{background:#e53935;color:#fff}
-input[type=text]{width:100%;padding:12px;border:2px solid #dde3ea;border-radius:12px;margin-top:6px}
-.small{font-size:13px;color:#678;line-height:1.55}
+button{border:3px solid #1d2b53;border-radius:18px;padding:10px 16px;background:#fff;color:#1d2b53;box-shadow:0 4px 0 #1d2b53}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 #1d2b53}
+button.go{background:linear-gradient(#6ee06a,#34a83a);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+button.red{background:linear-gradient(#ff7a6b,#e0322b);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+button.big{display:block;width:100%;padding:15px;font-size:21px;margin-top:12px}
+button:disabled{opacity:.55}
+.wrap{max-width:520px;margin:0 auto;padding:14px 14px 40px;padding-top:calc(14px + env(safe-area-inset-top))}
+.hero{text-align:center}
+.ribbon{display:inline-block;background:#e0322b;color:#fff;border:3px solid #1d2b53;border-radius:20px;padding:3px 18px;font-size:15px;transform:rotate(-3deg);position:relative;z-index:1}
+.logo{margin:-4px 0 0;font-size:46px;line-height:1.15;color:#ffd23f;-webkit-text-stroke:9px #1f4fa8;paint-order:stroke fill;letter-spacing:1px;filter:drop-shadow(0 5px 0 #12306b)}
+.stage{display:flex;align-items:flex-end;justify-content:center;height:130px}
+.stage img{filter:drop-shadow(0 6px 3px rgba(0,0,0,.25))}
+.stage .h1{width:112px;animation:bob 2.2s ease-in-out infinite}
+.stage .h2{width:112px;height:112px;image-rendering:pixelated;margin:0 -4px}
+.stage .h3{width:104px;animation:bob 2.2s ease-in-out .7s infinite}
+.card{background:rgba(255,255,255,.96);border:3px solid #1d2b53;border-radius:22px;padding:12px;margin-top:14px;box-shadow:0 5px 0 rgba(29,43,83,.45)}
+.tag{display:inline-block;background:#2f6fd0;color:#fff;border-radius:12px;padding:3px 12px;font-size:15px;margin-bottom:6px}
+.mecard{display:flex;align-items:center;justify-content:center;font-size:22px}.mecard img{width:64px;height:64px;object-fit:contain;image-rendering:pixelated;margin-right:10px}.mecard b{font-weight:400;color:#e0322b;font-size:28px}
+.who{display:flex;flex-wrap:wrap;justify-content:center}
+.who button{width:56px;margin:4px 2px;padding:2px 0 4px;background:#eef5ff;font-size:14px}
+.who button img{display:block;width:48px;height:48px;margin:0 auto;object-fit:contain;image-rendering:pixelated}
+.who button.on{background:#ffd23f}
+.huntbtn{display:flex;align-items:center;justify-content:center;width:100%;margin-top:18px;padding:14px;border-radius:32px;background:linear-gradient(#ff7a6b,#d92b25);color:#fff;font-size:28px;text-shadow:0 3px 0 rgba(0,0,0,.3);box-shadow:0 7px 0 #1d2b53}
+.huntbtn small{display:block;font-size:14px;opacity:.95}
+.huntbtn:disabled{background:#90a4ae;opacity:1}
+.pb{display:inline-block;width:52px;height:52px;flex:none;margin-right:14px;border:3px solid #1d2b53;border-radius:50%;background:radial-gradient(circle,#fff 0 17%,#1d2b53 18% 27%,transparent 28%),linear-gradient(#ff5a4e 0 44%,#1d2b53 44% 56%,#fff 56%)}
+.huntbtn:not(:disabled) .pb{animation:shake 2.4s ease-in-out infinite}
+.menu{display:flex;margin:18px -5px 0}
+.menu button{flex:1;margin:0 5px;padding:8px 2px;font-size:16px}
+.menu b{display:block;font-size:30px}
+.menu small{display:block;font-size:12px;opacity:.7}
+.menu .m1{background:#ffe7a3}.menu .m2{background:#c9ecff}.menu .m3{background:#e6dcff}
+.note{background:rgba(255,255,255,.85);border-radius:14px;padding:8px 12px;font-size:12px;line-height:1.6;margin-top:18px;font-family:-apple-system,'Apple SD Gothic Neo',sans-serif}
+.title{text-align:center;background:linear-gradient(#ff6b5e,#d92b25);color:#fff;border:3px solid #1d2b53;border-radius:20px;padding:10px;margin:12px 0 6px;font-weight:400;text-shadow:0 2px 0 rgba(0,0,0,.3);box-shadow:0 5px 0 rgba(29,43,83,.45)}
+.backb{font-size:15px;padding:7px 13px}
+.chips{display:flex;flex-wrap:wrap}
+.chips button{margin:4px 6px 4px 0;padding:7px 10px;background:#eef5ff}
+.chips button.on{background:#ffd23f}
+.chips button:disabled:not(.on){opacity:.4}
+.chips button:disabled.on{opacity:1}
+.state{text-align:center;background:#fff6d6}.state.ok{background:#dcfce0}
+input[type=text],input[type=password]{width:100%;padding:12px;border:3px solid #b8cdf0;border-radius:14px;margin-top:6px;background:#fff;color:#1d2b53}
+.small{font-size:13px;color:#5a6b8c;line-height:1.55}
+.bad{color:#c62828}
+.msg{text-align:center;margin-top:10px}
+.msg:not(:empty){background:#fff;border-radius:12px;padding:8px}
+.count{text-align:center;background:rgba(255,255,255,.9);border-radius:12px;padding:5px}
+.empty{width:100%;text-align:center;background:rgba(255,255,255,.92);border-radius:16px;padding:18px;margin:8px 5px}
 .grid{display:flex;flex-wrap:wrap;margin:0 -5px}
-.mem{width:calc(50% - 10px);margin:5px;background:#fff;border-radius:16px;padding:6px;box-shadow:0 2px 8px rgba(0,40,80,.1);font-size:13px;text-align:left}
-.mem b{display:block;margin-top:5px;font-size:15px}
-.frame{position:relative;width:100%;overflow:hidden;border-radius:12px;background:linear-gradient(#8fd3ff 0%,#d9f3ff 62%,#8bd169 62%,#5fae45 100%)}
+.mem{width:calc(50% - 10px);margin:6px 5px;background:#fffdf4;border-radius:16px;padding:6px;font-size:13px;text-align:left}
+.mem b{display:block;margin-top:5px;font-size:17px;font-weight:400}
+.frame{position:relative;width:100%;overflow:hidden;border-radius:10px;background:#bfe6ff}
 .frame>.bg{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover}
 .pal{position:absolute;transform:translate(-50%,-50%);pointer-events:none}
 .pal img{display:block;width:100%}
@@ -38,7 +76,7 @@ input[type=text]{width:100%;padding:12px;border:2px solid #dde3ea;border-radius:
 #cam{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
 #cam.mirror{transform:scaleX(-1)}
 .top{position:absolute;left:10px;right:10px;top:calc(10px + env(safe-area-inset-top));display:flex;justify-content:space-between;z-index:5}
-#msg{position:absolute;left:12px;right:12px;top:calc(70px + env(safe-area-inset-top));background:rgba(255,255,255,.93);border-radius:16px;padding:12px;text-align:center;font-size:19px;font-weight:700;z-index:4}
+#msg{position:absolute;left:12px;right:12px;top:calc(70px + env(safe-area-inset-top));background:#fff;border:4px double #1f4fa8;border-radius:18px;padding:11px;text-align:center;font-size:20px;z-index:4;box-shadow:0 5px 0 rgba(29,43,83,.35)}
 #msg:empty{display:none}
 #wild{position:absolute;transform:translate(-50%,-50%);z-index:2;transition:opacity .3s}
 #wild img{display:block;width:100%}
@@ -54,7 +92,8 @@ input[type=text]{width:100%;padding:12px;border:2px solid #dde3ea;border-radius:
 .bottom button{margin:4px}
 .shutter{width:78px;height:78px;border-radius:50%;background:#fff;border:6px solid #cfd8dc;padding:0;vertical-align:middle}
 .star{position:absolute;font-size:34px;z-index:4;animation:star 1s ease-out forwards}
-.bagimg{height:120px;display:flex;align-items:center;justify-content:center;background:#f1f6fb;border-radius:12px}
+.bagimg{height:120px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#eef5ff}
+.bagimg.t0{background:radial-gradient(circle,#fff,#ffd9a8)}.bagimg.t1{background:radial-gradient(circle,#fff,#bfe3ff)}.bagimg.t2{background:radial-gradient(circle,#fff,#c9f2b4)}.bagimg.t3{background:radial-gradient(circle,#fff,#fff0a0)}.bagimg.t4{background:radial-gradient(circle,#fff,#ddd0ff)}.bagimg.t5{background:radial-gradient(circle,#fff,#ffcfe0)}
 .bagimg img{max-width:100%;max-height:112px}
 .bagimg.card-img img{border-radius:18%}
 .row2{display:flex;gap:10px}
@@ -88,6 +127,7 @@ input[type=text]{width:100%;padding:12px;border:2px solid #dde3ea;border-radius:
 @keyframes lungeB{45%{transform:translate(-80%,-20%) scale(1.1)}}
 @keyframes faint{to{transform:translate(-50%,20%) scale(.6);opacity:0}}
 @keyframes blast{20%{transform:translate(-50%,-30%) rotate(-15deg)}100%{transform:translate(120%,-420%) rotate(900deg) scale(.1);opacity:0}}
+@keyframes shake{0%,70%,100%{transform:rotate(0)}76%{transform:rotate(-22deg)}84%{transform:rotate(22deg)}92%{transform:rotate(-8deg)}}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
 @keyframes appear{0%{transform:scale(.1);opacity:0}70%{transform:scale(1.2);opacity:1}100%{transform:scale(1)}}
 @keyframes suck{35%{transform:scale(1.1);filter:brightness(4)}100%{transform:scale(.05);opacity:0;filter:brightness(4)}}
@@ -103,7 +143,7 @@ const ART=id=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/
 const AL='https://s4.anilist.co/file/anilistcdn/character/large/';           // 가족보드 치이카와 마을과 같은 그림
 const CHII=[[288497,'치이카와','b288497-SwvcX32INEHD.png'],[288498,'하치와레','b288498-OdHiY9TX3Qpm.png'],[288499,'우사기','b288499-BR8llXagiDBS.png'],[288500,'모몽가','b288500-5e0XSZz0W97a.png'],[288503,'라코','b288503-nBgwdHdBixfG.png'],[288502,'쿠리만쥬','b288502-aepNSDaAQQev.png'],[320258,'시사','b320258-nu08J3r0IZ21.png'],[288501,'포셰트 갑옷씨','b288501-1HKeRw1U4PWB.png'],[288507,'노동 갑옷씨','b288507-lZEhW71MnC1u.png'],[288508,'라멘 갑옷씨','b288508-TIwVO7FlM5qA.png']];
 const SPARE=[[25,'피카츄'],[133,'이브이'],[1,'이상해씨'],[4,'파이리'],[7,'꼬부기'],[39,'푸린'],[52,'나옹'],[54,'고라파덕'],[143,'잠만보'],[151,'뮤'],[175,'토게피'],[94,'팬텀']];   // 도감을 못 읽을 때 써요
-const CHII_RATE=.5,DEX_MAX=1025;
+const DEX_MAX=1025;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const batchim=w=>{const c=String(w).charCodeAt(String(w).length-1)-44032;return c>=0&&c<11172&&c%28>0};
 const dstr=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
@@ -114,9 +154,8 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 /* ---------- 저장 (사진까지 이 휴대폰 안에만) ---------- */
 let MEM=[],db=null,saveBroken=false;
 const CFG_KEY='famgo_cfg';
-let cfg={who:'아빠',limit:5,place:'',placeAt:null,cam:false,rk:{}};
+let cfg={me:'',who:'아빠',place:'',placeAt:null,cam:false,rk:{},local:null,remote:null,pin:''};
 try{Object.assign(cfg,JSON.parse(localStorage.getItem(CFG_KEY)||'{}'))}catch(e){}
-if(!cfg.perPlace){cfg.perPlace=true;cfg.limit=Math.max(5,cfg.limit||5)}   // 예전(하루 3마리) 설정은 장소마다 5마리로 바꿔요
 const saveCfg=()=>{try{localStorage.setItem(CFG_KEY,JSON.stringify(cfg))}catch(e){}};
 function openDb(){return new Promise((ok,no)=>{try{const r=indexedDB.open('famgo',1);r.onupgradeneeded=()=>r.result.createObjectStore('mem',{keyPath:'id'});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)}catch(e){no(e)}})}
 function dbRun(mode,fn){return new Promise((ok,no)=>{const t=db.transaction('mem',mode),q=fn(t.objectStore('mem'));t.oncomplete=()=>ok(q&&q.result);t.onerror=t.onabort=()=>no(t.error)})}
@@ -129,16 +168,53 @@ async function putMem(r){
   try{if(!db)throw 0;await dbRun('readwrite',s=>s.put(r))}catch(e){saveBroken=true;alert('추억을 저장하지 못했어요. 저장 공간을 확인해 주세요. 사파리의 "개인정보 보호" 창에서는 저장이 안 돼요.')}
 }
 async function delMem(id){MEM=MEM.filter(x=>x.id!==id);try{if(db)await dbRun('readwrite',s=>s.delete(id))}catch(e){}}
-const NEAR=500;                                        // 500m 안이면 같은 장소
 function samePlace(r,place){                            // 위치를 알면 거리로, 모르면 장소 이름으로 비교해요
-  if(here&&r.lat!=null)return meters(here,r)<NEAR;
+  if(here&&r.lat!=null)return meters(here,r)<SET().near;
   return (r.place||'')===(place||'');
 }
 const countHere=(who,place)=>MEM.filter(r=>r.who===who&&dstr(r.id)===dstr(Date.now())&&samePlace(r,place)).length;
-function people(){                                     // 가족보드를 쓰던 브라우저라면 이름을 그대로 가져와요
-  try{const S=JSON.parse(localStorage.getItem('pkfam3'));const a=(S.parents||[]).concat(S.kids||[]).map(k=>k.name).filter(Boolean);if(a.length)return a}catch(e){}
-  return ['아빠','엄마','한율','이현','서비'];
+/* ---------- 관리자 설정: 아빠 폰에서 저장하면 설정 저장소를 거쳐 모든 폰에 적용돼요 (사진·위치는 올리지 않아요) ---------- */
+const SET_REPO='kimgh0209/family-go-settings',KEY_NAME='famgo_key';
+const DEF={limit:5,near:500,chii:50,rocket:'normal',bonusMax:2,rename:false,names:['아빠','엄마','한율','이현','서비'],updatedAt:0};
+const OPT={limit:[[3,'3마리'],[5,'5마리'],[10,'10마리'],[999,'제한 없음']],near:[[200,'200m'],[500,'500m'],[1000,'1km']],chii:[[20,'포켓몬 많이'],[50,'반반'],[80,'치이카와 많이']],
+  rocket:[['off','안 나옴'],['normal','가끔'],['often','자주']],bonusMax:[[0,'없음'],[1,'1번'],[2,'2번'],[3,'3번']],rename:[[false,'잠금'],[true,'허용']]};
+function cleanSet(j){                                  // 이상한 값은 기본값으로
+  const o=Object.assign({},DEF);if(!j||typeof j!=='object')return o;
+  Object.keys(OPT).forEach(k=>{if(OPT[k].some(x=>x[0]===j[k]))o[k]=j[k]});
+  if(Array.isArray(j.names)){const n=j.names.map(x=>String(x).trim().slice(0,8)).filter(Boolean).slice(0,8);if(n.length)o.names=n}
+  o.updatedAt=+j.updatedAt||0;return o;
 }
+const shared=()=>!!(cfg.remote&&cfg.remote.updatedAt>0);          // 관리자가 저장한 설정이 있으면 그걸 따라요
+const SET=()=>cleanSet(shared()?cfg.remote:cfg.local);
+const getKey=()=>{try{return localStorage.getItem(KEY_NAME)||''}catch(e){return ''}};
+function gh(path,opt){
+  opt=opt||{};const k=opt.key!==undefined?opt.key:getKey(),h={Accept:opt.raw?'application/vnd.github.raw+json':'application/vnd.github+json'};if(k)h.Authorization='Bearer '+k;
+  return fetch(`https://api.github.com/repos/${SET_REPO}/${path}${opt.body?'':'?t='+Date.now()}`,{method:opt.body?'PUT':'GET',cache:'no-store',headers:h,body:opt.body?JSON.stringify(opt.body):undefined});
+}
+async function pullSettings(){
+  try{
+    let r=await gh('contents/settings.json',{raw:true,key:''}).catch(()=>null);
+    if(!r||!r.ok)r=await fetch(`https://raw.githubusercontent.com/${SET_REPO}/main/settings.json?t=${Date.now()}`,{cache:'no-store'});
+    if(!r.ok)return false;const j=cleanSet(await r.json());
+    if(j.updatedAt>((cfg.remote||{}).updatedAt||0)){cfg.remote=j;saveCfg();if(screen==='home')geoRefresh();return true}
+  }catch(e){}
+  return false;
+}
+async function pushSettings(set,key){                  // 성공하면 '' , 실패하면 안내 글
+  try{
+    const g=await gh('contents/settings.json',{key});
+    if(g.status===401)return '접속 키가 맞지 않아요';
+    if(!g.ok&&g.status!==404)return '설정 저장소를 열지 못했어요 ('+g.status+')';
+    const sha=g.ok?(await g.json()).sha:undefined,body=Object.assign(cleanSet(set),{updatedAt:Date.now()});
+    const p=await gh('contents/settings.json',{key,body:{message:'탐험 앱 설정 변경',sha,content:btoa(unescape(encodeURIComponent(JSON.stringify(body,null,1))))}});
+    if(!p.ok)return p.status===401?'접속 키가 맞지 않아요':(p.status===403||p.status===404)?'이 키에는 설정 저장소에 쓸 권한이 없어요':'저장하지 못했어요 ('+p.status+')';
+    cfg.remote=body;saveCfg();return '';
+  }catch(e){return '인터넷 연결을 확인해 주세요'}
+}
+const people=()=>SET().names;
+const TRAINERS=['red','lyra','ethan','hilda','nate','rosa','brendan','may'];
+const TR=n=>`https://play.pokemonshowdown.com/sprites/trainers/${n}.png`;
+const trainerOf=n=>TR(TRAINERS[Math.max(0,people().indexOf(n))%TRAINERS.length]);
 
 /* ---------- 일반 배경 (카메라를 안 켤 때) ---------- */
 const sceneNow=()=>{const h=new Date().getHours();return h>=6&&h<17?'day':h>=17&&h<20?'sunset':'night'};
@@ -161,8 +237,8 @@ function bagOf(who){                                   // 그 사람이 잡은 �
 }
 const rkOf=who=>{cfg.rk=cfg.rk||{};return cfg.rk[who]=cfg.rk[who]||{win:0,lose:0,met:0,since:0,day:'',bonus:0}};
 const bonusOf=who=>{const k=(cfg.rk||{})[who];return k&&k.day===dstr(Date.now())?k.bonus:0};
-const leftOf=(who,place)=>Math.max(0,cfg.limit+bonusOf(who)-countHere(who,place===undefined?cfg.place:place));
-const huntLabel=n=>n?`🔍 탐험 시작 (여기서 ${n}마리 남음)`:'여기서는 다 잡았어요! 다른 곳이나 내일 만나요';
+const leftOf=(who,place)=>Math.max(0,SET().limit+bonusOf(who)-countHere(who,place===undefined?cfg.place:place));
+const huntLabel=n=>n?`탐험 시작!<small>${n>500?'마음껏 잡을 수 있어요':`여기서 ${n}마리 남음`}</small>`:'여기서는 다 잡았어요!<small>다른 곳이나 내일 만나요</small>';
 
 /* ---------- 위치 ---------- */
 let here=null,geoState='',typed=null;                 // typed: 이번에 직접 적은 장소 이름
@@ -182,7 +258,7 @@ function locate(){
   geoState='위치 확인 중...';
   navigator.geolocation.getCurrentPosition(p=>{
     here={lat:+p.coords.latitude.toFixed(5),lon:+p.coords.longitude.toFixed(5)};geoState='📍 위치 확인됨';
-    if(cfg.placeAt&&meters(here,cfg.placeAt)>=NEAR)typed=null;      // 다른 곳에 왔으면 예전에 적은 이름은 비워요
+    if(cfg.placeAt&&meters(here,cfg.placeAt)>=SET().near)typed=null;      // 다른 곳에 왔으면 예전에 적은 이름은 비워요
     geoRefresh();
   },()=>{geoState='위치를 확인하지 못했어요 (장소 이름은 직접 적을 수 있어요)';geoRefresh()},{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
 }
@@ -226,7 +302,7 @@ async function palSrc(r){                             // {src, framed}: 배경�
 async function pickWild(){                            // 포켓몬 반, 치이카와 반. 그림이 안 뜨면 다시 골라요
   for(let n=0;n<4;n++){
     let w;
-    if(Math.random()<CHII_RATE){const c=CHII[Math.floor(Math.random()*CHII.length)];w={kind:'chii',cid:c[0],name:c[1],img:AL+c[2]}}
+    if(Math.random()<SET().chii/100){const c=CHII[Math.floor(Math.random()*CHII.length)];w={kind:'chii',cid:c[0],name:c[1],img:AL+c[2]}}
     else{
       let id=1+Math.floor(Math.random()*DEX_MAX),name='';
       try{const res=await fetch(API+'pokemon-species/'+id);if(!res.ok)throw 0;const s=await res.json();name=(s.names.find(x=>x.language.name==='ko')||{name:s.name}).name}
@@ -240,45 +316,95 @@ async function pickWild(){                            // 포켓몬 반, 치이�
 
 /* ---------- 화면 ---------- */
 let screen='home',openId=null,H=null,shareFile=null,bagWho='',friendKey='',back='album';
+const meChips=P=>`<div class="who">${P.map(n=>`<button data-me="${esc(n)}" class="${n===cfg.me?'on':''}"><img src="${trainerOf(n)}" alt=""><span>${esc(n)}</span></button>`).join('')}</div>`;
+const canPickMe=()=>{const key=getKey();return (!!key||!shared())?adm.open:SET().rename};   // 아이 폰은 관리자가 '허용'했을 때만
+/* ---------- 관리자 화면 ---------- */
+let adm={open:false,draft:null,msg:'',busy:false};
+function renderAdmin(app){
+  const key=getKey(),canEdit=!!key||!shared(),head='<div class="wrap"><button class="backb" data-act="home">← 처음으로</button><h2 class="title">⚙️ 관리자</h2>';
+  if(canEdit&&!adm.open){                                // 비밀번호(4자리)를 아는 사람만
+    app.innerHTML=`${head}<div class="card"><div class="tag">🔒 ${cfg.pin?'관리자 비밀번호':'관리자 비밀번호 만들기'}</div><input type="password" id="pin" inputmode="numeric" maxlength="4" placeholder="숫자 4자리" autocomplete="off">
+      <button class="go big" data-act="pinok">${cfg.pin?'들어가기':'이 번호로 정하기'}</button><div class="small bad">${esc(adm.msg)}</div></div></div>`;return;
+  }
+  const d=canEdit?(adm.draft=adm.draft||SET()):SET();
+  const rows=[['limit','📍 한 장소에서 한 사람이 하루에 잡는 수'],['near','📏 다른 장소로 보는 거리'],['chii','🐾 어떤 친구가 나올까'],['rocket','🚀 로켓단'],['bonusMax','🎁 로켓단을 이기면 더 잡기 (하루에)'],['rename','📱 아이 폰에서 이름 바꾸기']];
+  const mine=canPickMe()?`<div class="card"><div class="tag">📱 이 폰의 트레이너</div>${meChips(d.names)}</div>`:'';
+  app.innerHTML=`${head}<div class="card state ${shared()?'ok':''}">${key?(shared()?'✅ 관리자 폰이에요. 저장하면 모든 폰에 적용돼요':'🔗 연결 키가 있어요. 저장하면 모든 폰에 적용돼요'):shared()?'📱 관리자(아빠 폰)가 정한 설정을 따르고 있어요':'아직 연결 전이라 이 폰에만 적용돼요'}</div>
+    ${mine}
+    ${rows.map(x=>`<div class="card"><div class="tag">${x[1]}</div><div class="chips">${OPT[x[0]].map(o=>`<button data-set="${x[0]}" data-v="${o[0]}" class="${d[x[0]]===o[0]?'on':''}" ${canEdit?'':'disabled'}>${o[1]}</button>`).join('')}</div></div>`).join('')}
+    <div class="card"><div class="tag">👨‍👩‍👧‍👦 가족 이름 (쉼표로 나눠요)</div><input type="text" id="names" value="${esc(d.names.join(', '))}" ${canEdit?'':'disabled'}><div class="small">이름을 바꾸면 예전 이름으로 잡은 친구는 새 이름의 가방에 보이지 않아요.</div></div>
+    ${canEdit?`<button class="go big" data-act="setsave" ${adm.busy?'disabled':''}>${adm.busy?'저장하는 중...':key?'💾 저장하고 모든 폰에 적용':'💾 이 폰에 저장'}</button>`:''}
+    <div class="small msg">${esc(adm.msg)}</div>
+    <div class="card"><div class="tag">🔑 ${key?'연결됨':'관리자 폰 연결 (아빠 폰만)'}</div>${key?'<button data-act="unlink">연결 끊기</button>':`<input type="password" id="adkey" autocomplete="off" placeholder="github_pat_..."><button class="go big" data-act="link" ${adm.busy?'disabled':''}>연결하기</button><div class="small">설정 저장소(family-go-settings)용 접속 키를 한 번만 붙여넣어요. 키는 이 폰에만 저장돼요.</div>`}</div></div>`;
+}
+const readNames=()=>{const e=$('names');if(e&&adm.draft)adm.draft.names=cleanSet({names:e.value.split(',')}).names};
+async function adminAct(a){
+  if(a==='pinok'){
+    const v=($('pin').value||'').trim();
+    if(!/^\d{4}$/.test(v))adm.msg='숫자 4자리를 적어 주세요';
+    else if(!cfg.pin){cfg.pin=v;saveCfg();adm.open=true;adm.msg='비밀번호를 정했어요. 잊지 마세요!'}
+    else if(cfg.pin===v){adm.open=true;adm.msg=''}
+    else adm.msg='비밀번호가 달라요';
+    render();return;
+  }
+  if(!adm.open||adm.busy)return;
+  if(a==='unlink'){if(confirm('이 폰의 관리자 연결을 끊을까요?')){try{localStorage.removeItem(KEY_NAME)}catch(e){}adm.msg='연결을 끊었어요';adm.draft=null;render()}return}
+  readNames();
+  const key=a==='link'?($('adkey').value||'').trim():getKey();
+  if(a==='link'&&key.length<20){adm.msg='접속 키를 붙여넣어 주세요';render();return}
+  if(!key){cfg.local=cleanSet(adm.draft);saveCfg();adm.msg='✅ 이 폰에 저장했어요';render();return}
+  adm.busy=true;adm.msg='';render();
+  const err=await pushSettings(adm.draft||SET(),key);
+  adm.busy=false;
+  if(!err){if(a==='link')try{localStorage.setItem(KEY_NAME,key)}catch(e){}adm.draft=null;adm.msg='✅ 저장했어요. 다른 폰은 앱을 열면 적용돼요 (몇 분 걸릴 수 있어요)'}else adm.msg='⚠️ '+err;
+  if(screen==='admin')render();
+}
 const palHtml=(r,id)=>`<div class="pal" data-pal="${id}" style="left:${r.pos.x*100}%;top:${r.pos.y*100}%;width:${r.pos.w*100}%"><img alt="${esc(r.name)}"></div>`;
 const frameHtml=r=>`<div class="frame" style="padding-top:${(r.ratio||1.33)*100}%"><img class="bg" src="${r.photo||sceneSrc(r.bg)}" alt="">${palHtml(r,r.id)}</div>`;
-const bagImg=r=>`<div class="bagimg" data-pal="${r.id}"><img alt="${esc(r.name)}"></div>`;
+const bagImg=r=>`<div class="bagimg t${r.kind==='chii'?5:Math.abs(+r.cid||0)%5}" data-pal="${r.id}"><img alt="${esc(r.name)}"></div>`;
 const memCard=r=>`<button class="mem" data-open="${r.id}">${frameHtml(r)}<b>${esc(r.name)}</b>${esc(r.place||'장소 이름 없음')}<br>${dstr(r.id)} · ${esc(r.who)}</button>`;
 function fillPals(){document.querySelectorAll('[data-pal]').forEach(async el=>{const r=MEM.find(m=>m.id===+el.dataset.pal);if(!r)return;const s=await palSrc(r);el.classList.toggle('card-img',s.framed);el.querySelector('img').src=s.src})}
 function render(){
   const app=$('app');
   if(screen==='home'){
     const P=people();
-    if(P.indexOf(cfg.who)<0)cfg.who=P[0];
+    if(P.indexOf(cfg.me)<0){                             // 처음 한 번만: 이 폰의 주인을 골라요
+      app.innerHTML=`<div class="wrap"><header class="hero"><div class="ribbon">우리가족</div><h1 class="logo">포켓몬 탐험</h1></header>
+        <div class="card" style="text-align:center"><div class="tag">🧢 나는 누구야?</div>${meChips(P)}<div class="small">한 번 고르면 이 폰은 계속 내 이름으로 시작해요</div></div></div>`;return;
+    }
+    cfg.who=cfg.me;
     const left=leftOf(cfg.who,suggestPlace().trim());
-    app.innerHTML=`<div class="wrap"><h1>🔴 우리가족 포켓몬 탐험</h1>
-      <div class="card"><b>누가 잡을까?</b><div class="chips">${P.map(n=>`<button data-who="${esc(n)}" class="${n===cfg.who?'on':''}">${esc(n)}</button>`).join('')}</div></div>
-      <div class="card"><b>지금 어디에 왔어?</b><input type="text" id="place" maxlength="30" placeholder="예: 에버랜드, 할머니 댁" value="${esc(suggestPlace())}"><div class="small" id="geo">${esc(geoState)}</div></div>
-      <button class="go big" data-act="hunt" id="huntBtn" ${left?'':'disabled'}>${huntLabel(left)}</button>
-      <div class="row2"><button class="big" data-act="bag">🎒 가방 (${bagOf(cfg.who).length})</button><button class="big" data-act="album">📖 앨범 (${MEM.length})</button></div>
-      <div class="card small"><b>한 장소에서 한 사람이 하루에 잡는 수</b><div class="chips">${[3,5,10].map(n=>`<button data-limit="${n}" class="${n===cfg.limit?'on':''}">${n}마리</button>`).join('')}</div>
-      <p>500m 넘게 떨어진 곳에 가면 다시 잡을 수 있어요.</p>
-      <p>사진과 추억은 <b>이 휴대폰에만</b> 저장돼요. 앱을 지우거나 인터넷 기록을 지우면 사라지니, 소중한 사진은 앨범에서 "사진 저장"을 눌러 두세요.</p>${saveBroken?'<p style="color:#c00">⚠️ 지금은 저장이 안 되는 상태예요.</p>':''}</div></div>`;
+    app.innerHTML=`<div class="wrap">
+      <header class="hero"><div class="ribbon">우리가족</div><h1 class="logo">포켓몬 탐험</h1>
+        <div class="stage"><img class="h1" src="${ART(25)}" alt=""><img class="h2" src="${trainerOf(cfg.who)}" alt=""><img class="h3" src="${ART(133)}" alt=""></div></header>
+      <div class="card mecard"><img src="${trainerOf(cfg.me)}" alt=""><div>트레이너 <b>${esc(cfg.me)}</b></div></div>
+      <div class="card"><div class="tag">🗺 지금 어디에 왔어?</div><input type="text" id="place" maxlength="30" placeholder="예: 에버랜드, 할머니 댁" value="${esc(suggestPlace())}"><div class="small" id="geo">${esc(geoState)}</div></div>
+      <button class="huntbtn" data-act="hunt" id="huntBtn" ${left?'':'disabled'}><i class="pb"></i><span>${huntLabel(left)}</span></button>
+      <nav class="menu"><button data-act="bag" class="m1"><b>🎒</b>가방<small>${bagOf(cfg.who).length}명</small></button><button data-act="album" class="m2"><b>📖</b>추억 앨범<small>${MEM.length}개</small></button><button data-act="admin" class="m3"><b>⚙️</b>관리자<small>설정</small></button></nav>
+      <p class="note">사진과 추억은 <b>이 휴대폰에만</b> 저장돼요. 소중한 사진은 앨범에서 "사진 저장"을 눌러 두세요.${saveBroken?'<br><b style="color:#c62828">⚠️ 지금은 저장이 안 되는 상태예요.</b>':''}</p></div>`;
+  }else if(screen==='admin'){
+    renderAdmin(app);
   }else if(screen==='album'){
     const kinds=new Set(MEM.map(m=>m.kind+m.cid)).size;
-    app.innerHTML=`<div class="wrap"><button data-act="home">← 처음으로</button><h1>📖 추억 앨범</h1><div class="small" style="text-align:center">모두 ${MEM.length}번 만났고, 서로 다른 친구는 ${kinds}명이에요</div>
-      <div class="grid">${MEM.map(memCard).join('')||'<p style="width:100%;text-align:center">아직 추억이 없어요. 탐험을 시작해 보세요!</p>'}</div></div>`;
+    app.innerHTML=`<div class="wrap"><button class="backb" data-act="home">← 처음으로</button><h2 class="title">📖 추억 앨범</h2><div class="count">모두 ${MEM.length}번 만났고, 서로 다른 친구는 ${kinds}명이에요</div>
+      <div class="grid">${MEM.map(memCard).join('')||'<p class="empty">아직 추억이 없어요. 탐험을 시작해 보세요!</p>'}</div></div>`;
     fillPals();
   }else if(screen==='bag'){
     const P=people(),B=bagOf(bagWho),k=(cfg.rk||{})[bagWho]||{};
-    app.innerHTML=`<div class="wrap"><button data-act="home">← 처음으로</button><h1>🎒 ${esc(bagWho)}의 가방</h1>
-      <div class="chips" style="text-align:center">${P.map(n=>`<button data-bag="${esc(n)}" class="${n===bagWho?'on':''}">${esc(n)}</button>`).join('')}</div>
-      <p class="small" style="text-align:center">친구 ${B.length}명 · 로켓단 이긴 횟수 ${k.win||0}번</p>
-      <div class="grid">${B.map(f=>`<button class="mem" data-friend="${f.key}" style="text-align:center">${bagImg(f.r)}<b>${esc(f.r.name)}</b>${f.n>1?'× '+f.n:'&nbsp;'}</button>`).join('')||'<p style="width:100%;text-align:center">가방이 비어 있어요. 탐험해서 친구를 잡아 보세요!</p>'}</div></div>`;
+    const Q=P.filter(n=>n===cfg.me||MEM.some(r=>r.who===n));
+    app.innerHTML=`<div class="wrap"><button class="backb" data-act="home">← 처음으로</button><h2 class="title">🎒 ${esc(bagWho)}의 가방</h2>
+      ${Q.length>1?`<div class="chips">${Q.map(n=>`<button data-bag="${esc(n)}" class="${n===bagWho?'on':''}">${esc(n)}</button>`).join('')}</div>`:''}
+      <p class="count">친구 ${B.length}명 · 로켓단 이긴 횟수 ${k.win||0}번</p>
+      <div class="grid">${B.map(f=>`<button class="mem" data-friend="${f.key}" style="text-align:center">${bagImg(f.r)}<b>${esc(f.r.name)}</b>${f.n>1?'× '+f.n:'&nbsp;'}</button>`).join('')||'<p class="empty">가방이 비어 있어요. 탐험해서 친구를 잡아 보세요!</p>'}</div></div>`;
     fillPals();
   }else if(screen==='friend'){
     const L=MEM.filter(r=>r.who===bagWho&&keyOf(r)===friendKey);if(!L.length){screen='bag';return render()}
-    app.innerHTML=`<div class="wrap"><button data-act="bag">← 가방</button><h1>${esc(L[0].name)}</h1><div class="card">${bagImg(L[0])}<div class="small" style="text-align:center">${esc(bagWho)}의 친구 · ${L.length}번 만났어요</div></div>
+    app.innerHTML=`<div class="wrap"><button class="backb" data-act="bag">← 가방</button><h2 class="title">${esc(L[0].name)}</h2><div class="card">${bagImg(L[0])}<div class="small" style="text-align:center">${esc(bagWho)}의 친구 · ${L.length}번 만났어요</div></div>
       <div class="grid" style="margin-top:12px">${L.map(memCard).join('')}</div></div>`;
     fillPals();
   }else if(screen==='detail'){
     const r=MEM.find(m=>m.id===openId);if(!r){screen=back;return render()}
-    app.innerHTML=`<div class="wrap"><button data-act="back">← ${back==='friend'?'친구':'앨범'}</button><div class="card">${frameHtml(r)}<h1 style="margin:12px 0 4px">${esc(r.name)}</h1>
+    app.innerHTML=`<div class="wrap"><button class="backb" data-act="back">← ${back==='friend'?'친구':'앨범'}</button><div class="card">${frameHtml(r)}<h2 style="margin:12px 0 4px;text-align:center">${esc(r.name)}</h2>
       <div style="text-align:center">${esc(r.who)}${batchim(r.who)?'이':'가'} 잡았어요<br><span class="small">${nice(r.id)}</span></div>
       <b>장소</b><input type="text" id="mplace" maxlength="30" placeholder="장소 이름" value="${esc(r.place||'')}">
       ${r.lat!=null?`<p><a href="https://maps.apple.com/?ll=${r.lat},${r.lon}&q=${encodeURIComponent(r.place||r.name)}" target="_blank" rel="noopener">🗺 지도에서 보기</a></p>`:''}
@@ -305,7 +431,8 @@ async function prepareShare(r){                       // 배경 사진 + 친구�
 
 /* ---------- 탐험 ---------- */
 function rocketDue(who){                              // 로켓단: 처음 한 번은 꼭, 그다음은 가끔(4번에 한 번쯤, 오래 안 나오면 꼭)
-  if(!bagOf(who).length)return false;const k=rkOf(who);return !k.met||k.since>=3||Math.random()<.25;
+  const mode=SET().rocket;if(mode==='off'||!bagOf(who).length)return false;const k=rkOf(who),often=mode==='often';
+  return !k.met||k.since>=(often?1:3)||Math.random()<(often?.5:.25);
 }
 async function startHunt(){
   const pl=$('place');if(pl){cfg.place=pl.value.trim();cfg.placeAt=here}saveCfg();
@@ -350,7 +477,7 @@ async function startCam(){
   }
 }
 function stopCam(){if(H&&H.stream){H.stream.getTracks().forEach(t=>t.stop());H.stream=null}}
-function quitHunt(){stopCam();H=null;screen='home';render();locate()}
+function quitHunt(){stopCam();H=null;screen='home';render();locate();pullSettings()}
 function placeWild(){const el=$('wild');if(!el||!H)return;el.style.left=H.pos.x*100+'%';el.style.top=H.pos.y*100+'%';el.style.width=H.pos.w*100+'%'}
 function moveBall(x,y){const b=$('ball');if(b){b.style.left=x*100+'%';b.style.top=y*100+'%'}}
 function snap(){                                      // 화면에 보이는 모습 그대로 카메라 사진을 찍어요 (친구는 따로 겹쳐요)
@@ -401,10 +528,8 @@ async function shutter(){
 function finishHunt(){const id=H&&H.rec&&H.rec.id;stopCam();H=null;if(id){openId=id;back='album';screen='detail'}else screen='home';render()}
 
 /* ---------- 로켓단 배틀 (져도 잡은 친구는 안 사라져요) ---------- */
-const TR=n=>`https://play.pokemonshowdown.com/sprites/trainers/${n}.png`;
 const ROCKETS=[['jessiejames-gen1','로켓단 로사와 로이'],['rocketgrunt','로켓단 대원'],['rocketgruntf','로켓단 대원']];
 const FOES=[[23,'아보'],[24,'아보크'],[109,'또가스'],[110,'또도가스'],[52,'나옹']];
-const BONUS_MAX=2;                                     // 로켓단을 이겨서 더 받는 잡기 기회는 하루 2번까지
 const pick1=a=>a[Math.floor(Math.random()*a.length)];
 const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 function fig(id,src,cls){const e=document.createElement('div');e.id=id;e.className='fig'+(cls?' '+cls:'');e.innerHTML=`<img src="${src}" alt="">`;$('hunt').appendChild(e);return e}
@@ -460,7 +585,7 @@ async function battleMove(mv){
 async function battleEnd(win){
   const me=H,R=me.rk,k=rkOf(me.who),today=dstr(Date.now());me.state='over';
   let plus=false;
-  if(win){k.win++;if(k.day!==today){k.day=today;k.bonus=0}if(k.bonus<BONUS_MAX){k.bonus++;plus=true}}else k.lose++;
+  if(win){k.win++;if(k.day!==today){k.day=today;k.bonus=0}if(k.bonus<SET().bonusMax){k.bonus++;plus=true}}else k.lose++;
   saveCfg();
   const lose=$(win?'foe':'mine');if(lose)lose.className+=' faint';
   $('msg').textContent=win?`🎉 ${R.mine.name}의 승리!`:'😢 졌어요...';
@@ -487,15 +612,20 @@ document.addEventListener('pointercancel',()=>{touch=null});
 document.addEventListener('click',async e=>{
   const t=e.target.closest('button');if(!t)return;
   const a=t.dataset.act;
-  if(t.dataset.who!==undefined){cfg.who=t.dataset.who;saveCfg();render()}
-  else if(t.dataset.limit){cfg.limit=+t.dataset.limit;saveCfg();render()}
+  if(t.dataset.me!==undefined){
+    const n=t.dataset.me,first=screen==='home'&&people().indexOf(cfg.me)<0;
+    if(first?confirm(`${n}${batchim(n)?'으로':'로'} 시작할까? 다음부터는 계속 ${n}${batchim(n)?'이야':'야'}`):screen==='admin'&&canPickMe()){cfg.me=cfg.who=n;saveCfg();render()}
+  }
+  else if(t.dataset.set){if(adm.open&&adm.draft){readNames();const k=t.dataset.set,o=OPT[k].find(x=>String(x[0])===t.dataset.v);if(o){adm.draft[k]=o[0];adm.msg='아직 저장 전이에요';render()}}}
+  else if(a==='admin'){adm={open:false,draft:null,msg:'',busy:false};screen='admin';render();scrollTo(0,0);pullSettings()}
+  else if(a==='pinok'||a==='setsave'||a==='link'||a==='unlink')adminAct(a);
   else if(t.dataset.open){back=screen==='friend'?'friend':'album';openId=+t.dataset.open;screen='detail';render();scrollTo(0,0)}
   else if(t.dataset.bag!==undefined){bagWho=t.dataset.bag;render()}
   else if(t.dataset.friend){friendKey=t.dataset.friend;screen='friend';render();scrollTo(0,0)}
   else if(t.dataset.fighter){startBattle(t.dataset.fighter)}
   else if(t.dataset.move){battleMove(t.dataset.move)}
   else if(a==='hunt')startHunt();
-  else if(a==='home'){screen='home';render();locate()}
+  else if(a==='home'){screen='home';render();locate();pullSettings()}
   else if(a==='album'){screen='album';render()}
   else if(a==='bag'){if(screen==='home')bagWho=cfg.who;screen='bag';render()}
   else if(a==='back'){screen=back;render()}
@@ -518,14 +648,15 @@ document.addEventListener('change',async e=>{
   if(e.target.id==='mplace'){const r=MEM.find(m=>m.id===openId);if(r){r.place=e.target.value.trim();await putMem(r);prepareShare(r)}}
 });
 document.addEventListener('input',e=>{if(e.target.id==='place'){typed=e.target.value;cfg.place=typed.trim();cfg.placeAt=here;saveCfg();
-  const n=leftOf(cfg.who),b=$('huntBtn');if(b){b.disabled=!n;b.textContent=huntLabel(n)}}});
-document.addEventListener('visibilitychange',()=>{if(!H){if(!document.hidden&&screen==='home')locate();return}if(document.hidden)stopCam();else if(H.camOn)startCam()});
+  const n=leftOf(cfg.who),b=$('huntBtn');if(b){b.disabled=!n;b.innerHTML=`<i class="pb"></i><span>${huntLabel(n)}</span>`}}});
+document.addEventListener('visibilitychange',()=>{if(!H){if(!document.hidden){pullSettings();if(screen==='home')locate()}return}if(document.hidden)stopCam();else if(H.camOn)startCam()});
 
 (async()=>{
+  try{document.documentElement.style.setProperty('--scene',`url("${sceneSrc(sceneNow())}")`)}catch(e){}
   render();
   await loadMem();
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
-  render();locate();
+  render();locate();pullSettings();
 })();
 </script>
 </body>
