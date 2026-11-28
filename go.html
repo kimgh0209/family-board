@@ -113,7 +113,7 @@ button.spawn:active{transform:scale(.9);box-shadow:none}
 .hud .me{display:flex;align-items:center;background:#fff;border:3px solid #1d2b53;border-radius:30px;padding:3px 14px 3px 4px;box-shadow:0 4px 0 rgba(29,43,83,.45)}
 .hud .me img{width:42px;height:42px;object-fit:contain;image-rendering:pixelated;margin-right:6px}
 .hud .me b{font-weight:400;font-size:20px;margin-right:10px}
-.geo{max-width:46%;background:rgba(255,255,255,.92);border-radius:14px;padding:5px 10px;font-size:12px;text-align:right}
+.geo{pointer-events:auto;border:0;box-shadow:none;color:#1d2b53;max-width:46%;background:rgba(255,255,255,.92);border-radius:14px;padding:5px 10px;font-size:12px;text-align:right}
 .recenter{position:absolute;right:12px;top:calc(84px + env(safe-area-inset-top));z-index:5;width:52px;height:52px;border-radius:50%;padding:0;font-size:24px}
 .foot{position:absolute;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:5}
 .foot .menu{margin:10px -5px 0}
@@ -334,11 +334,23 @@ function suggestPlace(){                              // 전에 이 근처에서
 function geoRefresh(){if(screen==='gym'){const g=gymById(gymId),n=!!(here&&g&&meters(here,g)<=RAID_RANGE);if(n!==gymNear){gymNear=n;render()}return}if(screen!=='home')return;if($('mapslot'))updateHome();else render()}
 const GEO_MSG={1:'📍 위치 권한이 막혀 있어요. 인터넷 앱의 위치 권한을 허용해 주세요 (코드 1)',2:'📍 위치 신호를 못 받아요. 휴대폰 위치를 켜고 🎯를 눌러요 (코드 2)',3:'📍 위치 찾는 데 오래 걸려요. 창가나 밖에서 🎯를 눌러요 (코드 3)'};
 let fineGps=true;                                     // 정밀 위치가 안 잡히는 옛 폰은 와이파이·기지국 위치로 바꿔 찾아요
+const APP_VER='1128b',GEO_WAIT=60000;let geoErr='없음',geoTimer=0;
+function geoWatchdog(){                               // 옛 폰은 성공도 실패도 안 알려 줄 때가 있어요
+  clearTimeout(geoTimer);geoTimer=setTimeout(()=>{if(!here&&!document.hidden){geoErr='응답 없음';geoState='📍 위치 응답이 없어요. 여기를 눌러 확인해요 (코드 4)';geoRefresh()}},GEO_WAIT);
+}
+async function geoHelp(){
+  let perm='알 수 없음';
+  try{const q=await navigator.permissions.query({name:'geolocation'});perm={granted:'허용됨',denied:'차단됨',prompt:'아직 안 정함'}[q.state]||q.state}catch(e){}
+  const ua=String(navigator.userAgent||''),br=(ua.match(/(KAKAOTALK|NAVER|SamsungBrowser|CriOS|Chrome|Safari)[\/ ]?([0-9]+)?/i)||[]),an=(ua.match(/Android ([0-9.]+)/)||[])[1];
+  alert(['위치 확인 (사진을 찍어 아빠에게 보여 주세요)','앱 버전: '+APP_VER,'위치 권한: '+perm,'마지막 오류: '+geoErr,'인터넷 앱: '+(br[1]||'?')+' '+(br[2]||'')+(/; wv\)/.test(ua)?' (앱 안 화면)':''),'안드로이드: '+(an||'-'),here?'위치: 찾음':'위치: 아직 못 찾음'].join('\n'));
+  fineGps=false;stopLocate();locate();
+}
 function locate(){                                    // 걸어 다니면 내 위치가 따라와요
   if(!navigator.geolocation){geoState='위치를 쓸 수 없는 기기예요';return}
   if(watchId!==null)return;
-  const got=p=>{here={lat:+p.coords.latitude.toFixed(5),lon:+p.coords.longitude.toFixed(5)};geoState='📍 내 위치';geoRefresh()};
-  const fail=e=>{if(!here){geoState=GEO_MSG[e&&e.code]||'📍 위치를 못 찾았어요';geoRefresh()}};
+  if(!here)geoWatchdog();
+  const got=p=>{clearTimeout(geoTimer);here={lat:+p.coords.latitude.toFixed(5),lon:+p.coords.longitude.toFixed(5)};geoState='📍 내 위치';geoRefresh()};
+  const fail=e=>{geoErr='코드 '+((e&&e.code)||'?')+(e&&e.message?' '+String(e.message).slice(0,60):'');if(!here){clearTimeout(geoTimer);geoState=GEO_MSG[e&&e.code]||'📍 위치를 못 찾았어요';geoRefresh()}};
   if(!here&&navigator.geolocation.getCurrentPosition)  // 먼저 대략의 위치를 빨리 받아 둬요
     navigator.geolocation.getCurrentPosition(p=>{if(!here)got(p)},()=>{},{enableHighAccuracy:false,timeout:20000,maximumAge:600000});
   watchId=navigator.geolocation.watchPosition(got,e=>{
@@ -559,7 +571,7 @@ function render(){
     }
     cfg.who=cfg.me;
     app.innerHTML=`<div id="home"><div id="mapslot"><div id="spawns"></div></div>
-      <div class="hud"><div class="me"><img src="${trainerOf(cfg.me)}" alt=""><b>${esc(cfg.me)}</b><span id="shards"></span></div><div class="geo" id="geo"></div></div>
+      <div class="hud"><div class="me"><img src="${trainerOf(cfg.me)}" alt=""><b>${esc(cfg.me)}</b><span id="shards"></span></div><button class="geo" id="geo" data-act="geohelp"></button></div>
       <button class="recenter" data-act="recenter" aria-label="내 위치로">🎯</button>
       <div class="foot">${saveBroken?'<div class="banner bad">⚠️ 지금은 저장이 안 되는 상태예요</div>':''}<div class="banner" id="banner"></div>
       <nav class="menu"><button data-act="bag" class="m1"><b>🎒</b>가방<small>${bagOf(cfg.me).length}명</small></button><button data-act="album" class="m2"><b>📖</b>추억 앨범<small>${MEM.length}개</small></button><button data-act="gyms" class="m4"><b>🏟</b>체육관<small>레이드</small></button><button data-act="admin" class="m3"><b>⚙️</b>관리자<small>설정</small></button></nav></div></div>`;
@@ -1109,6 +1121,7 @@ document.addEventListener('click',async e=>{
   else if(a==='famsave')famSave();
   else if(a==='gymadd')gymEdit('add');
   else if(t.dataset.gymdel){gymEdit('del',t.dataset.gymdel)}
+  else if(a==='geohelp')geoHelp();
   else if(a==='recenter'){follow=true;fineGps=true;stopLocate();if(!here)geoState='📍 위치를 다시 찾는 중...';locate();drawSpawns()}
   else if(a==='home'){unwatchRaid();screen='home';render();locate();pullSettings()}
   else if(a==='album'){screen='album';render()}

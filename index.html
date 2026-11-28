@@ -433,6 +433,7 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 .evtx{margin-top:12px;font-size:20px;font-weight:700;min-height:56px}
 @keyframes pop{from{transform:scale(0) rotate(-20deg)}to{transform:scale(1)}}
 /* 🔴 몬스터볼로 잡는 연출 (무대 300x300) */
+.wm.shiny:after{content:'✨';position:absolute;right:-2px;top:-8px;font-size:18px;pointer-events:none}
 .cxst{position:relative;width:300px;height:300px;border-radius:20px;background:#8fd3ff;background:linear-gradient(#8fd3ff 0%,#d9f3ff 62%,#8bd169 62%,#5fae45 100%);overflow:hidden;margin:0 auto}
 .cxmon{position:absolute;left:75px;top:30px;width:150px;height:150px;object-fit:contain}
 .cxmon.in{animation:cxin .55s ease-in forwards}
@@ -791,7 +792,11 @@ body{padding-top:env(safe-area-inset-top)}
 
 <script>
 const API='https://pokeapi.co/api/v2/';
-const ART=id=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+const ART=(id,sh)=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${sh?'shiny/':''}${id}.png`;
+/* ✨ 이로치(색이 다른 포켓몬): 알과 야생 포켓몬에서 20번에 1번쯤 나와요 */
+const SHINY_P=1/20;
+const rollShiny=m=>{if(Math.random()<SHINY_P)m.shiny=true;return m};
+const spark=m=>m&&m.shiny?'✨ ':'';
 const TRAINERS=['red','blue','ethan','lyra','brendan','may','lucas','dawn','hilbert','hilda','nate','rosa','calem','serena','elio','selene','victor','gloria','ash'];
 const TR_DEFAULT=['red','ethan','lyra'];
 const KID_COLORS=['#e53935','#fb8c00','#43a047','#00acc1','#8d6e63'];
@@ -930,7 +935,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261127c';
+const BUILD='20261128a';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1171,9 +1176,9 @@ async function hatchEgg(k,btn){
   const n=k.hatched+1,legend=n===7||n%20===0;   // 7번째, 그리고 20번째마다 (화면에는 알리지 않음)
   try{
     const p=bookedEgg(k,n)||(legend?await rollLegend(k):await rollEgg(k));
-    if(k.freeEgg>0)k.freeEgg--;else k.coins-=S.eggCost;k.mons.push(p);ensureBst(p);k.dex[p.id]=1;k.hatched++;k.sel=k.mons.length-1;
+    if(k.freeEgg>0)k.freeEgg--;else k.coins-=S.eggCost;rollShiny(p);k.mons.push(p);ensureBst(p);k.dex[p.id]=1;k.hatched++;k.sel=k.mons.length-1;
     sfx('hatch');confetti();
-    overlay((p.legend?'<h2>🌟 대박! 전설의 포켓몬이에요!</h2>':'')+'<h2>🎉 '+esc(p.name)+' 등장!</h2><img class="big" src="'+ART(p.id)+'">');
+    overlay((p.legend?'<h2>🌟 대박! 전설의 포켓몬이에요!</h2>':'')+(p.shiny?'<h2>✨ 색이 다른 이로치예요! ✨</h2>':'')+'<h2>🎉 '+esc(p.name)+' 등장!</h2><img class="big" src="'+ART(p.id,p.shiny)+'">');
   }catch(err){overlay('<h2>인터넷 연결을 확인해주세요 😢</h2>')}
   busy=false;
 }
@@ -1187,9 +1192,9 @@ async function hatchStarter(k,id){
   if(!st||busy||k.coins<S.eggCost)return;
   let taken={};try{taken=await takenRoots()}catch(e){}
   if(taken[st.root]){toast('다른 친구가 이미 골랐어요');return}
-  k.coins-=S.eggCost;k.mons.push({id:st.id,sp:st.sp,name:st.name,root:st.root});k.dex[st.id]=1;k.hatched++;k.sel=k.mons.length-1;
+  k.coins-=S.eggCost;const first=rollShiny({id:st.id,sp:st.sp,name:st.name,root:st.root});k.mons.push(first);k.dex[st.id]=1;k.hatched++;k.sel=k.mons.length-1;
   sfx('hatch');confetti();
-  overlay('<h2>🎉 '+st.name+' 등장!</h2><img class="big" src="'+ART(st.id)+'">');
+  overlay((first.shiny?'<h2>✨ 색이 다른 이로치예요! ✨</h2>':'')+'<h2>🎉 '+st.name+' 등장!</h2><img class="big" src="'+ART(st.id,first.shiny)+'">');
 }
 async function evolve(m){            // 진화할 수 없으면 null
   const sp=await jget(API+'pokemon-species/'+m.id);
@@ -1266,15 +1271,15 @@ const lines=v=>(Array.isArray(v)?v:String(v||'').split('\n')).map(s=>String(s).t
 
 /* ---------- 화면 ---------- */
 function overlay(html){catchOffer=null;catchLock=false;document.getElementById('ovbox').innerHTML=html+'<p><button style="background:#eee" onclick="document.getElementById(\'ov\').classList.remove(\'show\')">확인!</button></p>';document.getElementById('ov').classList.add('show')}
-function evoAnim(oldName,oldId,newName,newId){        // 진화 연출: 흔들 → 하얗게 빛남 → 커지며 모습이 바뀜 → 번쩍! → 새 모습
-  try{const pre=new Image();pre.src=ART(newId)}catch(e){}
+function evoAnim(oldName,oldId,newName,newId,sh){        // 진화 연출: 흔들 → 하얗게 빛남 → 커지며 모습이 바뀜 → 번쩍! → 새 모습
+  try{const pre=new Image();pre.src=ART(newId,sh)}catch(e){}
   const ob=document.getElementById('ovbox'),T=[];
-  ob.innerHTML=`<div class="evst" id="evst"><div class="evray" id="evray"></div><img class="evimg" id="evimg" src="${ART(oldId)}"><div class="evfl" id="evfl"></div></div><div class="evtx" id="evtx">어...? ${esc(oldName)}의 모습이...?!</div>`;
+  ob.innerHTML=`<div class="evst" id="evst"><div class="evray" id="evray"></div><img class="evimg" id="evimg" src="${ART(oldId,sh)}"><div class="evfl" id="evfl"></div></div><div class="evtx" id="evtx">어...? ${esc(oldName)}의 모습이...?!</div>`;
   document.getElementById('ov').classList.add('show');
   const g=id=>document.getElementById(id),at=(ms,f)=>T.push(setTimeout(()=>{try{f()}catch(e){}},ms));
   at(1300,()=>{g('evimg').className='evimg evw';g('evray').className='evray on';g('evtx').textContent='✨ 몸이 빛나기 시작했어요!';sfx('hatch')});
   at(3000,()=>{g('evimg').className='evimg evw evg';g('evtx').textContent='✨✨ 모습이 변하고 있어요...!';sfx('coin')});
-  at(4000,()=>{g('evimg').src=ART(newId);g('evfl').className='evfl go'});
+  at(4000,()=>{g('evimg').src=ART(newId,sh);g('evfl').className='evfl go'});
   at(4350,()=>{g('evimg').className='evimg';g('evimg').style.animation='pop .7s';g('evtx').innerHTML='🎉 축하해요!<br>'+esc(oldName)+' → <span style="color:#e53935">'+esc(newName)+'</span> 진화!';sfx('evo');confetti()});
   at(5200,()=>{ob.insertAdjacentHTML('beforeend','<p><button style="background:#eee" onclick="closeOv()">확인!</button></p>')});
 }
@@ -1591,7 +1596,7 @@ function kidsCard(){
   return `<div class="sec"><div class="sh" style="--c:#fb8c00;color:#ef6c00">우리 아이들</div>${S.kids.map((k,i)=>{
     const d=(k.done[today()]||[]).length,t=k.chores.length,p=leadOf(k),st=curStreak(k),b=bdayInfo(k);
     return `<div class="krow" data-gokid="${i}" style="--c:${k.color}">
-      ${p?`<img src="${ART(p.id)}">`:'<span class="egg0">🥚</span>'}
+      ${p?`<img src="${ART(p.id,p.shiny)}">`:'<span class="egg0">🥚</span>'}
       <div class="kinfo"><div class="kl"><b style="color:${k.color}">${esc(k.name)}</b> <span class="chip coin">💰${won(k.coins)}</span> <span class="chip">🐾${k.mons.length}</span>${st?` <span class="chip">🔥${st}</span>`:''}</div>
       <div class="prog" style="margin:3px 0"><i style="width:${t?d/t*100:0}%;background:${k.color}"></i></div>
       <small>미션 ${d}/${t} ${d===t&&t?'🎉':''}${b?` · ${b.age} · 🎂D-${b.left||'DAY'}`:''}</small></div></div>`}).join('')}</div>`;
@@ -1661,9 +1666,9 @@ function mornState(){                                    // off · idle(시작 �
 }
 function mornMon(r){                                       // 로켓단에게 잡혀간 포켓몬 (서비 마을에 있는 친구 중 한 마리)
   const k=mornKid(),id=r&&r.pm;
-  if(id)return {id,n:r.pn||'포켓몬'};
+  if(id)return {id,n:r.pn||'포켓몬',sh:!!r.psh};
   const m=k&&(k.mons[k.sel]||k.mons[0]);
-  return m?{id:m.id,n:m.name}:{id:25,n:'피카츄'};
+  return m?{id:m.id,n:m.name,sh:!!m.shiny}:{id:25,n:'피카츄'};
 }
 /* 매일 다른 구불구불한 길: 날짜로 길 모양·풍경이 정해져요 (길 위를 따라 서비와 로켓단이 움직여요) */
 const MSTAGE_H=250;
@@ -1723,7 +1728,7 @@ function morningView(){
       <div class="mroute">오늘은 ${m.R.th.n}!</div>
       <div class="mschool" style="left:${m.R.at(1).x-3}%;bottom:${m.R.at(1).b+2}px">🏫</div>
       <div class="mrk ${done?'gone':''}${m.behind?' worry':''}" id="mfam" style="left:${m.rx}%;bottom:${m.ry}px"><div class="mfamb" id="mfamb">${done?'':'🆘 살려줘~!'}</div>
-        <div class="mrkrow"><div class="mrkmon"><img src="${ART(pk.id)}" alt=""><span class="mnet"></span></div><span class="mrope"></span>
+        <div class="mrkrow"><div class="mrkmon"><img src="${ART(pk.id,pk.sh)}" alt=""><span class="mnet"></span></div><span class="mrope"></span>
           <div class="mrkr">${RK_JESSIE.replace('class="rkchar sp"','class="rkchar sp rj"')}${RK_JAMES.replace('class="rkchar sp"','class="rkchar sp rj"')}<img class="rkcat rm" src="${ART(52)}" alt="나옹"></div></div>
         ${done?'<span class="mheart">❤️</span><span class="mheart h2">💖</span><span class="mbye">로켓단 바이바이~ ✨</span>':''}</div>
       <div class="mkid ${done?'arrive':''}" id="mkid" style="left:${m.kx}%;bottom:${m.ky}px">${face}<span class="mbody">${done?'🙌':'🦸'}</span></div>
@@ -1748,8 +1753,8 @@ setInterval(mornTick,1000);
 function mornAct(a,t){
   const k=mornKid();if(!k)return;
   const r=S.mrun&&S.mrun.day===today()?S.mrun:null;
-  if(a==='mpractice'){const pool=k.mons.filter(m=>!m.box),pk=pool.length?pool[Math.floor(Math.random()*pool.length)]:null,t0=Date.now();S.mrun={day:today(),start:t0,dl:t0+15*60000,practice:true,done:[],fin:0,ok:false,pm:pk?pk.id:25,pn:pk?pk.name:'피카츄'};tab='home';sfx('coin');toast('🎮 연습 시작! 15분 안에 구해 보세요 (코인·포켓몬은 그대로예요)',3500)}
-  else if(a==='mstart'){const pool=k.mons.filter(m=>!m.box),pk=pool.length?pool[Math.floor(Math.random()*pool.length)]:null;S.mrun={day:today(),start:Date.now(),done:[],fin:0,ok:false,pm:pk?pk.id:25,pn:pk?pk.name:'피카츄'};sfx('coin');toast('🚀 로켓단이 '+(pk?pk.name:'피카츄')+'를 데려갔어요! 구하러 가요')}
+  if(a==='mpractice'){const pool=k.mons.filter(m=>!m.box),pk=pool.length?pool[Math.floor(Math.random()*pool.length)]:null,t0=Date.now();S.mrun={day:today(),start:t0,dl:t0+15*60000,practice:true,done:[],fin:0,ok:false,pm:pk?pk.id:25,pn:pk?pk.name:'피카츄',psh:!!(pk&&pk.shiny)};tab='home';sfx('coin');toast('🎮 연습 시작! 15분 안에 구해 보세요 (코인·포켓몬은 그대로예요)',3500)}
+  else if(a==='mstart'){const pool=k.mons.filter(m=>!m.box),pk=pool.length?pool[Math.floor(Math.random()*pool.length)]:null;S.mrun={day:today(),start:Date.now(),done:[],fin:0,ok:false,pm:pk?pk.id:25,pn:pk?pk.name:'피카츄',psh:!!(pk&&pk.shiny)};sfx('coin');toast('🚀 로켓단이 '+(pk?pk.name:'피카츄')+'를 데려갔어요! 구하러 가요')}
   else if(a==='mstep'&&r&&!r.fin){const i=+t.dataset.i,at=(r.done||[]).indexOf(i);r.done=r.done||[];if(at<0){r.done.push(i);sfx('coin')}else r.done.splice(at,1);S.mrun=Object.assign({},r)}
   else if(a==='mfin'&&r&&!r.fin){
     const n=mornSteps().length;if((r.done||[]).filter(i=>i<n).length<n)return;
@@ -2270,7 +2275,7 @@ function todoView(){
   <div class="prog" style="margin:8px 0"><i style="width:${t?n/t*100:0}%"></i></div>
   ${k.chores.map((c,i)=>`<button class="chore ${d.includes(i)?'done':''}" data-chore="${i}"><span class="box">${d.includes(i)?'✓':''}</span><span class="txt">${esc(c.t)}</span><span class="chip coin">💰 +${won(c.c)}</span></button>`).join('')}
   <p class="small">오늘 번 코인 💰${won(gain)} / 최대 💰${won(total)} · 전부 끝내면 보너스 💰${S.bonus}+ (연속일수가 늘수록 더 많이!)</p></div>
-  ${p?`<div class="card hero"><img src="${ART(p.id)}"><div class="bar" style="justify-content:center">${esc(p.name)}</div></div>`:''}</div>`;
+  ${p?`<div class="card hero"><img src="${ART(p.id,p.shiny)}"><div class="bar" style="justify-content:center">${spark(p)}${esc(p.name)}</div></div>`:''}</div>`;
 }
 
 /* ---- ⚔️ 전투력 · 훈련 · 배틀 ---- */
@@ -2314,8 +2319,8 @@ async function battleStart(me,mine,opp){                      // opp: {name,id,p
   if(opp.force===true||opp.force===false){for(let i=0;i<400&&(res.winner===0)!==opp.force;i++){if(i>=60)pb=Math.max(10,Math.round(pb*(opp.force?0.93:1.07)));res=simBattle(pa,pb,null,ta,tb)}}   // 정해진 승패가 나올 때까지 다시 굴려요
   overlay(`<div class="bstage" id="bstage"><div class="bsky"></div><div class="bground"></div>
     <div class="bsh" style="right:11%;top:46%"></div><div class="bsh" style="left:9%;bottom:6%;width:120px"></div>
-    <img id="bimgB" class="bmon foe" src="${ART(opp.id)}" style="transform:scaleX(-1)">
-    <img id="bimgA" class="bmon mine" src="${ART(mine.id)}">
+    <img id="bimgB" class="bmon foe" src="${ART(opp.id,opp.shiny)}" style="transform:scaleX(-1)">
+    <img id="bimgA" class="bmon mine" src="${ART(mine.id,mine.shiny)}">
     <div class="bpan foep"><b>${esc(opp.name)}</b><div class="bsub">⚡${pb} ${typeChips(tb)}</div><div class="bhp"><i id="bhpB" class="foe" style="width:100%"></i></div><small id="bhtB">HP 100%</small></div>
     <div class="bpan minep"><b>${esc(mine.name)}</b> <span class="bsub">Lv.${mine.lv||0}</span><div class="bsub">⚡${pa} ${typeChips(ta)}</div><div class="bhp"><i id="bhpA" style="width:100%"></i></div><small id="bhtA">HP 100%</small></div>
     <div id="bfx"></div><div id="bbanner" class="bbanner"></div></div>
@@ -2383,19 +2388,19 @@ async function wildBattle(k){
   const who=kid;
   try{const tot=await speciesCount();id=1+Math.floor(Math.random()*Math.min(tot,1000));spec=await jget(API+'pokemon-species/'+id);name=koName(spec)}catch(e){spec=null}
   fighting=false;
-  const pw=Math.max(60,Math.round(powerOf(m)*(0.6+0.8*Math.random()))),gain=WILD_COIN;
-  battleStart(k,m,{name:'야생 '+name,id,power:pw,force:want,winTxt:`💰 +${gain}`,onEnd:win=>{if(win){k.coins+=gain;k.earned+=gain;k.bw=(k.bw||0)+1}else k.bl=(k.bl||0)+1},
+  const pw=Math.max(60,Math.round(powerOf(m)*(0.6+0.8*Math.random()))),gain=WILD_COIN,shiny=!!spec&&Math.random()<SHINY_P;
+  battleStart(k,m,{name:(shiny?'✨ 이로치 ':'')+'야생 '+name,id,shiny,power:pw,force:want,winTxt:`💰 +${gain}`,onEnd:win=>{if(win){k.coins+=gain;k.earned+=gain;k.bw=(k.bw||0)+1}else k.bl=(k.bl||0)+1},
     after:win=>{if(!win||!spec||!spec.name)return;                 // 포켓몬 정보를 못 읽었으면 잡기는 없어요
-      const mon={id,sp:spec.name,name};if(spec.is_legendary||spec.is_mythical)mon.legend=true;
+      const mon={id,sp:spec.name,name};if(shiny)mon.shiny=true;if(spec.is_legendary||spec.is_mythical)mon.legend=true;
       setTimeout(()=>{if(!fighting)catchShow({who,kname:k.name,mon})},1600)}});
 }
 /* ---- 🔴 야생 포켓몬 잡기: 이긴 뒤에 코인 200개로 데려와요. 버튼으로만 닫혀요 (바깥을 눌러도 안 사라져요) ---- */
 let catchOffer=null,catchLock=false;      // catchLock: 잡는 연출 중에는 바깥을 눌러도 안 닫혀요
 const catchKid=o=>{const all=S.kids.concat(S.parents||[]),a=all[o.who];return a&&a.name===o.kname?a:all.find(q=>q.name===o.kname)};   // 그사이 동기화돼도 지금 기록을 써요
-const catchPic=m=>`<img src="${ART(m.id)}" style="width:180px;height:180px;object-fit:contain">`;
+const catchPic=m=>`<img src="${ART(m.id,m.shiny)}" style="width:180px;height:180px;object-fit:contain">`;
 function catchShow(o){
   catchOffer=o;
-  ovRaw(`<h2>✨ 이 포켓몬 잡을 수 있어요!</h2>${catchPic(o.mon)}<div class="bar" style="justify-content:center">야생 ${esc(o.mon.name)}</div>
+  ovRaw(`<h2>✨ 이 포켓몬 잡을 수 있어요!</h2>${o.mon.shiny?'<h2 style="color:#e65100">🌈 색이 다른 이로치예요!</h2>':''}${catchPic(o.mon)}<div class="bar" style="justify-content:center">야생 ${esc(o.mon.name)}</div>
     <div class="acts"><button class="go" data-act="catchask">🔴 잡을래!</button><button style="background:#eee" data-act="catchno">그냥 보내 줄래</button></div>`);
 }
 function catchAsk(){
@@ -2408,10 +2413,10 @@ function catchAsk(){
     <div class="acts"><button style="background:#eee" data-act="catchno">확인</button></div>`}`);
 }
 const batchim=w=>{const c=String(w).charCodeAt(String(w).length-1)-44032;return c>=0&&c<11172&&c%28>0};   // 받침이 있으면 '이/을'
-function catchAnim(name,id){              // 연출: 볼 던지기 → 빨려 들어감 → 바닥에 톡 → 세 번 흔들 → 딸깍! → 짠
+function catchAnim(name,id,sh){              // 연출: 볼 던지기 → 빨려 들어감 → 바닥에 톡 → 세 번 흔들 → 딸깍! → 짠
   catchLock=true;
   const stars=[[70,190],[200,185],[135,150],[45,235],[228,232]].map(p=>`<span style="left:${p[0]}px;top:${p[1]}px">⭐</span>`).join('');
-  ovRaw(`<div class="cxst"><img class="cxmon" id="cxmon" src="${ART(id)}"><div class="cxfl" id="cxfl"></div><div class="cxball" id="cxball"></div><div class="cxstars" id="cxstars">${stars}</div></div><div class="evtx" id="cxtx">가라! 몬스터볼!</div>`);
+  ovRaw(`<div class="cxst"><img class="cxmon" id="cxmon" src="${ART(id,sh)}"><div class="cxfl" id="cxfl"></div><div class="cxball" id="cxball"></div><div class="cxstars" id="cxstars">${stars}</div></div><div class="evtx" id="cxtx">가라! 몬스터볼!</div>`);
   const ob=document.getElementById('ovbox'),g=i=>document.getElementById(i),at=(ms,f)=>setTimeout(()=>{try{f()}catch(e){}},ms);
   const ball=c=>{const b=g('cxball');if(b){b.className='cxball';void b.offsetWidth;b.className='cxball '+c}},txt=t=>{g('cxtx').textContent=t};
   at(500,()=>{ball('fly');sfx('buy')});
@@ -2427,7 +2432,7 @@ function catchBuy(){
   if(catchLock)return;
   const o=catchOffer,k=o&&catchKid(o);if(!k||k.coins<CATCH_COST){closeOv();return}   // 두 번 눌러도 한 번만
   const m=monCopy(o.mon);k.coins-=CATCH_COST;k.mons.push(m);k.dex=k.dex||{};k.dex[m.id]=1;k.sel=k.sel||0;
-  catchOffer=null;catchAnim(m.name,m.id);
+  catchOffer=null;catchAnim(m.name,m.id,m.shiny);
   ensureBst(m).then(()=>{save();render()});
 }
 function battleCards(k){                                    // 마을 화면 안에 들어가는 배틀 카드
@@ -2435,7 +2440,7 @@ function battleCards(k){                                    // 마을 화면 안
   if(!m)return '';
   const lv=m.lv||0,left=k.bday===today()?Math.max(0,WILD_DAILY-(k.bn||0)):WILD_DAILY;
   return `<div class="card"><h2>⚔️ 배틀</h2>
-    <div class="giverow"><img src="${ART(m.id)}" style="width:64px;height:64px;object-fit:contain"><span style="flex:1;margin-left:8px"><b>${esc(m.name)}</b> <span class="chip">Lv.${lv}</span> <span class="chip" style="background:#fff3e0">⚡ ${powerOf(m)}</span><br><span class="small">🏆 ${k.bw||0}승 ${k.bl||0}패 · 아래 "내 포켓몬"에서 싸울 친구를 골라요</span></span></div>
+    <div class="giverow"><img src="${ART(m.id,m.shiny)}" style="width:64px;height:64px;object-fit:contain"><span style="flex:1;margin-left:8px"><b>${spark(m)}${esc(m.name)}</b> <span class="chip">Lv.${lv}</span> <span class="chip" style="background:#fff3e0">⚡ ${powerOf(m)}</span><br><span class="small">🏆 ${k.bw||0}승 ${k.bl||0}패 · 아래 "내 포켓몬"에서 싸울 친구를 골라요</span></span></div>
     <div class="acts"><button class="go" data-act="train" ${lv>=MAX_LV||k.coins<trainCost(m)?'disabled':''}>${lv>=MAX_LV?'💪 최고 레벨이에요!':`💪 훈련하기 (💰${won(trainCost(m))})`}</button><button class="egg" data-act="wild" ${left<=0?'disabled':''}>🌿 야생 배틀 (오늘 ${left}번)</button></div>
     <div class="small" style="text-align:center">훈련하면 전투력이 올라가요. 진화하면 훨씬 더 세져요! 야생 배틀에서 이기면 코인 5개를 받고, 그 포켓몬을 코인 ${CATCH_COST}개로 잡을 수도 있어요.</div></div>`;
 }
@@ -2619,8 +2624,8 @@ function rocketView(){
   const r=rockActive(),rem=Math.max(0,r.dl-Date.now());
   const rows=r.targets.map((n,i)=>{
     if((r.done||{})[n]==='blocked')return `<div class="rkdone">✅ ${esc(n)} 막았어요!</div>`;
-    const k=S.kids.find(q=>q.name===n),pc=Math.min(100,Math.round((rkTap[n]||0)/RK_TAPS*100)),ch=k&&k.mons.length?(k.mons[k.sel]||k.mons[0]).id:25;
-    return `<button class="rkbtn" data-rkblock="${i}"><img src="${ART(ch)}"><span><b>🛡 ${esc(n)} 막기!</b><small> ${RK_TAPS}번 눌러요!</small></span><div class="rkbar"><i id="rkb${i}" style="width:${pc}%"></i></div></button>`;
+    const k=S.kids.find(q=>q.name===n),pc=Math.min(100,Math.round((rkTap[n]||0)/RK_TAPS*100)),cm=k&&k.mons.length?(k.mons[k.sel]||k.mons[0]):{id:25};
+    return `<button class="rkbtn" data-rkblock="${i}"><img src="${ART(cm.id,cm.shiny)}"><span><b>🛡 ${esc(n)} 막기!</b><small> ${RK_TAPS}번 눌러요!</small></span><div class="rkbar"><i id="rkb${i}" style="width:${pc}%"></i></div></button>`;
   }).join('');
   return `<div class="dash"><div class="rock" id="rock">
     <div class="rkhead"><span class="rkR">R</span> 로켓단 등장!</div>
@@ -2637,7 +2642,7 @@ function rocketCard(k){                                    // 마을 탭: 뺏긴
   const st=k.stolen||[];if(!st.length)return '';
   const my=k.mons[k.sel],left=k.rday===today()?Math.max(0,RK_TRIES-(k.rn||0)):RK_TRIES;
   return `<div class="card" style="border-color:#7b1fa2"><h2>🚀 로켓단 아지트</h2><div class="small">로켓단에게 뺏긴 포켓몬이에요. 되찾으러 가요!</div>
-    ${st.map((x,i)=>`<div class="giverow"><img src="${ART(x.mon.id)}" style="width:54px;height:54px;object-fit:contain;filter:grayscale(.7)"><span style="flex:1;margin-left:6px"><b>${esc(x.mon.name)}</b> <span class="chip">⚡${powerOf(x.mon)}</span><br><span class="small">${esc(x.day)}에 뺏겼어요</span></span>
+    ${st.map((x,i)=>`<div class="giverow"><img src="${ART(x.mon.id,x.mon.shiny)}" style="width:54px;height:54px;object-fit:contain;filter:grayscale(.7)"><span style="flex:1;margin-left:6px"><b>${esc(x.mon.name)}</b> <span class="chip">⚡${powerOf(x.mon)}</span><br><span class="small">${esc(x.day)}에 뺏겼어요</span></span>
       <button class="go" data-act="rkrescue" data-i="${i}" ${my&&left>0?'':'disabled'}>⚔️ 되찾기 (오늘 ${left}번)</button><button data-act="rkransom" data-i="${i}" ${k.coins>=RK_RANSOM?'':'disabled'}>💰${RK_RANSOM}</button></div>`).join('')}
     <div class="small">⚔️ 내 대표 포켓몬으로 로켓단과 배틀해서 이기면 돌아와요. 💰코인으로 바로 되찾을 수도 있어요.</div></div>`;
 }
@@ -2677,7 +2682,7 @@ function tradeCard(k){
   const mine=String(tSel.mine!==''&&k.mons[+tSel.mine]?tSel.mine:0),theirs=String(tSel.theirs!==''&&partner.mons[+tSel.theirs]?tSel.theirs:0);
   const opt=(q,sel)=>q.mons.map((m,i)=>isAway(q,i)?'':`<option value="${i}" ${String(i)===String(sel)?'selected':''}>${esc(m.name)} ⚡${powerOf(m)}${m.lv?' Lv.'+m.lv:''}</option>`).join('');
   const tr=tradesOpen(),inbox=tr.filter(t=>t.to===k.name),sent=tr.filter(t=>t.from===k.name);
-  const row=(t,mode)=>{const A=t.fm,B=t.tm;return `<div class="giverow"><img src="${ART(A.id)}" style="width:40px;height:40px;object-fit:contain"><span style="margin:0 4px">🔄</span><img src="${ART(B.id)}" style="width:40px;height:40px;object-fit:contain"><span style="flex:1;margin-left:6px;font-size:14px">${mode==='in'?`<b>${esc(t.from)}</b>의 ${esc(A.name)} ↔ 내 ${esc(B.name)}`:`내 ${esc(A.name)} ↔ <b>${esc(t.to)}</b>의 ${esc(B.name)}`}</span>${mode==='in'?`<button class="go" data-act="tradeok" data-id="${t.id}">✔ 수락</button><button data-act="tradeno" data-id="${t.id}">거절</button>`:`<button data-act="tradeno" data-id="${t.id}">취소</button>`}</div>`};
+  const row=(t,mode)=>{const A=t.fm,B=t.tm;return `<div class="giverow"><img src="${ART(A.id,A.shiny)}" style="width:40px;height:40px;object-fit:contain"><span style="margin:0 4px">🔄</span><img src="${ART(B.id,B.shiny)}" style="width:40px;height:40px;object-fit:contain"><span style="flex:1;margin-left:6px;font-size:14px">${mode==='in'?`<b>${esc(t.from)}</b>의 ${esc(A.name)} ↔ 내 ${esc(B.name)}`:`내 ${esc(A.name)} ↔ <b>${esc(t.to)}</b>의 ${esc(B.name)}`}</span>${mode==='in'?`<button class="go" data-act="tradeok" data-id="${t.id}">✔ 수락</button><button data-act="tradeno" data-id="${t.id}">거절</button>`:`<button data-act="tradeno" data-id="${t.id}">취소</button>`}</div>`};
   return `<div class="card"><h2>🔄 포켓몬 교환</h2>
     ${inbox.length?`<div class="small" style="color:#d84315"><b>📩 받은 교환 신청 ${inbox.length}개</b></div>${inbox.map(t=>row(t,'in')).join('')}`:''}
     <div class="row"><span>누구랑?</span><select data-tsel="to" style="width:120px">${others.map(q=>`<option ${q.name===to?'selected':''}>${esc(q.name)}</option>`).join('')}</select></div>
@@ -2695,7 +2700,7 @@ function tradeSend(k){
   const tr=tradesOpen();
   if(tr.some(t=>t.from===k.name&&t.to===partner.name&&t.fm.id===a.id&&t.tm.id===b.id)){toast('이미 보낸 신청이에요');return}
   if(tr.filter(t=>t.from===k.name).length>=5){toast('한 번에 5개까지 신청할 수 있어요');return}
-  S.trades=tr.concat([{id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),from:k.name,to:partner.name,fm:{id:a.id,name:a.name,i:mi},tm:{id:b.id,name:b.name,i:ti},ts:Date.now()}]);
+  S.trades=tr.concat([{id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),from:k.name,to:partner.name,fm:{id:a.id,name:a.name,i:mi,shiny:!!a.shiny},tm:{id:b.id,name:b.name,i:ti,shiny:!!b.shiny},ts:Date.now()}]);
   sfx('coin');toast(`🔄 ${partner.name}에게 교환을 신청했어요!`);
 }
 function tradeAccept(k,id){
@@ -2709,7 +2714,7 @@ function tradeAccept(k,id){
   A.dex=A.dex||{};B.dex=B.dex||{};A.dex[mb.id]=1;B.dex[ma.id]=1;
   S.trades=S.trades.filter(x=>x.id!==id);
   sfx('hatch');confetti();
-  overlay(`<h2>🔄 교환 성공!</h2><div style="display:flex;align-items:center;justify-content:center"><div style="text-align:center"><img class="big" style="width:110px" src="${ART(mb.id)}"><br><b>${esc(mb.name)}</b><br><small>→ ${esc(A.name)}</small></div><span style="font-size:30px;margin:0 8px">🔄</span><div style="text-align:center"><img class="big" style="width:110px" src="${ART(ma.id)}"><br><b>${esc(ma.name)}</b><br><small>→ ${esc(B.name)}</small></div></div>`);
+  overlay(`<h2>🔄 교환 성공!</h2><div style="display:flex;align-items:center;justify-content:center"><div style="text-align:center"><img class="big" style="width:110px" src="${ART(mb.id,mb.shiny)}"><br><b>${esc(mb.name)}</b><br><small>→ ${esc(A.name)}</small></div><span style="font-size:30px;margin:0 8px">🔄</span><div style="text-align:center"><img class="big" style="width:110px" src="${ART(ma.id,ma.shiny)}"><br><b>${esc(ma.name)}</b><br><small>→ ${esc(B.name)}</small></div></div>`);
 }
 /* ---- 마을 ---- */
 function skyPhase(){const d=new Date(),h=d.getHours()+d.getMinutes()/60;return h<5.5||h>=19.5?'night':h<7.5?'dawn':h<17?'day':'dusk'}
@@ -2750,7 +2755,7 @@ function pickDancers(k){                                 // 먼저 대표 포켓
   const idx=k.mons.map((_,i)=>i),out=[];
   if(k.mons.length){out.push(k.sel);idx.splice(idx.indexOf(k.sel),1)}
   while(out.length<6&&idx.length){out.push(idx.splice(Math.floor(Math.random()*idx.length),1)[0])}
-  return out.map(i=>({id:k.mons[i].id,name:k.mons[i].name}));
+  return out.map(i=>({id:k.mons[i].id,name:k.mons[i].name,shiny:!!k.mons[i].shiny}));
 }
 function bdayStart(k){
   const o=bdLoad();
@@ -2815,7 +2820,7 @@ function birthdayView(){
       <div class="bdt2">${a>0&&a<=20?`${KNUM[a]} 살이 된 걸 축하해요!`:'오늘은 너의 날이에요!'}</div></div>
     <div class="bdguests">${r.guests.map((g,i)=>`<div class="bdg" id="bdg${i}"><div class="bdbub" id="bdb${i}"></div><img class="bdgi" src="${ART(g.id)}"><small id="bdn${i}">${esc(g.name||'')}</small></div>`).join('')}</div>
     <div class="bdcake">🎂</div>
-    <div class="bdmons">${r.dancers.map((m,i)=>`<img class="bdm d${i%3}" src="${ART(m.id)}" style="animation-delay:-${(i*0.37).toFixed(2)}s">`).join('')}</div>
+    <div class="bdmons">${r.dancers.map((m,i)=>`<img class="bdm d${i%3}" src="${ART(m.id,m.shiny)}" style="animation-delay:-${(i*0.37).toFixed(2)}s">`).join('')}</div>
     <div class="acts"><button data-act="bdayclose">🎈 닫기</button><span class="small" style="margin-left:10px">축하 파티 남은 시간 <b id="bdleft">${Math.max(0,Math.ceil((c.min*60000-(Date.now()-r.start))/60000))}분</b></span></div></div></div>`;
 }
 function bdayBanner(){
@@ -2891,7 +2896,7 @@ function sceneHtml(k){
     if(isAway(k,i)||k.mons[i].box)return;
     const m=k.mons[i],h=habitatOf(m);cnt[h]=(cnt[h]||0)+1;
     const ps=habPos(h,cnt[h]),dur=7+((i*13)%9),dl=(i*3)%7,pos=ps.top!==undefined?`top:${ps.top}px`:`bottom:${ps.bt}px`;
-    wm+=`<div class="wm h-${h} ${i===k.sel?'sel':''}" data-sel="${i}" style="left:${ps.x}%;${pos};width:${ps.w}px;animation-duration:${dur}s;animation-delay:-${dl}s"><img src="${ART(m.id)}"></div>`;
+    wm+=`<div class="wm h-${h} ${i===k.sel?'sel':''}${m.shiny?' shiny':''}" data-sel="${i}" style="left:${ps.x}%;${pos};width:${ps.w}px;animation-duration:${dur}s;animation-delay:-${dl}s"><img src="${ART(m.id,m.shiny)}"></div>`;
   });
   // 해·달: 시간에 따라 하늘을 가로질러요
   const fr=night?Math.max(0,Math.min(1,((hr>=19.5?hr-19.5:hr+4.5))/10)):Math.max(0,Math.min(1,(hr-6)/13));
@@ -2941,7 +2946,7 @@ function visHtml(k){                                       // 놀러 온 친구�
   return visitorsOf(k).map((v,j)=>{
     const lf=22+((j*29)%58),tag=`<span class="vtag">${esc(v.q.name)}</span>`;
     if(v.o.m<0)return `<div class="vwrap" style="left:${lf}%;bottom:14px">${tag}<div class="tr" style="position:relative"><img src="${TRAINER(v.q.trainer)}"></div></div>`;
-    return `<div class="vwrap" style="left:${lf}%;bottom:${18+((j*23)%40)}px">${tag}<div class="wm" style="position:relative;width:74px;animation-duration:${8+j}s"><img src="${ART(v.q.mons[v.o.m].id)}"></div></div>`;
+    return `<div class="vwrap" style="left:${lf}%;bottom:${18+((j*23)%40)}px">${tag}<div class="wm" style="position:relative;width:74px;animation-duration:${8+j}s"><img src="${ART(v.q.mons[v.o.m].id,v.q.mons[v.o.m].shiny)}"></div></div>`;
   }).join('');
 }
 function shopCard(k){
@@ -2961,7 +2966,7 @@ let boxMode=false,boxOpen=false,boxSel={};
 function monsCard(k){
   const inTown=[],boxed=[];k.mons.forEach((q,i)=>{(q.box?boxed:inTown).push({q,i})});
   const nSel=Object.keys(boxSel).length;
-  const tile=({q,i})=>`<div class="mon ${i===k.sel?'sel':''}${q.box?' boxed':''}${boxSel[i]?' marked':''}" ${boxMode?`data-bx="${i}"`:`data-sel="${i}"`}>${q.box?'<i class="pball"></i>':''}<img src="${ART(q.id)}" loading="lazy"><div>${esc(q.name)}</div><small>⚡${powerOf(q)}</small>${boxMode&&boxSel[i]?'<b class="mk">✓</b>':''}</div>`;
+  const tile=({q,i})=>`<div class="mon ${i===k.sel?'sel':''}${q.box?' boxed':''}${boxSel[i]?' marked':''}" ${boxMode?`data-bx="${i}"`:`data-sel="${i}"`}>${q.box?'<i class="pball"></i>':''}<img src="${ART(q.id,q.shiny)}" loading="lazy"><div>${spark(q)}${esc(q.name)}</div><small>⚡${powerOf(q)}</small>${boxMode&&boxSel[i]?'<b class="mk">✓</b>':''}</div>`;
   return `<div class="card"><h2>내 포켓몬 (${k.mons.length}마리)</h2>
     <div class="acts" style="justify-content:flex-start;margin:0 0 6px"><button class="${boxMode?'go':''}" data-act="bxmode">${boxMode?'✔ 고르기 끝내기':'☑️ 여러 마리 고르기'}</button>${boxMode?`<button data-act="bxput" ${nSel?'':'disabled'}>📦 보관함에 넣기 (${nSel})</button><button data-act="bxout" ${nSel?'':'disabled'}>🌳 마을로 꺼내기 (${nSel})</button><button data-act="bxclear">선택 풀기</button>`:''}</div>
     ${boxMode?'<div class="small">보관하거나 꺼낼 포켓몬을 눌러서 ✓ 표시한 뒤, 위의 버튼을 눌러요.</div>':''}
@@ -2974,7 +2979,7 @@ function townView(){
   const k=K(),p=leadOf(k);
   let hero='<p class="hero">아직 포켓몬이 없어요. 포켓코인으로 알을 뽑아 보세요! 🥚</p>';
   if(p){
-    hero=`<div class="hero"><img src="${ART(p.id)}"><div class="bar" style="justify-content:center">${esc(p.name)} <span class="small">No.${p.id}</span></div>
+    hero=`<div class="hero"><img src="${ART(p.id,p.shiny)}"><div class="bar" style="justify-content:center">${spark(p)}${esc(p.name)} <span class="small">No.${p.id}</span></div>
     <div class="small">${p.final?'최종 진화! 🏆':`진화 비용 💰${won(S.evoCost)}`} · ⚡ 전투력 ${powerOf(p)}</div>
     <div class="acts"><button class="go" data-act="evo" ${p.final||k.coins<S.evoCost?'disabled':''}>✨ 진화시키기 (💰${won(S.evoCost)})</button><button data-act="tree">🌱 진화 계보</button></div></div>`;
   }
@@ -3297,7 +3302,7 @@ document.addEventListener('click',async e=>{
     busy=true;t.disabled=true;t.textContent='진화 중...';
     try{const n=await evolve(p);
       if(n){const old=p.name,oldId=p.id;k.coins-=S.evoCost;Object.assign(p,n);p.bst=0;p.ty=null;ensureBst(p).then(()=>{save();render()});k.dex[p.id]=1;k.evos++;
-        evoAnim(old,oldId,p.name,p.id)}
+        evoAnim(old,oldId,p.name,p.id,p.shiny)}
       else{p.final=true;toast('더 이상 진화하지 않아요 (코인은 그대로예요)')}}
     catch(err){overlay('<h2>인터넷 연결을 확인해주세요 😢</h2>')}
     busy=false;
@@ -3496,8 +3501,8 @@ document.addEventListener('change',e=>{
 document.addEventListener('touchstart',bump,{passive:true});
 /* 이미지가 없으면(신규 포켓몬 등) 기본 스프라이트로 대체 */
 document.addEventListener('error',e=>{const i=e.target;if(!i||i.tagName!=='IMG')return;
-  const m=i.src.match(/official-artwork\/(\d+)\.png/);
-  if(m&&!i.dataset.fb){i.dataset.fb=1;i.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+m[1]+'.png'}else i.style.visibility='hidden'},true);
+  const m=i.src.match(/official-artwork\/(shiny\/)?(\d+)\.png/);
+  if(m&&!i.dataset.fb){i.dataset.fb=1;i.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+(m[1]||'')+m[2]+'.png'}else i.style.visibility='hidden'},true);
 
 /* 시계 갱신 + 자정 지나면 새로고침 */
 setInterval(()=>{
