@@ -434,6 +434,23 @@ main{padding:12px 16px 40px;max-width:1100px;margin:auto}
 @keyframes pop{from{transform:scale(0) rotate(-20deg)}to{transform:scale(1)}}
 /* 🔴 몬스터볼로 잡는 연출 (무대 300x300) */
 .wm.shiny:after{content:'✨';position:absolute;right:-2px;top:-8px;font-size:18px;pointer-events:none}
+.dmax img,img.dmax{-webkit-filter:drop-shadow(0 0 5px #ff1744) drop-shadow(0 0 12px #ff1744);filter:drop-shadow(0 0 5px #ff1744) drop-shadow(0 0 12px #ff1744)}
+.gmax img,img.gmax{-webkit-filter:drop-shadow(0 0 5px #ff1744) drop-shadow(0 0 14px #aa00ff);filter:drop-shadow(0 0 5px #ff1744) drop-shadow(0 0 14px #aa00ff)}
+.scene .wm.dmax{z-index:5}
+.wm.dmax img{transform:scale(1.55);transform-origin:50% 100%}
+.hero.dmax{background:radial-gradient(ellipse at 50% 25%,rgba(255,23,68,.32),rgba(255,23,68,0) 70%)}
+.hero.dmax img{width:250px;height:250px;max-width:100%}
+.bmon.mine.dmax{width:195px;height:195px;left:1%}
+.maxon{margin:8px auto 0;padding:8px 12px;border-radius:14px;background:#ffebee;color:#b71c1c;font-weight:700}
+.acts button.dxbtn{background:#e53935;color:#fff}
+.acts button.gxbtn{background:#7b1fa2;color:#fff}
+.evst.dxst{background:#3a0a14;background:radial-gradient(circle,#8a1230,#1c0510)}
+.evst.dxst.g{background:radial-gradient(circle,#6a1b9a,#16041f)}
+.dxcloud{position:absolute;left:0;right:0;top:8px;font-size:46px;text-align:center;-webkit-filter:sepia(1) saturate(8) hue-rotate(-50deg);filter:sepia(1) saturate(8) hue-rotate(-50deg);animation:cheer 1.2s infinite ease-in-out}
+.evimg.dxsmall{transform:scale(.55)}
+.evimg.dxgrow{-webkit-filter:brightness(1.4) drop-shadow(0 0 16px #ff1744);filter:brightness(1.4) drop-shadow(0 0 16px #ff1744);animation:dxgrow 1.4s ease-in forwards}
+.evimg.dxbig{-webkit-filter:drop-shadow(0 0 14px #ff1744);filter:drop-shadow(0 0 14px #ff1744);transform:scale(1.3);animation:pop .7s}
+@keyframes dxgrow{0%{transform:scale(.55)}40%{transform:scale(.8)}55%{transform:scale(.7)}100%{transform:scale(1.35)}}
 .cxst{position:relative;width:300px;height:300px;border-radius:20px;background:#8fd3ff;background:linear-gradient(#8fd3ff 0%,#d9f3ff 62%,#8bd169 62%,#5fae45 100%);overflow:hidden;margin:0 auto}
 .cxmon{position:absolute;left:75px;top:30px;width:150px;height:150px;object-fit:contain}
 .cxmon.in{animation:cxin .55s ease-in forwards}
@@ -797,6 +814,14 @@ const ART=(id,sh)=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/spr
 const SHINY_P=1/20;
 const rollShiny=m=>{if(Math.random()<SHINY_P)m.shiny=true;return m};
 const spark=m=>m&&m.shiny?'✨ ':'';
+/* 🔴 다이맥스 · 거다이맥스: 코인 100개로 1시간 동안 커지고 세져요. 시간이 지나면 저절로 돌아와요 */
+const MAX_COST=100,MAX_MS=60*60000,MAX_MUL={d:1.5,g:1.7},MAX_KO={d:'다이맥스',g:'거다이맥스'};
+const NO_DMAX=[888,889,890];                         // 자시안 · 자마젠타 · 무한다이노는 게임에서도 다이맥스를 못 해요
+const GMAX={3:10195,6:10196,9:10197,12:10198,25:10199,52:10200,68:10201,94:10202,99:10203,131:10204,133:10205,143:10206,569:10207,809:10208,812:10209,815:10210,818:10211,823:10212,826:10213,834:10214,839:10215,841:10216,842:10217,844:10218,849:10219,851:10220,858:10221,861:10222,869:10223,879:10224,884:10225,892:10226};   // 거다이맥스 모습이 있는 포켓몬 (그림 번호)
+const maxOf=m=>m&&m.max&&m.max.u>Date.now()?m.max.t:'';
+const maxLeft=m=>maxOf(m)?Math.max(1,Math.ceil((m.max.u-Date.now())/60000)):0;
+const look=m=>ART(maxOf(m)==='g'&&GMAX[m.id]?GMAX[m.id]:m.id,m.shiny);         // 지금 보이는 모습
+const maxCls=m=>{const t=maxOf(m);return t?(t==='g'?' dmax gmax':' dmax'):''};
 const TRAINERS=['red','blue','ethan','lyra','brendan','may','lucas','dawn','hilbert','hilda','nate','rosa','calem','serena','elio','selene','victor','gloria','ash'];
 const TR_DEFAULT=['red','ethan','lyra'];
 const KID_COLORS=['#e53935','#fb8c00','#43a047','#00acc1','#8d6e63'];
@@ -935,7 +960,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261128a';
+const BUILD='20261128b';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -1196,12 +1221,15 @@ async function hatchStarter(k,id){
   sfx('hatch');confetti();
   overlay((first.shiny?'<h2>✨ 색이 다른 이로치예요! ✨</h2>':'')+'<h2>🎉 '+st.name+' 등장!</h2><img class="big" src="'+ART(st.id,first.shiny)+'">');
 }
-async function evolve(m){            // 진화할 수 없으면 null
+/* 진화 예약: 정한 아이의 정한 포켓몬은 정한 모습으로 진화해요 (화면에는 알리지 않아요) */
+const EVO_BOOK=[{who:'이현',from:'eevee',to:'sylveon'}];
+async function evolve(m,who){        // 진화할 수 없으면 null
   const sp=await jget(API+'pokemon-species/'+m.id);
   const chain=await jget(sp.evolution_chain.url);
   let found=null;(function walk(n){if(n.species.name===m.sp)found=n;n.evolves_to.forEach(walk)})(chain.chain);
   if(!found||!found.evolves_to.length)return null;
-  const nx=found.evolves_to[Math.floor(Math.random()*found.evolves_to.length)];
+  const bk=EVO_BOOK.find(x=>x.who===who&&x.from===m.sp);
+  const nx=(bk&&found.evolves_to.find(e=>e.species.name===bk.to))||found.evolves_to[Math.floor(Math.random()*found.evolves_to.length)];
   const nid=idFrom(nx.species.url),nsp=await jget(API+'pokemon-species/'+nid);
   return {id:nid,sp:nsp.name,name:koName(nsp)};
 }
@@ -1596,7 +1624,7 @@ function kidsCard(){
   return `<div class="sec"><div class="sh" style="--c:#fb8c00;color:#ef6c00">우리 아이들</div>${S.kids.map((k,i)=>{
     const d=(k.done[today()]||[]).length,t=k.chores.length,p=leadOf(k),st=curStreak(k),b=bdayInfo(k);
     return `<div class="krow" data-gokid="${i}" style="--c:${k.color}">
-      ${p?`<img src="${ART(p.id,p.shiny)}">`:'<span class="egg0">🥚</span>'}
+      ${p?`<img class="${maxCls(p)}" src="${look(p)}">`:'<span class="egg0">🥚</span>'}
       <div class="kinfo"><div class="kl"><b style="color:${k.color}">${esc(k.name)}</b> <span class="chip coin">💰${won(k.coins)}</span> <span class="chip">🐾${k.mons.length}</span>${st?` <span class="chip">🔥${st}</span>`:''}</div>
       <div class="prog" style="margin:3px 0"><i style="width:${t?d/t*100:0}%;background:${k.color}"></i></div>
       <small>미션 ${d}/${t} ${d===t&&t?'🎉':''}${b?` · ${b.age} · 🎂D-${b.left||'DAY'}`:''}</small></div></div>`}).join('')}</div>`;
@@ -2275,14 +2303,15 @@ function todoView(){
   <div class="prog" style="margin:8px 0"><i style="width:${t?n/t*100:0}%"></i></div>
   ${k.chores.map((c,i)=>`<button class="chore ${d.includes(i)?'done':''}" data-chore="${i}"><span class="box">${d.includes(i)?'✓':''}</span><span class="txt">${esc(c.t)}</span><span class="chip coin">💰 +${won(c.c)}</span></button>`).join('')}
   <p class="small">오늘 번 코인 💰${won(gain)} / 최대 💰${won(total)} · 전부 끝내면 보너스 💰${S.bonus}+ (연속일수가 늘수록 더 많이!)</p></div>
-  ${p?`<div class="card hero"><img src="${ART(p.id,p.shiny)}"><div class="bar" style="justify-content:center">${spark(p)}${esc(p.name)}</div></div>`:''}</div>`;
+  ${p?`<div class="card hero${maxCls(p)}"><img src="${look(p)}"><div class="bar" style="justify-content:center">${spark(p)}${esc(p.name)}</div></div>`:''}</div>`;
 }
 
 /* ---- ⚔️ 전투력 · 훈련 · 배틀 ---- */
 const MAX_LV=20,WILD_DAILY=5,WILD_WINS=2,WILD_COIN=5,CATCH_COST=200;   // 야생 배틀: 하루 5번 중 딱 2번만 이기고, 이기면 코인 5개 고정. 이긴 포켓몬은 코인 200개로 잡을 수 있어요
 function wildPlan(){const a=[];for(let i=0;i<WILD_DAILY;i++)a.push(0);let n=0;while(n<WILD_WINS){const i=Math.floor(Math.random()*WILD_DAILY);if(!a[i]){a[i]=1;n++}}return a.join('')}   // 예: '01010' (1=이기는 판)
 const trainCost=m=>30*((m.lv||0)+1);
-const powerOf=m=>Math.round((m.bst>0?m.bst:300)*(1+0.06*(m.lv||0)));
+const basePow=m=>Math.round((m.bst>0?m.bst:300)*(1+0.06*(m.lv||0)));
+const powerOf=m=>Math.round(basePow(m)*(MAX_MUL[maxOf(m)]||1));
 const bstTried={};
 async function ensureBst(m){                                // 종족값(기본 힘)을 한 번 읽어 두면 진화할 때 더 세져요
   if(m.bst>0||bstTried[m.id])return;bstTried[m.id]=1;
@@ -2320,7 +2349,7 @@ async function battleStart(me,mine,opp){                      // opp: {name,id,p
   overlay(`<div class="bstage" id="bstage"><div class="bsky"></div><div class="bground"></div>
     <div class="bsh" style="right:11%;top:46%"></div><div class="bsh" style="left:9%;bottom:6%;width:120px"></div>
     <img id="bimgB" class="bmon foe" src="${ART(opp.id,opp.shiny)}" style="transform:scaleX(-1)">
-    <img id="bimgA" class="bmon mine" src="${ART(mine.id,mine.shiny)}">
+    <img id="bimgA" class="bmon mine${maxCls(mine)}" src="${look(mine)}">
     <div class="bpan foep"><b>${esc(opp.name)}</b><div class="bsub">⚡${pb} ${typeChips(tb)}</div><div class="bhp"><i id="bhpB" class="foe" style="width:100%"></i></div><small id="bhtB">HP 100%</small></div>
     <div class="bpan minep"><b>${esc(mine.name)}</b> <span class="bsub">Lv.${mine.lv||0}</span><div class="bsub">⚡${pa} ${typeChips(ta)}</div><div class="bhp"><i id="bhpA" style="width:100%"></i></div><small id="bhtA">HP 100%</small></div>
     <div id="bfx"></div><div id="bbanner" class="bbanner"></div></div>
@@ -2388,7 +2417,7 @@ async function wildBattle(k){
   const who=kid;
   try{const tot=await speciesCount();id=1+Math.floor(Math.random()*Math.min(tot,1000));spec=await jget(API+'pokemon-species/'+id);name=koName(spec)}catch(e){spec=null}
   fighting=false;
-  const pw=Math.max(60,Math.round(powerOf(m)*(0.6+0.8*Math.random()))),gain=WILD_COIN,shiny=!!spec&&Math.random()<SHINY_P;
+  const pw=Math.max(60,Math.round(basePow(m)*(0.6+0.8*Math.random()))),gain=WILD_COIN,shiny=!!spec&&Math.random()<SHINY_P;
   battleStart(k,m,{name:(shiny?'✨ 이로치 ':'')+'야생 '+name,id,shiny,power:pw,force:want,winTxt:`💰 +${gain}`,onEnd:win=>{if(win){k.coins+=gain;k.earned+=gain;k.bw=(k.bw||0)+1}else k.bl=(k.bl||0)+1},
     after:win=>{if(!win||!spec||!spec.name)return;                 // 포켓몬 정보를 못 읽었으면 잡기는 없어요
       const mon={id,sp:spec.name,name};if(shiny)mon.shiny=true;if(spec.is_legendary||spec.is_mythical)mon.legend=true;
@@ -2440,7 +2469,7 @@ function battleCards(k){                                    // 마을 화면 안
   if(!m)return '';
   const lv=m.lv||0,left=k.bday===today()?Math.max(0,WILD_DAILY-(k.bn||0)):WILD_DAILY;
   return `<div class="card"><h2>⚔️ 배틀</h2>
-    <div class="giverow"><img src="${ART(m.id,m.shiny)}" style="width:64px;height:64px;object-fit:contain"><span style="flex:1;margin-left:8px"><b>${spark(m)}${esc(m.name)}</b> <span class="chip">Lv.${lv}</span> <span class="chip" style="background:#fff3e0">⚡ ${powerOf(m)}</span><br><span class="small">🏆 ${k.bw||0}승 ${k.bl||0}패 · 아래 "내 포켓몬"에서 싸울 친구를 골라요</span></span></div>
+    <div class="giverow"><img class="${maxCls(m)}" src="${look(m)}" style="width:64px;height:64px;object-fit:contain"><span style="flex:1;margin-left:8px"><b>${spark(m)}${esc(m.name)}</b> <span class="chip">Lv.${lv}</span> <span class="chip" style="background:#fff3e0">⚡ ${powerOf(m)}</span><br><span class="small">🏆 ${k.bw||0}승 ${k.bl||0}패 · 아래 "내 포켓몬"에서 싸울 친구를 골라요</span></span></div>
     <div class="acts"><button class="go" data-act="train" ${lv>=MAX_LV||k.coins<trainCost(m)?'disabled':''}>${lv>=MAX_LV?'💪 최고 레벨이에요!':`💪 훈련하기 (💰${won(trainCost(m))})`}</button><button class="egg" data-act="wild" ${left<=0?'disabled':''}>🌿 야생 배틀 (오늘 ${left}번)</button></div>
     <div class="small" style="text-align:center">훈련하면 전투력이 올라가요. 진화하면 훨씬 더 세져요! 야생 배틀에서 이기면 코인 5개를 받고, 그 포켓몬을 코인 ${CATCH_COST}개로 잡을 수도 있어요.</div></div>`;
 }
@@ -2625,7 +2654,7 @@ function rocketView(){
   const rows=r.targets.map((n,i)=>{
     if((r.done||{})[n]==='blocked')return `<div class="rkdone">✅ ${esc(n)} 막았어요!</div>`;
     const k=S.kids.find(q=>q.name===n),pc=Math.min(100,Math.round((rkTap[n]||0)/RK_TAPS*100)),cm=k&&k.mons.length?(k.mons[k.sel]||k.mons[0]):{id:25};
-    return `<button class="rkbtn" data-rkblock="${i}"><img src="${ART(cm.id,cm.shiny)}"><span><b>🛡 ${esc(n)} 막기!</b><small> ${RK_TAPS}번 눌러요!</small></span><div class="rkbar"><i id="rkb${i}" style="width:${pc}%"></i></div></button>`;
+    return `<button class="rkbtn" data-rkblock="${i}"><img src="${look(cm)}"><span><b>🛡 ${esc(n)} 막기!</b><small> ${RK_TAPS}번 눌러요!</small></span><div class="rkbar"><i id="rkb${i}" style="width:${pc}%"></i></div></button>`;
   }).join('');
   return `<div class="dash"><div class="rock" id="rock">
     <div class="rkhead"><span class="rkR">R</span> 로켓단 등장!</div>
@@ -2896,7 +2925,7 @@ function sceneHtml(k){
     if(isAway(k,i)||k.mons[i].box)return;
     const m=k.mons[i],h=habitatOf(m);cnt[h]=(cnt[h]||0)+1;
     const ps=habPos(h,cnt[h]),dur=7+((i*13)%9),dl=(i*3)%7,pos=ps.top!==undefined?`top:${ps.top}px`:`bottom:${ps.bt}px`;
-    wm+=`<div class="wm h-${h} ${i===k.sel?'sel':''}${m.shiny?' shiny':''}" data-sel="${i}" style="left:${ps.x}%;${pos};width:${ps.w}px;animation-duration:${dur}s;animation-delay:-${dl}s"><img src="${ART(m.id,m.shiny)}"></div>`;
+    wm+=`<div class="wm h-${h} ${i===k.sel?'sel':''}${m.shiny?' shiny':''}${maxCls(m)}" data-sel="${i}" style="left:${ps.x}%;${pos};width:${ps.w}px;animation-duration:${dur}s;animation-delay:-${dl}s"><img src="${look(m)}"></div>`;
   });
   // 해·달: 시간에 따라 하늘을 가로질러요
   const fr=night?Math.max(0,Math.min(1,((hr>=19.5?hr-19.5:hr+4.5))/10)):Math.max(0,Math.min(1,(hr-6)/13));
@@ -2946,7 +2975,7 @@ function visHtml(k){                                       // 놀러 온 친구�
   return visitorsOf(k).map((v,j)=>{
     const lf=22+((j*29)%58),tag=`<span class="vtag">${esc(v.q.name)}</span>`;
     if(v.o.m<0)return `<div class="vwrap" style="left:${lf}%;bottom:14px">${tag}<div class="tr" style="position:relative"><img src="${TRAINER(v.q.trainer)}"></div></div>`;
-    return `<div class="vwrap" style="left:${lf}%;bottom:${18+((j*23)%40)}px">${tag}<div class="wm" style="position:relative;width:74px;animation-duration:${8+j}s"><img src="${ART(v.q.mons[v.o.m].id,v.q.mons[v.o.m].shiny)}"></div></div>`;
+    return `<div class="vwrap" style="left:${lf}%;bottom:${18+((j*23)%40)}px">${tag}<div class="wm${maxCls(v.q.mons[v.o.m])}" style="position:relative;width:74px;animation-duration:${8+j}s"><img src="${look(v.q.mons[v.o.m])}"></div></div>`;
   }).join('');
 }
 function shopCard(k){
@@ -2966,7 +2995,7 @@ let boxMode=false,boxOpen=false,boxSel={};
 function monsCard(k){
   const inTown=[],boxed=[];k.mons.forEach((q,i)=>{(q.box?boxed:inTown).push({q,i})});
   const nSel=Object.keys(boxSel).length;
-  const tile=({q,i})=>`<div class="mon ${i===k.sel?'sel':''}${q.box?' boxed':''}${boxSel[i]?' marked':''}" ${boxMode?`data-bx="${i}"`:`data-sel="${i}"`}>${q.box?'<i class="pball"></i>':''}<img src="${ART(q.id,q.shiny)}" loading="lazy"><div>${spark(q)}${esc(q.name)}</div><small>⚡${powerOf(q)}</small>${boxMode&&boxSel[i]?'<b class="mk">✓</b>':''}</div>`;
+  const tile=({q,i})=>`<div class="mon ${i===k.sel?'sel':''}${maxCls(q)}${q.box?' boxed':''}${boxSel[i]?' marked':''}" ${boxMode?`data-bx="${i}"`:`data-sel="${i}"`}>${q.box?'<i class="pball"></i>':''}<img src="${look(q)}" loading="lazy"><div>${spark(q)}${esc(q.name)}</div><small>⚡${powerOf(q)}</small>${boxMode&&boxSel[i]?'<b class="mk">✓</b>':''}</div>`;
   return `<div class="card"><h2>내 포켓몬 (${k.mons.length}마리)</h2>
     <div class="acts" style="justify-content:flex-start;margin:0 0 6px"><button class="${boxMode?'go':''}" data-act="bxmode">${boxMode?'✔ 고르기 끝내기':'☑️ 여러 마리 고르기'}</button>${boxMode?`<button data-act="bxput" ${nSel?'':'disabled'}>📦 보관함에 넣기 (${nSel})</button><button data-act="bxout" ${nSel?'':'disabled'}>🌳 마을로 꺼내기 (${nSel})</button><button data-act="bxclear">선택 풀기</button>`:''}</div>
     ${boxMode?'<div class="small">보관하거나 꺼낼 포켓몬을 눌러서 ✓ 표시한 뒤, 위의 버튼을 눌러요.</div>':''}
@@ -2975,13 +3004,43 @@ function monsCard(k){
     <div class="acts" style="justify-content:flex-start;margin-top:10px"><button data-act="bxopen">📦 보관함 (${boxed.length}마리) ${boxOpen?'▲':'▼'}</button></div>
     ${boxOpen?`<div class="grid" style="margin-top:6px">${boxed.map(tile).join('')||'<div class="small">보관함이 비어 있어요</div>'}</div>`:''}</div>`;
 }
+function maxBox(k,p){                                // 다이맥스 단추 또는 남은 시간
+  const t=maxOf(p);
+  if(t)return `<div class="maxon">${t==='g'?'🌀':'🔴'} ${MAX_KO[t]} 중! ⏱ ${maxLeft(p)}분 남음 · 전투력 ×${MAX_MUL[t]}</div>`;
+  if(NO_DMAX.indexOf(p.id)>=0)return '<div class="small">이 포켓몬은 다이맥스를 할 수 없어요</div>';
+  const no=k.coins<MAX_COST?'disabled':'';
+  return `<div class="acts"><button class="dxbtn" data-act="dmax" data-t="d" ${no}>🔴 다이맥스 (💰${MAX_COST})</button>${GMAX[p.id]?`<button class="gxbtn" data-act="dmax" data-t="g" ${no}>🌀 거다이맥스 (💰${MAX_COST})</button>`:''}</div>
+    <div class="small">1시간 동안 커지고 세져요 · 다이맥스 ×${MAX_MUL.d}${GMAX[p.id]?` · 거다이맥스 ×${MAX_MUL.g}`:''}</div>`;
+}
+function maxGo(k,t){
+  const p=leadOf(k);if(!p||!MAX_MUL[t]||maxOf(p)||NO_DMAX.indexOf(p.id)>=0||(t==='g'&&!GMAX[p.id])||k.coins<MAX_COST)return;
+  if(!confirm(`${p.name}을(를) 코인 ${MAX_COST}개로 ${MAX_KO[t]} 할까요? (1시간)`))return;
+  const before=look(p);k.coins-=MAX_COST;p.max={t,u:Date.now()+MAX_MS};save();render();maxAnim(p,before,t);
+}
+function maxAnim(p,before,t){                          // 연출: 붉은 구름 → 커지며 빛남 → 새 모습
+  const after=look(p);try{const i=new Image();i.src=after}catch(e){}
+  ovRaw(`<div class="evst dxst${t==='g'?' g':''}"><div class="dxcloud">☁️☁️☁️</div><img class="evimg dxsmall" id="dximg" src="${before}"><div class="evfl" id="dxfl"></div></div><div class="evtx" id="dxtx">몬스터볼이 커진다...!</div>`);
+  const ob=document.getElementById('ovbox'),g=i=>document.getElementById(i),at=(ms,f)=>setTimeout(()=>{try{f()}catch(e){}},ms);
+  sfx('hatch');
+  at(900,()=>{g('dximg').className='evimg dxgrow';g('dxtx').textContent=`${p.name}의 몸이 붉게 빛나며 커져요!`;sfx('coin')});
+  at(2300,()=>{g('dximg').src=after;g('dximg').className='evimg dxbig';g('dxfl').className='evfl go';g('dxtx').innerHTML=`${t==='g'?'🌀':'🔴'} <span style="color:#e53935">${MAX_KO[t]}!</span><br>전투력 ⚡${powerOf(p)} · 1시간`;sfx('evo');confetti();
+    ob.insertAdjacentHTML('beforeend','<p><button style="background:#eee" onclick="closeOv()">확인!</button></p>')});
+}
+let maxSig='';
+function maxTick(){                                    // 남은 시간이 바뀌거나 끝나면 화면만 다시 그려요 (기록은 건드리지 않아요)
+  const sig=S.kids.concat(S.parents||[]).map(k=>k.mons.map((m,i)=>maxOf(m)?i+':'+maxLeft(m):'').join('')).join('|');
+  if(sig===maxSig)return;
+  const ov=document.getElementById('ov');if(busy||fighting||(ov&&ov.classList.contains('show'))||(tab!=='town'&&tab!=='home'&&tab!=='todo'))return;
+  maxSig=sig;render();
+}
+setInterval(maxTick,20000);
 function townView(){
   const k=K(),p=leadOf(k);
   let hero='<p class="hero">아직 포켓몬이 없어요. 포켓코인으로 알을 뽑아 보세요! 🥚</p>';
   if(p){
-    hero=`<div class="hero"><img src="${ART(p.id,p.shiny)}"><div class="bar" style="justify-content:center">${spark(p)}${esc(p.name)} <span class="small">No.${p.id}</span></div>
+    hero=`<div class="hero${maxCls(p)}"><img src="${look(p)}"><div class="bar" style="justify-content:center">${spark(p)}${esc(p.name)} <span class="small">No.${p.id}</span></div>
     <div class="small">${p.final?'최종 진화! 🏆':`진화 비용 💰${won(S.evoCost)}`} · ⚡ 전투력 ${powerOf(p)}</div>
-    <div class="acts"><button class="go" data-act="evo" ${p.final||k.coins<S.evoCost?'disabled':''}>✨ 진화시키기 (💰${won(S.evoCost)})</button><button data-act="tree">🌱 진화 계보</button></div></div>`;
+    <div class="acts"><button class="go" data-act="evo" ${p.final||k.coins<S.evoCost||maxOf(p)?'disabled':''}>✨ 진화시키기 (💰${won(S.evoCost)})</button><button data-act="tree">🌱 진화 계보</button></div>${maxBox(k,p)}</div>`;
   }
   return `<div class="stack">${sceneHtml(k)}
   ${visitCard(k)}${giveCard(k)}${shopCard(k)}
@@ -3299,14 +3358,16 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.act==='chitap'){const id=+t.dataset.id,c=VIL.chii.ch.find(x=>x[0]===id),l=(CHI_SAY[id]||['…']);if(c){toast(c[1]+': "'+l[Math.floor(Math.random()*l.length)]+'"',2200);sfx('coin')}return}
   else if(t.dataset.act==='evo'&&!busy){
     const p=leadOf(k);if(!p||p.final||k.coins<S.evoCost)return;
+    if(maxOf(p)){toast('다이맥스가 끝난 뒤에 진화할 수 있어요');return}
     busy=true;t.disabled=true;t.textContent='진화 중...';
-    try{const n=await evolve(p);
+    try{const n=await evolve(p,k.name);
       if(n){const old=p.name,oldId=p.id;k.coins-=S.evoCost;Object.assign(p,n);p.bst=0;p.ty=null;ensureBst(p).then(()=>{save();render()});k.dex[p.id]=1;k.evos++;
         evoAnim(old,oldId,p.name,p.id,p.shiny)}
       else{p.final=true;toast('더 이상 진화하지 않아요 (코인은 그대로예요)')}}
     catch(err){overlay('<h2>인터넷 연결을 확인해주세요 😢</h2>')}
     busy=false;
   }
+  else if(t.dataset.act==='dmax'){maxGo(k,t.dataset.t);return}
   else if(t.dataset.act==='tree'){
     const p=leadOf(k);if(!p)return;
     overlay(`<h2>${esc(p.name)}의 진화 계보</h2><div id="ovtree" class="evw">불러오는 중...</div>`);
