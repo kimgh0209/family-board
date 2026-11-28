@@ -332,12 +332,19 @@ function suggestPlace(){                              // 전에 이 근처에서
   if(!here)return '';const r=MEM.find(m=>m.place&&m.lat!=null&&meters(here,m)<150);return r?r.place:'';
 }
 function geoRefresh(){if(screen==='gym'){const g=gymById(gymId),n=!!(here&&g&&meters(here,g)<=RAID_RANGE);if(n!==gymNear){gymNear=n;render()}return}if(screen!=='home')return;if($('mapslot'))updateHome();else render()}
+const GEO_MSG={1:'📍 위치 권한이 막혀 있어요. 인터넷 앱의 위치 권한을 허용해 주세요 (코드 1)',2:'📍 위치 신호를 못 받아요. 휴대폰 위치를 켜고 🎯를 눌러요 (코드 2)',3:'📍 위치 찾는 데 오래 걸려요. 창가나 밖에서 🎯를 눌러요 (코드 3)'};
+let fineGps=true;                                     // 정밀 위치가 안 잡히는 옛 폰은 와이파이·기지국 위치로 바꿔 찾아요
 function locate(){                                    // 걸어 다니면 내 위치가 따라와요
   if(!navigator.geolocation){geoState='위치를 쓸 수 없는 기기예요';return}
   if(watchId!==null)return;
-  watchId=navigator.geolocation.watchPosition(p=>{
-    here={lat:+p.coords.latitude.toFixed(5),lon:+p.coords.longitude.toFixed(5)};geoState='📍 내 위치';geoRefresh();
-  },()=>{if(!here){geoState='📍 위치를 못 찾았어요. 설정에서 위치를 허용해 주세요';geoRefresh()}},{enableHighAccuracy:true,timeout:20000,maximumAge:10000});
+  const got=p=>{here={lat:+p.coords.latitude.toFixed(5),lon:+p.coords.longitude.toFixed(5)};geoState='📍 내 위치';geoRefresh()};
+  const fail=e=>{if(!here){geoState=GEO_MSG[e&&e.code]||'📍 위치를 못 찾았어요';geoRefresh()}};
+  if(!here&&navigator.geolocation.getCurrentPosition)  // 먼저 대략의 위치를 빨리 받아 둬요
+    navigator.geolocation.getCurrentPosition(p=>{if(!here)got(p)},()=>{},{enableHighAccuracy:false,timeout:20000,maximumAge:600000});
+  watchId=navigator.geolocation.watchPosition(got,e=>{
+    if(fineGps&&e&&e.code!==1){fineGps=false;stopLocate();locate();return}
+    fail(e);
+  },{enableHighAccuracy:fineGps,timeout:fineGps?15000:40000,maximumAge:fineGps?10000:60000});
 }
 function stopLocate(){if(watchId!==null&&navigator.geolocation.clearWatch)navigator.geolocation.clearWatch(watchId);watchId=null}
 
@@ -1102,7 +1109,7 @@ document.addEventListener('click',async e=>{
   else if(a==='famsave')famSave();
   else if(a==='gymadd')gymEdit('add');
   else if(t.dataset.gymdel){gymEdit('del',t.dataset.gymdel)}
-  else if(a==='recenter'){follow=true;stopLocate();locate();drawSpawns()}
+  else if(a==='recenter'){follow=true;fineGps=true;stopLocate();if(!here)geoState='📍 위치를 다시 찾는 중...';locate();drawSpawns()}
   else if(a==='home'){unwatchRaid();screen='home';render();locate();pullSettings()}
   else if(a==='album'){screen='album';render()}
   else if(a==='bag'){if(screen==='home')bagWho=cfg.who;screen='bag';render()}
