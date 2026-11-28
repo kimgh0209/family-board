@@ -960,7 +960,7 @@ function fitScreen(){
   }catch(e){}
 }
 if(window.addEventListener)window.addEventListener('resize',fitScreen);fitScreen();
-const BUILD='20261128b';
+const BUILD='20261128c';
 /* 새 버전이 올라왔는지 가끔 확인해서 자동으로 다시 불러와요 (아이패드 캐시 때문에 옛 화면이 남는 것 방지) */
 async function checkUpdate(){
   try{
@@ -2411,7 +2411,7 @@ async function wildBattle(k){
   if(k.bn>=WILD_DAILY){toast('오늘은 야생 배틀을 다 했어요! 내일 또 만나요 😊');return}
   fighting=true;
   await ensureBst(m);
-  const want=k.wp.charAt(k.bn)==='1';
+  const want=!!maxOf(m)||k.wp.charAt(k.bn)==='1';           // 다이맥스·거다이맥스 중에는 무조건 이겨요
   k.bn++;
   let id=1+Math.floor(Math.random()*151),name='야생 포켓몬',spec=null;
   const who=kid;
@@ -3010,7 +3010,7 @@ function maxBox(k,p){                                // 다이맥스 단추 또�
   if(NO_DMAX.indexOf(p.id)>=0)return '<div class="small">이 포켓몬은 다이맥스를 할 수 없어요</div>';
   const no=k.coins<MAX_COST?'disabled':'';
   return `<div class="acts"><button class="dxbtn" data-act="dmax" data-t="d" ${no}>🔴 다이맥스 (💰${MAX_COST})</button>${GMAX[p.id]?`<button class="gxbtn" data-act="dmax" data-t="g" ${no}>🌀 거다이맥스 (💰${MAX_COST})</button>`:''}</div>
-    <div class="small">1시간 동안 커지고 세져요 · 다이맥스 ×${MAX_MUL.d}${GMAX[p.id]?` · 거다이맥스 ×${MAX_MUL.g}`:''}</div>`;
+    <div class="small">1시간 동안 커지고 세져요 · 다이맥스 ×${MAX_MUL.d}${GMAX[p.id]?` · 거다이맥스 ×${MAX_MUL.g}`:''} · 변신 중 야생 배틀은 무조건 승리!</div>`;
 }
 function maxGo(k,t){
   const p=leadOf(k);if(!p||!MAX_MUL[t]||maxOf(p)||NO_DMAX.indexOf(p.id)>=0||(t==='g'&&!GMAX[p.id])||k.coins<MAX_COST)return;
